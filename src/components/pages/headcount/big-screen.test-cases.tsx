@@ -8,6 +8,7 @@ import { BigScreen } from "./big-screen";
 const overall: PublicDisplay = {
 	eventTitle: "Big Expo",
 	level: null,
+	hall: null,
 	configured: true,
 	insideNow: 200,
 	capacity: 320,
@@ -43,16 +44,26 @@ const overall: PublicDisplay = {
 	generatedAt: "2026-10-13T10:00:00+08:00",
 };
 
-function renderScreen(level: string | null = null, scoped?: PublicDisplay) {
+function renderScreen(
+	level: string | null = null,
+	scoped?: PublicDisplay,
+	hall: string | null = null,
+) {
 	const client = new QueryClient();
-	client.setQueryData(["public-people-counter-display", "expo", null], overall);
+	client.setQueryData(
+		["public-people-counter-display", "expo", null, null],
+		overall,
+	);
 	if (scoped)
 		client.setQueryData(
-			["public-people-counter-display", "expo", level],
+			["public-people-counter-display", "expo", level, hall],
 			scoped,
 		);
+	const searchParams: Record<string, string> = {};
+	if (level) searchParams.level = level;
+	if (hall) searchParams.hall = hall;
 	return renderToStaticMarkup(
-		<NuqsTestingAdapter searchParams={level === null ? "" : { level }}>
+		<NuqsTestingAdapter searchParams={searchParams}>
 			<QueryClientProvider client={client}>
 				<BigScreen slug="expo" />
 			</QueryClientProvider>
@@ -94,4 +105,58 @@ function renderScreen(level: string | null = null, scoped?: PublicDisplay) {
 	const html = renderScreen("level 2");
 	assert(html.includes("Loading"));
 	assert(!html.includes("Main Hall"));
+}
+
+// A single-hall screen shows just that hall: no list, no other halls.
+{
+	const html = renderScreen(
+		null,
+		{
+			...overall,
+			hall: "Hall B",
+			insideNow: 28,
+			capacity: 120,
+			hallsCounted: 1,
+			hallsTotal: 1,
+			levels: [],
+			halls: [overall.halls[1]],
+		},
+		"Hall B",
+	);
+	assert(html.includes("Hall B"));
+	assert(!html.includes("Main Hall"));
+	assert(!html.includes("Halls on this level"));
+	assert(!html.includes("counting"));
+}
+
+// A hall with no working counter says why instead of showing a bare dash.
+{
+	const html = renderScreen(
+		null,
+		{
+			...overall,
+			hall: "Hall C",
+			insideNow: null,
+			capacity: null,
+			hallsCounted: 0,
+			hallsTotal: 1,
+			levels: [],
+			halls: [overall.halls[2]],
+		},
+		"Hall C",
+	);
+	assert(html.includes("No counter linked yet"));
+}
+
+// At capacity the screen tells people to wait.
+{
+	const html = renderScreen("Level 2", {
+		...overall,
+		level: "Level 2",
+		insideNow: 120,
+		capacity: 120,
+		levels: [overall.levels[1]],
+		halls: overall.halls.slice(1),
+	});
+	assert(html.includes("Full · please wait"));
 }

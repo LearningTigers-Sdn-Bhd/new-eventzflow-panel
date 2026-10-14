@@ -112,6 +112,8 @@ export interface PublicDisplay {
 	eventTitle: string;
 	/** The level this screen is narrowed to; null for the whole event. */
 	level: string | null;
+	/** The hall this screen is narrowed to; null unless it is a single-hall screen. */
+	hall: string | null;
 	configured: boolean;
 	insideNow: number | null;
 	capacity: number | null;

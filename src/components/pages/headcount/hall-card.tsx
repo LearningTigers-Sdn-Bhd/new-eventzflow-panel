@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import type { HeadcountHall } from "@/lib/api/event/hall";
 import { cn } from "@/lib/utils";
+import { BigScreenLink } from "./big-screen-link";
 import {
 	formatCount,
 	occupancyPercent,
@@ -76,6 +77,10 @@ export function HallCard({ hall }: { hall: HeadcountHall }) {
 				<Figure label="In · whole event" value={hall.inEvent} />
 				<Figure label="Out · whole event" value={hall.outEvent} />
 			</dl>
+
+			<div className="border-t pt-3">
+				<BigScreenLink compact level={hall.floor} hall={hall.name} />
+			</div>
 		</div>
 	);
 }

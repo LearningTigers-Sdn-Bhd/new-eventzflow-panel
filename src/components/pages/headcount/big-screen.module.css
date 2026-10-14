@@ -46,6 +46,21 @@
 	gap: 4vw;
 	align-items: stretch;
 }
+.content[data-single="true"] {
+	grid-template-columns: minmax(0, 1fr);
+}
+.screen[data-stale="true"] .hero {
+	opacity: 0.5;
+}
+.fullscreen {
+	margin-top: 0.4em;
+	padding: 0.2em 0.8em;
+	border: 1px solid #20241f40;
+	background: none;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
 .hero[data-tone="amber"],
 .levelHeading[data-tone="amber"],
 .hall[data-tone="amber"] {

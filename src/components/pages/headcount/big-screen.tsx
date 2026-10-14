@@ -12,10 +12,14 @@ import {
 	occupancyTone,
 	statusMessage,
 } from "./format";
+import { useAutoReload, useFullscreen, useWakeLock } from "./use-kiosk";
+
+const STALE_AFTER_MS = 60_000;
 
 function crowdWord(percent: number | null): string {
 	if (percent === null) return "Live occupancy";
-	if (percent > 100) return "Over capacity";
+	if (percent > 100) return "Over capacity · please wait";
+	if (percent === 100) return "Full · please wait";
 	if (percent >= 70) return "Getting busy";
 	return "Space available";
 }
@@ -38,30 +42,37 @@ function Message({ title, text }: { title: string; text: string }) {
 	);
 }
 
+const clockText = (ms: number) =>
+	new Date(ms).toLocaleTimeString("en-MY", { timeZone: "Asia/Kuching" });
+
+/** Ticks every second: the time to show, and the same moment in ms for age checks. */
 function useClock() {
-	const [now, setNow] = useState("");
+	const [ms, setMs] = useState(0);
 	useEffect(() => {
-		const tick = () =>
-			setNow(
-				new Date().toLocaleTimeString("en-MY", { timeZone: "Asia/Kuching" }),
-			);
+		const tick = () => setMs(Date.now());
 		tick();
 		const id = setInterval(tick, 1000);
 		return () => clearInterval(id);
 	}, []);
-	return now;
+	return { text: ms ? clockText(ms) : "", ms };
 }
 
 function Hero({ data }: { data: PublicDisplay }) {
 	const percent = occupancyPercent(data.insideNow, data.capacity);
+	const status = data.hall ? data.halls[0]?.status : "ok";
+	const hallProblem = status && status !== "ok" ? statusMessage[status] : null;
 	const count = formatCount(data.insideNow);
 	return (
 		<section
 			className={styles.hero}
-			data-tone={occupancyTone(percent)}
+			data-tone={
+				percent !== null && percent >= 100 ? "red" : occupancyTone(percent)
+			}
 			aria-live="polite"
 		>
-			<p className={styles.heroLabel}>{data.level ?? "Overall"} · inside now</p>
+			<p className={styles.heroLabel}>
+				{data.hall ?? data.level ?? "Overall"} · inside now
+			</p>
 			<div className={styles.heroFigure}>
 				<p
 					className={styles.count}
@@ -71,7 +82,7 @@ function Hero({ data }: { data: PublicDisplay }) {
 				>
 					{count}
 				</p>
-				<p className={styles.countLabel}>people inside</p>
+				<p className={styles.countLabel}>{hallProblem ?? "people inside"}</p>
 			</div>
 			<div>
 				<p className={styles.crowd}>{crowdWord(percent)}</p>
@@ -169,11 +180,16 @@ function Places({ data }: { data: PublicDisplay }) {
 /** Public display, styled to match the RFID arrival screen. */
 export function BigScreen({ slug }: { slug: string }) {
 	const [level] = useQueryState("level");
-	const { data, isLoading, isError, error } = usePublicDisplay(
+	const [hall] = useQueryState("hall");
+	const { data, isLoading, isError, error, dataUpdatedAt } = usePublicDisplay(
 		slug,
 		level || null,
+		hall || null,
 	);
 	const clock = useClock();
+	const fullscreen = useFullscreen();
+	useWakeLock();
+	useAutoReload();
 	if (isLoading)
 		return <Message title="Loading..." text="Getting the live numbers." />;
 	if (!data) {
@@ -198,15 +214,16 @@ export function BigScreen({ slug }: { slug: string }) {
 				text="Live numbers aren't available for this event yet."
 			/>
 		);
+	const stale = isError && clock.ms - dataUpdatedAt >= STALE_AFTER_MS;
 	return (
-		<main className={styles.screen}>
+		<main className={styles.screen} data-stale={stale}>
 			<header className={styles.header}>
 				<h1>{data.eventTitle}</h1>
-				<p>{data.level ?? "Live occupancy"}</p>
+				<p>{data.hall ?? data.level ?? "Live occupancy"}</p>
 			</header>
-			<div className={styles.content}>
+			<div className={styles.content} data-single={Boolean(data.hall)}>
 				<Hero data={data} />
-				<Places data={data} />
+				{!data.hall && <Places data={data} />}
 			</div>
 			<footer className={styles.footer}>
 				<div>
@@ -216,17 +233,31 @@ export function BigScreen({ slug }: { slug: string }) {
 						role="status"
 					>
 						<span aria-hidden="true" />
-						{isError ? "Reconnecting · showing the last numbers" : "Live"}
+						{!isError && "Live"}
+						{isError && !stale && "Reconnecting · showing the last numbers"}
+						{stale && `Offline · numbers from ${clockText(dataUpdatedAt)}`}
 					</p>
-					<p>
-						{`${data.hallsCounted} of ${data.hallsTotal} ${data.hallsTotal === 1 ? "hall" : "halls"} counting`}
-						{data.hallsCounted < data.hallsTotal && " · Working counters only"}
-					</p>
+					{!data.hall && (
+						<p>
+							{`${data.hallsCounted} of ${data.hallsTotal} ${data.hallsTotal === 1 ? "hall" : "halls"} counting`}
+							{data.hallsCounted < data.hallsTotal &&
+								" · Working counters only"}
+						</p>
+					)}
 				</div>
 				<span className={styles.wordmark}>EventzFlow</span>
 				<div className={styles.clock}>
-					<p>{clock}</p>
+					<p>{clock.text}</p>
 					<p>Malaysia time · UTC+8</p>
+					{fullscreen.supported && !fullscreen.active && (
+						<button
+							type="button"
+							className={styles.fullscreen}
+							onClick={fullscreen.toggle}
+						>
+							Fullscreen
+						</button>
+					)}
 				</div>
 			</footer>
 		</main>
