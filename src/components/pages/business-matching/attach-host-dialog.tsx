@@ -32,7 +32,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
 	useBusinessMatchingTags,
 	useCreateAndAssignHost,
-	useGenerateHostInviteToken,
+	useHostInviteToken,
 	useLinkExhibitorHost,
 	useSendHostInviteEmail,
 } from "@/hooks/use-business-matching";
@@ -104,16 +104,25 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 		);
 	};
 
-	// Tab 1: Invite Link — the link carries an opaque signed token, never
+	// Tab 1: Invite Link — the link carries only a short opaque code, never
 	// the raw event/session IDs, so it can't be hand-edited to point at a
-	// different session.
-	const { data: inviteTokenData, isLoading: isLoadingInviteLink } =
-		useGenerateHostInviteToken(bmEvent.event_id, bmEvent.id);
-	const inviteLink = inviteTokenData
-		? `${window.location.origin}/invite/host?token=${encodeURIComponent(inviteTokenData.token)}`
+	// different session. Shown if one exists; created on click.
+	const {
+		token: inviteToken,
+		isLoading: isLoadingInviteLink,
+		isGenerating: isGeneratingInviteLink,
+		generate: generateInviteLink,
+	} = useHostInviteToken(bmEvent.event_id, bmEvent.id);
+	const inviteLink = inviteToken
+		? `${window.location.origin}/invite/host/${inviteToken}`
 		: "";
+	const inviteLinkText = isLoadingInviteLink
+		? "Loading..."
+		: isGeneratingInviteLink
+			? "Generating link..."
+			: inviteLink;
 	const copyInviteLink = () => {
-		if (!inviteLink) return;
+		if (!inviteLink) return generateInviteLink();
 		navigator.clipboard
 			.writeText(inviteLink)
 			.then(() => toast.success("Invite link copied to clipboard"))
@@ -294,13 +303,17 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 					<div className="flex gap-2">
 						<Input
 							id="invite-link"
-							value={isLoadingInviteLink ? "Generating link..." : inviteLink}
+							value={inviteLinkText}
+							placeholder="No link yet"
 							readOnly
 							className="font-mono text-xs"
 						/>
-						<Button onClick={copyInviteLink} disabled={!inviteLink}>
+						<Button
+							onClick={copyInviteLink}
+							disabled={isLoadingInviteLink || isGeneratingInviteLink}
+						>
 							<Copy className="mr-2 h-4 w-4" />
-							Copy link
+							{inviteLink ? "Copy link" : "Generate link"}
 						</Button>
 					</div>
 				</div>
@@ -429,19 +442,18 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 								<div className="flex gap-2">
 									<Input
 										id="invite-link-found"
-										value={
-											isLoadingInviteLink ? "Generating link..." : inviteLink
-										}
+										value={inviteLinkText}
+										placeholder="No link yet"
 										readOnly
 									/>
 									<Button
 										type="button"
 										variant="secondary"
 										onClick={copyInviteLink}
-										disabled={!inviteLink}
+										disabled={isLoadingInviteLink || isGeneratingInviteLink}
 									>
 										<Copy className="mr-2 h-4 w-4" />
-										Copy
+										{inviteLink ? "Copy" : "Generate"}
 									</Button>
 								</div>
 							</div>
@@ -543,19 +555,18 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 								<div className="flex gap-2">
 									<Input
 										id="invite-link-new"
-										value={
-											isLoadingInviteLink ? "Generating link..." : inviteLink
-										}
+										value={inviteLinkText}
+										placeholder="No link yet"
 										readOnly
 									/>
 									<Button
 										type="button"
 										variant="secondary"
 										onClick={copyInviteLink}
-										disabled={!inviteLink}
+										disabled={isLoadingInviteLink || isGeneratingInviteLink}
 									>
 										<Copy className="mr-2 h-4 w-4" />
-										Copy
+										{inviteLink ? "Copy" : "Generate"}
 									</Button>
 								</div>
 							</div>

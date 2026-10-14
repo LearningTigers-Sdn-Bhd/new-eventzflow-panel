@@ -349,8 +349,17 @@ export async function joinBusinessHost(
 	return restClient.post<void>(url, { business_matching_event_id: bmEventId });
 }
 
-// Mints an opaque, signed token encoding event/session — the shareable
-// invite link carries only this token, never raw IDs.
+// Read-only: the session's active short invite code, or null if none yet.
+export async function getHostInviteToken(
+	eventId: string,
+	bmEventId: string,
+): Promise<{ token: string | null }> {
+	const url = `v1/business_matching/events/${eventId}/hosts/invite_link?business_matching_event_id=${encodeURIComponent(bmEventId)}`;
+	return restClient.get<{ token: string | null }>(url);
+}
+
+// Returns the session's short invite code, creating it if needed — the
+// shareable invite link carries only this code, never raw IDs.
 export async function generateHostInviteToken(
 	eventId: string,
 	bmEventId: string,

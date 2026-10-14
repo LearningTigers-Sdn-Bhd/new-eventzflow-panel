@@ -40,7 +40,6 @@ export async function generateVendorInviteLink(
  * Verify vendor invitation token (public endpoint - optionally pass auth token to check assignment)
  */
 export async function verifyVendorInviteToken(
-	eventId: number,
 	token: string,
 	accessToken?: string,
 ): Promise<VerifyInviteTokenResponse> {
@@ -50,10 +49,9 @@ export async function verifyVendorInviteToken(
 	}
 
 	return kyPublicClient
-		.get(
-			`v1/events/${eventId}/vendor_invitations/verify?token=${encodeURIComponent(token)}`,
-			{ headers },
-		)
+		.get(`v1/vendor_invitations/verify?token=${encodeURIComponent(token)}`, {
+			headers,
+		})
 		.json<VerifyInviteTokenResponse>();
 }
 

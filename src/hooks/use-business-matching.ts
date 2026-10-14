@@ -24,6 +24,7 @@ import {
 	getBusinessMatchingTags,
 	getDetailedSlots,
 	getHostInvitations,
+	getHostInviteToken,
 	getPortalData,
 	getPortalMatches,
 	getPortalTags,
@@ -201,19 +202,27 @@ export const useLinkExhibitorHost = (eventId: string) => {
 	});
 };
 
-// Mints a fresh, opaque invite token for a given session — used to build
-// the shareable "Invite with Link" URL without exposing raw IDs.
-export const useGenerateHostInviteToken = (
-	eventId: string,
-	bmEventId: string,
-) =>
-	useQuery({
-		queryKey: ["business-matching-host-invite-token", eventId, bmEventId],
-		queryFn: () => generateHostInviteToken(eventId, bmEventId),
+// Short invite code for a session: looked up read-only on open, created
+// only when the user clicks generate.
+export const useHostInviteToken = (eventId: string, bmEventId: string) => {
+	const queryClient = useQueryClient();
+	const queryKey = ["business-matching-host-invite-token", eventId, bmEventId];
+	const query = useQuery({
+		queryKey,
+		queryFn: () => getHostInviteToken(eventId, bmEventId),
 		enabled: !!eventId && !!bmEventId,
-		staleTime: 0,
-		gcTime: 0,
 	});
+	const generate = useMutation({
+		mutationFn: () => generateHostInviteToken(eventId, bmEventId),
+		onSuccess: (data) => queryClient.setQueryData(queryKey, data),
+	});
+	return {
+		token: query.data?.token ?? null,
+		isLoading: query.isLoading,
+		isGenerating: generate.isPending,
+		generate: () => generate.mutate(),
+	};
+};
 
 export const useSendHostInviteEmail = (eventId: string) => {
 	const queryClient = useQueryClient();
