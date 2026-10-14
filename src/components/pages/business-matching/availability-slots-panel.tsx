@@ -1,25 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Calendar } from "@/components/ui/calendar"; // Use project's Calendar component
-import "react-day-picker/dist/style.css"; // Assuming basic styling is needed
-
+import { format } from "date-fns";
 import {
 	ArrowLeft,
 	Box,
 	Calendar as CalendarIcon,
+	Clock,
 	Loader2,
 } from "lucide-react"; // Aliased Calendar icon
+import { useEffect, useState } from "react";
 import { ErrorState } from "@/components/data-state";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar"; // Use project's Calendar component
 import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
-	EmptyMedia,
 	EmptyTitle,
 } from "@/components/ui/empty";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	useBusinessMatchingAvailability,
@@ -56,21 +55,14 @@ export default function AvailabilitySlotsPanel({
 
 	const { data, isLoading, error, isFetching } =
 		useBusinessMatchingAvailability(bmEventId, eventId);
-	const {
-		data: detailedSlotsData,
-		isLoading: isLoadingDetailedSlots,
-		isFetching: isFetchingDetailedSlots,
-	} = useBusinessMatchingDetailedSlots(
-		bmEventId,
-		selectedFormattedDate ?? null,
-		eventId,
-	);
+	const { data: detailedSlotsData, isLoading: isLoadingDetailedSlots } =
+		useBusinessMatchingDetailedSlots(
+			bmEventId,
+			selectedFormattedDate ?? null,
+			eventId,
+		);
 
-	const isRefreshing =
-		isLoading ||
-		isFetching ||
-		isLoadingDetailedSlots ||
-		isFetchingDetailedSlots;
+	const isRefreshing = isLoading || isFetching;
 
 	useEffect(() => {
 		return () => {
@@ -142,29 +134,23 @@ export default function AvailabilitySlotsPanel({
 	}
 
 	const renderCalendar = () => {
-		const calendarStyle = isMobile
-			? ({ "--cell-size": "clamp(26px, 11vw, 32px)" } as React.CSSProperties)
-			: undefined;
-		const calendarClassNames = isMobile
-			? {
-					root: "rdp w-full mx-auto flex justify-center",
-					months: "rdp-months flex flex-col items-center",
-					month: "rdp-month w-full flex flex-col items-center",
-					nav: "rdp-nav absolute inset-x-0 top-0 flex w-full max-w-[360px] items-center justify-between gap-1 px-1",
-					month_caption:
-						"rdp-caption flex h-(--cell-size) w-full max-w-[360px] items-center justify-center px-4 text-sm",
-					weekdays: "flex w-full max-w-[360px] mx-auto justify-between",
-					week: "mt-2 flex w-full max-w-[360px] mx-auto justify-between",
-					table: "w-full max-w-[360px] mx-auto border-collapse",
-				}
-			: undefined;
+		const calendarStyle = {
+			"--cell-size": isMobile
+				? "clamp(32px, 11vw, 44px)"
+				: "clamp(44px, 3.4vw, 60px)",
+		} as React.CSSProperties;
 
 		return (
-			<div className="flex w-full flex-col items-center overflow-hidden">
-				<h3 className="mb-4 flex items-center gap-2 self-start font-semibold text-lg md:self-center">
-					<CalendarIcon className="h-5 w-5" /> Available Dates
-				</h3>
-				<div className="flex w-full justify-center overflow-x-auto pb-2">
+			<div className="flex w-full flex-col gap-4">
+				<div>
+					<h3 className="flex items-center gap-2 font-semibold text-base">
+						<CalendarIcon className="h-4 w-4" /> Pick a date
+					</h3>
+					<p className="text-muted-foreground text-sm">
+						Dates with open slots are highlighted.
+					</p>
+				</div>
+				<div className="flex w-full justify-center border p-2">
 					<Calendar
 						mode="single"
 						selected={selectedDate}
@@ -185,86 +171,109 @@ export default function AvailabilitySlotsPanel({
 							available: (day) => isAvailableDate(day, data?.dates),
 						}}
 						modifiersClassNames={{
-							today: "bg-green-100 text-emerald-800 rounded-full",
-							available: "bg-green-100 text-emerald-800 rounded-full",
-							selected: "!bg-emerald-600 !text-white rounded-full",
+							today: "[&>button]:ring-1 [&>button]:ring-muted-foreground/40",
+							available:
+								"[&>button]:rounded-full [&>button]:bg-green-100 [&>button]:font-semibold [&>button]:text-green-800 [&>button]:hover:bg-green-200",
+							selected:
+								"[&>button]:rounded-full [&>button]:bg-green-600! [&>button]:text-white! [&>button]:hover:bg-green-700!",
 						}}
-						className={
-							isMobile
-								? "w-full rounded-md border p-1 text-sm"
-								: "w-fit rounded-md border p-2"
-						}
+						className="w-fit p-1"
+						// Drop the shared range-edge corner rules so a selected Sat/Sun stays round.
+						classNames={{
+							day: "group/day relative aspect-square h-full w-full select-none p-0 text-center min-w-(--cell-size) [&>button]:mx-auto [&>button]:size-12 [&>button]:min-w-0",
+						}}
 						style={calendarStyle}
-						classNames={calendarClassNames}
 					/>
+				</div>
+				<div className="flex flex-wrap items-center gap-4 px-3 text-muted-foreground text-xs">
+					<span className="flex items-center gap-1.5">
+						<span className="h-3 w-3 rounded-full bg-green-100 ring-1 ring-green-300" />
+						Available
+					</span>
+					<span className="flex items-center gap-1.5">
+						<span className="h-3 w-3 rounded-full bg-green-600" />
+						Selected
+					</span>
+					<span className="flex items-center gap-1.5">
+						<span className="h-3 w-3 rounded-full ring-1 ring-muted-foreground/40" />
+						Today
+					</span>
 				</div>
 			</div>
 		);
 	};
 
 	const renderSlots = () => {
-		return (
-			<div className="w-full">
-				<h3 className="mb-4 text-center font-semibold text-lg md:text-xl">
-					{selectedDate
-						? `Select a slot for ${selectedFormattedDate}:`
-						: "Select a date to view slots"}
-				</h3>
+		const slots = detailedSlotsData?.slots ?? [];
 
-				{isLoadingDetailedSlots && (
-					<div className="flex h-32 items-center justify-center p-4">
-						<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-						<span className="ml-2 text-base text-muted-foreground">
-							Loading slots...
-						</span>
+		return (
+			<div className="flex w-full flex-col gap-4">
+				<div className="flex items-start justify-between gap-2">
+					<div>
+						<h3 className="flex items-center gap-2 font-semibold text-base">
+							<Clock className="h-4 w-4" />
+							{selectedDate
+								? format(selectedDate, "EEEE, d MMMM yyyy")
+								: "Time slots"}
+						</h3>
+						<p className="text-muted-foreground text-sm">
+							{selectedDate
+								? "Choose a slot to create a booking."
+								: "Select a date to see its open slots."}
+						</p>
+					</div>
+					{selectedDate && !isLoadingDetailedSlots && (
+						<Badge
+							variant="secondary"
+							className="shrink-0 rounded-none bg-green-100 text-green-800"
+						>
+							{slots.length} open
+						</Badge>
+					)}
+				</div>
+
+				{!selectedDate && (
+					<div className="flex h-56 flex-col items-center justify-center gap-2 border border-dashed text-muted-foreground">
+						<CalendarIcon className="h-8 w-8 opacity-30" />
+						<p className="text-sm">No date selected</p>
 					</div>
 				)}
 
-				{!isLoadingDetailedSlots &&
-					detailedSlotsData &&
-					detailedSlotsData.slots &&
-					detailedSlotsData.slots.length > 0 && (
-						<ScrollArea className="h-[300px] overflow-y-auto">
-							<div className="grid grid-cols-2 gap-4 p-1 pr-3">
-								{detailedSlotsData.slots.map((item, index) => (
-									<button
-										key={`${item.slot}-${index}`}
-										type="button"
-										className="flex cursor-pointer items-center justify-center rounded-lg border p-2 text-center transition-colors hover:bg-primary hover:text-primary-foreground"
-										onClick={() => {
-											if (selectedFormattedDate) {
-												setSelectedSlot({
-													date: selectedFormattedDate,
-													time: item.slot,
-												});
-											}
-										}}
-									>
-										<p className="font-medium text-md">{item.slot}</p>
-									</button>
-								))}
-							</div>
-						</ScrollArea>
-					)}
+				{selectedDate && isLoadingDetailedSlots && (
+					<div className="flex h-56 items-center justify-center gap-2 border border-dashed text-muted-foreground">
+						<Loader2 className="h-5 w-5 animate-spin" />
+						<span className="text-sm">Loading slots...</span>
+					</div>
+				)}
 
-				{!isLoadingDetailedSlots &&
-					selectedDate &&
-					(!detailedSlotsData || detailedSlotsData.slots.length === 0) && (
-						<div className="mx-auto mt-2 flex w-full items-center justify-center py-2">
-							<Empty className="border-0 p-0">
-								<EmptyHeader>
-									<EmptyMedia variant="icon">
-										<Box />
-									</EmptyMedia>
-									<EmptyTitle>No slots yet</EmptyTitle>
-									<EmptyDescription>
-										We are fetching the latest data for this date. Please wait a
-										moment...
-									</EmptyDescription>
-								</EmptyHeader>
-							</Empty>
-						</div>
-					)}
+				{selectedDate && !isLoadingDetailedSlots && slots.length > 0 && (
+					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
+						{slots.map((item) => (
+							<button
+								key={item.slot}
+								type="button"
+								className="flex cursor-pointer items-center justify-center gap-1.5 rounded-none border bg-background px-3 py-3 font-medium text-sm tabular-nums transition-colors hover:border-green-600 hover:bg-green-600 hover:text-white"
+								onClick={() => {
+									if (selectedFormattedDate) {
+										setSelectedSlot({
+											date: selectedFormattedDate,
+											time: item.slot,
+										});
+									}
+								}}
+							>
+								{item.slot}
+							</button>
+						))}
+					</div>
+				)}
+
+				{selectedDate && !isLoadingDetailedSlots && slots.length === 0 && (
+					<div className="flex h-56 flex-col items-center justify-center gap-2 border border-dashed text-muted-foreground">
+						<Box className="h-8 w-8 opacity-30" />
+						<p className="text-sm">No open slots on this date</p>
+					</div>
+				)}
 			</div>
 		);
 	};
@@ -273,9 +282,15 @@ export default function AvailabilitySlotsPanel({
 		return (
 			<div className="space-y-4">
 				<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-					<TabsList className="mb-4 grid w-full grid-cols-2">
-						<TabsTrigger value="date">Date</TabsTrigger>
-						<TabsTrigger value="slots" disabled={!selectedDate}>
+					<TabsList className="mb-4 grid w-full grid-cols-2 rounded-none">
+						<TabsTrigger value="date" className="rounded-none">
+							Date
+						</TabsTrigger>
+						<TabsTrigger
+							value="slots"
+							disabled={!selectedDate}
+							className="rounded-none"
+						>
 							Slots
 						</TabsTrigger>
 					</TabsList>
@@ -289,10 +304,9 @@ export default function AvailabilitySlotsPanel({
 	}
 
 	return (
-		<div className="flex flex-col justify-center gap-4 md:flex-row">
-			<div className="flex-1">{renderCalendar()}</div>
-
-			<div className="flex-1 border-gray-300 border-t-2 pt-4 md:border-t-0 md:border-l-2 md:pt-0 md:pl-4 dark:border-gray-700">
+		<div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+			<div>{renderCalendar()}</div>
+			<div className="border-t pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
 				{renderSlots()}
 			</div>
 		</div>

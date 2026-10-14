@@ -17,6 +17,7 @@ import {
 	useBusinessMatchingBookings,
 	useForceRefreshBookings,
 } from "@/hooks/use-business-matching";
+import { cn } from "@/lib/utils";
 import { BookingCardItem } from "./booking-card-item";
 
 interface BookingsDialogProps {
@@ -135,6 +136,25 @@ export default function BookingsDialog({
 			return dateA.getTime() - dateB.getTime();
 		});
 
+	const stats = [
+		{ label: "Total", value: bookings.length, className: "" },
+		{
+			label: "Pending",
+			value: bookings.filter((b) => b.status === "Pending").length,
+			className: "text-amber-700",
+		},
+		{
+			label: "Approved",
+			value: bookings.filter((b) => b.status === "Approved").length,
+			className: "text-green-700",
+		},
+		{
+			label: "Present",
+			value: bookings.filter((b) => b.attendance === "Present").length,
+			className: "text-emerald-700",
+		},
+	];
+
 	const renderBookings = (bookings: typeof filteredBookings) =>
 		viewMode === "compact" ? (
 			<div className="flex flex-col gap-1.5 p-1 pb-4">
@@ -149,7 +169,7 @@ export default function BookingsDialog({
 				))}
 			</div>
 		) : (
-			<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3">
+			<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
 				{bookings.map((booking) => (
 					<BookingCardItem
 						key={booking.id}
@@ -163,19 +183,32 @@ export default function BookingsDialog({
 
 	return (
 		<div className="flex h-full min-h-0 w-full flex-col overflow-hidden p-1">
-			<div className="mb-1.5 flex shrink-0 items-center gap-2 px-1">
+			<div className="mb-2 grid shrink-0 grid-cols-2 gap-2 px-1 sm:grid-cols-4">
+				{stats.map((stat) => (
+					<div
+						key={stat.label}
+						className="flex flex-col border bg-card px-3 py-2"
+					>
+						<span className="text-muted-foreground text-xs">{stat.label}</span>
+						<span className={cn("font-semibold text-xl", stat.className)}>
+							{stat.value}
+						</span>
+					</div>
+				))}
+			</div>
+			<div className="mb-2 flex shrink-0 items-center gap-2 border border-dashed bg-accent p-2">
 				<Input
 					placeholder="Search bookings..."
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
-					className="h-8 flex-1 text-sm"
+					className="h-9 flex-1 rounded-none bg-background text-sm"
 				/>
-				<div className="flex shrink-0 items-center gap-0.5 rounded-md border p-0.5">
+				<div className="flex shrink-0 items-center gap-0.5 border bg-background p-0.5">
 					<Button
 						type="button"
 						variant={viewMode === "detailed" ? "secondary" : "ghost"}
 						size="icon"
-						className="h-7 w-7"
+						className="h-8 w-8 rounded-none"
 						onClick={() => setViewMode("detailed")}
 						title="Detailed view"
 					>
@@ -185,7 +218,7 @@ export default function BookingsDialog({
 						type="button"
 						variant={viewMode === "compact" ? "secondary" : "ghost"}
 						size="icon"
-						className="h-7 w-7"
+						className="h-8 w-8 rounded-none"
 						onClick={() => setViewMode("compact")}
 						title="Compact view"
 					>
@@ -198,11 +231,11 @@ export default function BookingsDialog({
 				className="flex min-h-0 w-full flex-1 flex-col gap-1.5 overflow-hidden"
 			>
 				<div className="shrink-0 px-1">
-					<TabsList className="grid w-full grid-cols-2">
-						<TabsTrigger value="today">
+					<TabsList className="grid w-full grid-cols-2 rounded-none">
+						<TabsTrigger value="today" className="rounded-none">
 							Today ({todayBookings.length})
 						</TabsTrigger>
-						<TabsTrigger value="all">
+						<TabsTrigger value="all" className="rounded-none">
 							All ({filteredBookings.length})
 						</TabsTrigger>
 					</TabsList>

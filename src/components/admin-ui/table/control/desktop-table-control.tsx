@@ -232,13 +232,15 @@ export function DesktopTableControl<TData>({
 
 	return (
 		<div className="hidden flex-wrap items-center gap-2 lg:flex">
-			<QuerySearchField
-				table={table}
-				columns={searchConfig.columns}
-				placeholder={searchConfig.placeholder}
-				searchCustomFields={searchConfig.enableCustomSearch}
-				controlled={searchConfig.controlled}
-			/>
+			<div className="min-w-64 flex-1">
+				<QuerySearchField
+					table={table}
+					columns={searchConfig.columns}
+					placeholder={searchConfig.placeholder}
+					searchCustomFields={searchConfig.enableCustomSearch}
+					controlled={searchConfig.controlled}
+				/>
+			</div>
 			{/* Filters cluster to the right (ml-auto on the group) so the search
 			    box owns the left edge and the columns toggle isn't stranded on
 			    its own — the group wraps as one unit when space runs out. */}

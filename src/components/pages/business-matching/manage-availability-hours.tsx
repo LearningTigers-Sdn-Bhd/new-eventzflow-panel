@@ -1,12 +1,12 @@
 "use client";
 
-import { format, parse } from "date-fns";
+import { eachDayOfInterval, format, parseISO } from "date-fns";
 import { Check, Clock, Loader2, Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-	useBusinessMatchingAvailability,
 	useSessionAvailabilities,
 	useUpdateSessionAvailabilities,
 } from "@/hooks/use-business-matching";
@@ -20,25 +20,39 @@ interface ManageAvailabilityHoursProps {
 	// (staff can always edit); the create-session-dialog passes the
 	// resolved value when a host is editing their own session.
 	hoursEditable?: boolean;
+	// Session date range (yyyy-MM-dd) — the days to list. Falls back to the
+	// days that already have availability rows when missing.
+	startDate?: string;
+	endDate?: string;
 }
+
+type LocalAvailability = { day: string; start_time: string; end_time: string };
+
+const toLocal = (list?: LocalAvailability[]): LocalAvailability[] =>
+	(list ?? []).map(({ day, start_time, end_time }) => ({
+		day,
+		start_time,
+		end_time,
+	}));
 
 export default function ManageAvailabilityHours({
 	sessionId,
 	eventId,
 	hoursEditable = true,
+	startDate,
+	endDate,
 }: ManageAvailabilityHoursProps) {
-	const { data, isLoading: isLoadingDates } = useBusinessMatchingAvailability(
-		sessionId,
-		eventId,
-	);
-	const { data: rawAvailabilities, isLoading: isLoadingAvs } =
+	// Already cached by the parent dialog (same query key), so this opens
+	// without a spinner. The day list comes from the session's date range —
+	// no need for the heavy slot-generating availability endpoint.
+	const { data: rawAvailabilities, isLoading } =
 		useSessionAvailabilities(sessionId);
 	const { mutate: updateAvailabilities, isPending: isSavingAvs } =
 		useUpdateSessionAvailabilities(sessionId, eventId);
 
 	const [localAvailabilities, setLocalAvailabilities] = useState<
 		{ day: string; start_time: string; end_time: string }[]
-	>([]);
+	>(() => toLocal(rawAvailabilities));
 	const [newStart, setNewStart] = useState("");
 	const [newEnd, setNewEnd] = useState("");
 	const [startSelectOpen, setStartSelectOpen] = useState(false);
@@ -47,18 +61,22 @@ export default function ManageAvailabilityHours({
 	// hidden by default so the day cards just show existing sessions.
 	const [addingDay, setAddingDay] = useState<string | null>(null);
 
-	// Initialize local copy when raw data is fetched
+	// Re-sync when fresh data arrives (e.g. after a save).
 	useEffect(() => {
-		if (rawAvailabilities) {
-			setLocalAvailabilities(
-				rawAvailabilities.map((av) => ({
-					day: av.day,
-					start_time: av.start_time,
-					end_time: av.end_time,
-				})),
-			);
-		}
+		if (rawAvailabilities) setLocalAvailabilities(toLocal(rawAvailabilities));
 	}, [rawAvailabilities]);
+
+	const days = useMemo(() => {
+		if (startDate && endDate) {
+			return eachDayOfInterval({
+				start: parseISO(startDate),
+				end: parseISO(endDate),
+			}).map((d) => format(d, "yyyy-MM-dd"));
+		}
+		return Array.from(
+			new Set((rawAvailabilities ?? []).map((av) => av.day)),
+		).sort();
+	}, [startDate, endDate, rawAvailabilities]);
 
 	const handleNewStartChange = (value: string) => {
 		setNewStart(value);
@@ -66,6 +84,12 @@ export default function ManageAvailabilityHours({
 		setStartSelectOpen(false);
 		// Move straight to picking the end time next.
 		setEndSelectOpen(true);
+	};
+
+	const closeAddForm = () => {
+		setAddingDay(null);
+		setNewStart("");
+		setNewEnd("");
 	};
 
 	const handleAddSession = (dateStr: string): boolean => {
@@ -107,168 +131,167 @@ export default function ManageAvailabilityHours({
 		);
 	};
 
-	const isLoading = isLoadingDates || isLoadingAvs;
-
 	return (
-		<div className="max-h-[500px] space-y-6 overflow-y-auto pr-2">
-			<div>
-				<h3 className="flex items-center gap-2 font-semibold text-lg">
-					<Clock className="h-5 w-5 text-primary" />
-					Manage Working Hours & Breaks
+		<div className="flex min-h-0 flex-1 flex-col gap-4">
+			<div className="shrink-0">
+				<h3 className="flex items-center gap-2 font-semibold text-base">
+					<Clock className="h-4 w-4" />
+					Working hours & breaks
 				</h3>
-				<p className="text-muted-foreground text-xs">
+				<p className="text-muted-foreground text-sm">
 					{hoursEditable
-						? "Add active shift hours. Gaps between ranges will act as lunch breaks / rest times."
+						? "Add active shift hours. Gaps between ranges act as lunch breaks / rest times."
 						: "Your event organizer manages your hours — contact them to make changes."}
 				</p>
 			</div>
 
-			{isLoading ? (
+			{isLoading && !rawAvailabilities ? (
 				<div className="flex h-32 items-center justify-center">
 					<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
 				</div>
 			) : (
-				<div className="space-y-4">
-					{data?.dates.map((item) => {
-						const parsedDate = parse(item.date, "dd MMMM yyyy", new Date());
-						const dateObj = format(parsedDate, "yyyy-MM-dd");
-						const daySessions = localAvailabilities.filter(
-							(av) => av.day === dateObj,
-						);
+				<>
+					<div className="grid min-h-0 flex-1 content-start gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
+						{days.map((dateObj) => {
+							const daySessions = localAvailabilities.filter(
+								(av) => av.day === dateObj,
+							);
 
-						return (
-							<div
-								key={item.date}
-								className="space-y-3 rounded-lg border bg-muted/20 p-4"
-							>
-								<div className="flex items-center justify-between">
-									<span className="font-semibold text-sm">
-										{item.day}, {item.date}
-									</span>
-									{daySessions.length === 0 && (
-										<span className="font-medium text-red-500 text-xs">
-											Rest Day / Unavailable
+							return (
+								<div key={dateObj} className="space-y-3 border bg-muted/20 p-3">
+									<div className="flex items-center justify-between gap-2">
+										<span className="font-semibold text-sm">
+											{format(parseISO(dateObj), "EEE, d MMM yyyy")}
 										</span>
-									)}
-								</div>
-
-								{daySessions.length > 0 && (
-									<div className="flex flex-wrap gap-2">
-										{daySessions.map((session, idx) => (
-											<div
-												key={`${dateObj}-${session.start_time}-${session.end_time}-${idx}`}
-												className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-medium text-primary text-xs"
+										{daySessions.length === 0 && (
+											<Badge
+												variant="secondary"
+												className="rounded-none bg-red-100 text-red-800"
 											>
-												<span>
-													{session.start_time} - {session.end_time}
-												</span>
-												{hoursEditable && (
-													<button
-														type="button"
-														onClick={() => handleRemoveSession(dateObj, idx)}
-														className="ml-1 font-bold text-primary transition hover:scale-115 hover:text-red-500"
-													>
-														×
-													</button>
-												)}
-											</div>
-										))}
-									</div>
-								)}
-
-								{hoursEditable && (
-									<div className="border-t border-dashed pt-2">
-										{addingDay === dateObj ? (
-											<div className="flex flex-wrap items-center gap-2">
-												<TimeSelect
-													options={validStartTimes(daySessions)}
-													open={startSelectOpen}
-													onOpenChange={setStartSelectOpen}
-													value={newStart}
-													onValueChange={handleNewStartChange}
-													placeholder="Start time"
-												/>
-												<span className="text-muted-foreground text-xs">
-													to
-												</span>
-												<TimeSelect
-													options={
-														newStart ? validEndTimes(daySessions, newStart) : []
-													}
-													open={endSelectOpen}
-													onOpenChange={setEndSelectOpen}
-													value={newEnd}
-													onValueChange={setNewEnd}
-													disabled={!newStart}
-													placeholder="End time"
-												/>
-												<Button
-													type="button"
-													size="icon"
-													className="h-8 w-8"
-													onClick={() => {
-														if (handleAddSession(dateObj)) {
-															setAddingDay(null);
-															setNewStart("");
-															setNewEnd("");
-														}
-													}}
-													disabled={!newStart || !newEnd}
-												>
-													<Check className="h-3.5 w-3.5" />
-												</Button>
-												<Button
-													type="button"
-													size="icon"
-													variant="ghost"
-													onClick={() => {
-														setAddingDay(null);
-														setNewStart("");
-														setNewEnd("");
-													}}
-													className="h-8 w-8"
-												>
-													<X className="h-3.5 w-3.5" />
-												</Button>
-											</div>
-										) : (
-											<Button
-												type="button"
-												size="sm"
-												variant="outline"
-												onClick={() => {
-													setNewStart("");
-													setNewEnd("");
-													setAddingDay(dateObj);
-													setStartSelectOpen(true);
-												}}
-												disabled={validStartTimes(daySessions).length === 0}
-												className="h-8 gap-1 text-xs"
-											>
-												<Plus className="h-3 w-3" /> Add Session
-											</Button>
+												Rest day
+											</Badge>
 										)}
 									</div>
-								)}
-							</div>
-						);
-					})}
+
+									{daySessions.length > 0 && (
+										<div className="flex flex-wrap gap-2">
+											{daySessions.map((session, idx) => (
+												<Badge
+													key={`${dateObj}-${session.start_time}-${session.end_time}-${idx}`}
+													variant="secondary"
+													className="gap-2 rounded-none bg-green-100 px-2.5 py-1 text-green-800 tabular-nums"
+												>
+													{session.start_time} – {session.end_time}
+													{hoursEditable && (
+														<button
+															type="button"
+															onClick={() => handleRemoveSession(dateObj, idx)}
+															className="text-green-800 transition hover:text-red-600"
+															title="Remove"
+														>
+															<X className="h-3 w-3" />
+														</button>
+													)}
+												</Badge>
+											))}
+										</div>
+									)}
+
+									{hoursEditable && (
+										<div className="border-t border-dashed pt-3">
+											{addingDay === dateObj ? (
+												<div className="flex flex-wrap items-center gap-2">
+													<TimeSelect
+														options={validStartTimes(daySessions)}
+														open={startSelectOpen}
+														onOpenChange={setStartSelectOpen}
+														value={newStart}
+														onValueChange={handleNewStartChange}
+														placeholder="Start"
+														className="w-28 rounded-none"
+													/>
+													<span className="text-muted-foreground text-xs">
+														to
+													</span>
+													<TimeSelect
+														options={
+															newStart
+																? validEndTimes(daySessions, newStart)
+																: []
+														}
+														open={endSelectOpen}
+														onOpenChange={setEndSelectOpen}
+														value={newEnd}
+														onValueChange={setNewEnd}
+														disabled={!newStart}
+														placeholder="End"
+														className="w-28 rounded-none"
+													/>
+													<div className="ml-auto flex gap-1">
+														<Button
+															type="button"
+															size="icon-sm"
+															className="rounded-none"
+															onClick={() => {
+																if (handleAddSession(dateObj)) closeAddForm();
+															}}
+															disabled={!newStart || !newEnd}
+															title="Add"
+														>
+															<Check className="h-3.5 w-3.5" />
+														</Button>
+														<Button
+															type="button"
+															size="icon-sm"
+															variant="ghost"
+															className="rounded-none"
+															onClick={closeAddForm}
+															title="Cancel"
+														>
+															<X className="h-3.5 w-3.5" />
+														</Button>
+													</div>
+												</div>
+											) : (
+												<Button
+													type="button"
+													size="sm"
+													variant="outline"
+													onClick={() => {
+														setNewStart("");
+														setNewEnd("");
+														setAddingDay(dateObj);
+														setStartSelectOpen(true);
+													}}
+													disabled={validStartTimes(daySessions).length === 0}
+													className="h-8 gap-1 rounded-none text-xs"
+												>
+													<Plus className="h-3 w-3" /> Add session
+												</Button>
+											)}
+										</div>
+									)}
+								</div>
+							);
+						})}
+					</div>
 
 					{hoursEditable && (
-						<div className="flex justify-end gap-2 border-t pt-4">
+						<div className="flex shrink-0 justify-end border-t pt-4">
 							<Button
 								type="button"
+								className="rounded-none"
 								onClick={handleSaveAvailabilities}
 								disabled={isSavingAvs}
 							>
 								{isSavingAvs && (
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 								)}
-								Save Availability
+								Save availability
 							</Button>
 						</div>
 					)}
-				</div>
+				</>
 			)}
 		</div>
 	);

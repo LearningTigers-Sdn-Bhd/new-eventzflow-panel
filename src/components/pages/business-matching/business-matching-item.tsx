@@ -12,6 +12,7 @@ import { useMemo } from "react";
 import { ExpandableTags } from "@/components/admin-ui/expandable-tags";
 import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Item, ItemContent } from "@/components/ui/item";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useBusinessMatchingBookings } from "@/hooks/use-business-matching";
@@ -53,6 +54,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 			config: {
 				title: canArchive ? "Archive Session" : "Cannot Archive Session",
 				size: "md",
+				className: "rounded-none",
 			},
 		});
 	};
@@ -65,6 +67,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 			config: {
 				title: "Restore Session",
 				size: "md",
+				className: "rounded-none",
 			},
 		});
 	};
@@ -104,11 +107,11 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 					},
 					config: {
 						title: `Bookings & Availability for ${event.title}`,
-						size: "5xl",
+						size: "full",
 					},
 				});
 			}}
-			className="w-full cursor-pointer space-y-2 rounded-lg border border-border bg-card p-3 transition-all duration-200 hover:shadow-md"
+			className="w-full cursor-pointer space-y-2 rounded-none border border-border bg-card p-3 transition-all duration-200 hover:shadow-md"
 		>
 			<ItemContent className="flex w-full flex-col gap-2">
 				<div className="flex items-start justify-between gap-2">
@@ -122,11 +125,11 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 							</span>
 						)}
 					</div>
-					<div className="flex shrink-0 items-center gap-1">
+					<ButtonGroup className="shrink-0">
 						{(canManageSession || ownsSession) && !isArchived && (
 							<Button
 								variant="outline"
-								size="icon"
+								size="icon-sm"
 								onClick={(e) => {
 									e.stopPropagation();
 									openDialog({
@@ -139,40 +142,41 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 										config: {
 											title: `Edit "${event.title}"`,
 											size: "2xl",
+											className: "rounded-none",
 										},
 									});
 								}}
-								className="h-8 w-8"
+								className="h-8 w-8 rounded-none p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700 [&_svg]:text-blue-600 hover:[&_svg]:text-blue-700"
 								title="Edit"
 							>
-								<Pencil className="h-4 w-4" />
+								<Pencil className="size-4" />
 							</Button>
 						)}
 
 						{canManageSession && !isArchived && (
 							<Button
 								variant="outline"
-								size="icon"
+								size="icon-sm"
 								onClick={handleArchive}
-								className="h-8 w-8 text-muted-foreground hover:text-destructive"
+								className="h-8 w-8 rounded-none p-0 text-amber-600 hover:bg-amber-50 hover:text-amber-700 [&_svg]:text-amber-600 hover:[&_svg]:text-amber-700"
 								title="Archive session"
 							>
-								<Archive className="h-4 w-4" />
+								<Archive className="size-4" />
 							</Button>
 						)}
 
 						{canManageSession && isArchived && (
 							<Button
 								variant="outline"
-								size="icon"
+								size="icon-sm"
 								onClick={handleUnarchive}
-								className="h-8 w-8 text-muted-foreground hover:text-foreground"
+								className="h-8 w-8 rounded-none p-0 text-green-600 hover:bg-green-50 hover:text-green-700 [&_svg]:text-green-600 hover:[&_svg]:text-green-700"
 								title="Restore / Unarchive session"
 							>
-								<ArchiveRestore className="h-4 w-4" />
+								<ArchiveRestore className="size-4" />
 							</Button>
 						)}
-					</div>
+					</ButtonGroup>
 				</div>
 
 				{/* Tags */}
@@ -180,6 +184,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 					tags={offeringTags}
 					limit={2}
 					singleRow
+					colorful
 					className="mt-0.5"
 				/>
 
@@ -198,7 +203,8 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 									},
 									config: {
 										title: "Host Details",
-										size: "md",
+										size: "lg",
+										className: "rounded-none",
 									},
 								});
 							}}
@@ -220,10 +226,11 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 									config: {
 										title: `Attach Host to "${event.title}"`,
 										size: "lg",
+										className: "rounded-none",
 									},
 								});
 							}}
-							className="h-8 w-full justify-center text-xs"
+							className="h-8 w-full justify-center rounded-none text-xs"
 						>
 							Attach a host
 						</Button>

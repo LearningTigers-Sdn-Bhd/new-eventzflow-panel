@@ -230,7 +230,10 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 	};
 
 	return (
-		<Tabs defaultValue="invite" className="w-full">
+		<Tabs
+			defaultValue="invite"
+			className="w-full [&_button]:rounded-none [&_input]:rounded-none [&_textarea]:rounded-none [&_[role=combobox]]:rounded-none [&_[role=tablist]]:rounded-none"
+		>
 			<TabsList
 				className={`grid w-full ${linkedExhibitorEnabled ? "grid-cols-3" : "grid-cols-2"}`}
 			>
@@ -251,19 +254,29 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 			</TabsList>
 			<TabsContent value="invite" className="py-4">
 				<div className="space-y-4">
-					<Label htmlFor="invite-link">Host Invitation Link</Label>
-					<p className="text-muted-foreground text-sm">
-						Share this link with the host to let them join this business
-						matching session.
-					</p>
+					<div className="flex items-start gap-3 border bg-muted/30 p-4">
+						<LinkIcon className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+						<div className="space-y-1">
+							<Label htmlFor="invite-link" className="font-semibold text-sm">
+								Host invitation link
+							</Label>
+							<p className="text-muted-foreground text-sm">
+								Share this link with the host to let them join this business
+								matching session. Anyone with the link can accept the
+								invitation.
+							</p>
+						</div>
+					</div>
 					<div className="flex gap-2">
 						<Input
 							id="invite-link"
 							value={isLoadingInviteLink ? "Generating link..." : inviteLink}
 							readOnly
+							className="font-mono text-xs"
 						/>
 						<Button onClick={copyInviteLink} disabled={!inviteLink}>
-							Copy
+							<Copy className="mr-2 h-4 w-4" />
+							Copy link
 						</Button>
 					</div>
 				</div>
@@ -307,7 +320,7 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 
 				{hostStep === "account_found" && (
 					<div className="space-y-4">
-						<div className="space-y-2 rounded-lg border bg-muted/40 p-4">
+						<div className="space-y-2 border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/30">
 							<div className="flex items-center gap-2 font-medium text-foreground">
 								<CheckCircle2 className="h-5 w-5 text-green-600" />
 								<span>Existing Account Found</span>
@@ -414,7 +427,7 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 
 				{hostStep === "new_account" && (
 					<div className="space-y-4">
-						<div className="space-y-2 rounded-lg border bg-muted/40 p-4">
+						<div className="space-y-2 border bg-muted/40 p-4">
 							<div className="flex items-center gap-2 font-medium text-foreground">
 								<Mail className="h-5 w-5 text-primary" />
 								<span>Invite New Host</span>
@@ -517,7 +530,7 @@ const AttachHostDialog: React.FC<AttachHostDialogProps> = ({ bmEvent }) => {
 								</div>
 							</div>
 
-							<details className="group rounded-lg border p-3">
+							<details className="group border p-3">
 								<summary className="cursor-pointer text-xs font-medium text-muted-foreground transition hover:text-foreground">
 									Option 3: Create account manually on behalf of host
 								</summary>

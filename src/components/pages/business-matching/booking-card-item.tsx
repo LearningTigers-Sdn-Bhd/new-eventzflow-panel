@@ -8,6 +8,7 @@ import {
 	Copy,
 	DollarSign,
 	ExternalLink,
+	Loader2,
 	Mail,
 	MapPin,
 	MessageSquare,
@@ -26,16 +27,17 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
 	useApproveBooking,
 	useCancelBooking,
 	useUpdateBooking,
 } from "@/hooks/use-business-matching";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
-import { useDialog } from "@/hooks/use-dialog";
 import type { Booking, BookingsResponse } from "@/lib/api/business-matching";
 import { cn } from "@/lib/utils";
-import BookerProfileDialog from "./booker-profile-dialog";
+import BookerProfileSheet from "./booker-profile-sheet";
 import {
 	CompactCard as Card,
 	CompactCardContent as CardContent,
@@ -43,8 +45,12 @@ import {
 	CompactCardHeader as CardHeader,
 	CompactCardTitle as CardTitle,
 } from "./compact-booking-card";
-import EditBookingCommentDialog from "./edit-booking-comment-dialog";
-import EditBookingValueDialog from "./edit-booking-value-dialog";
+
+const BOOKING_STATUS_STYLE: Record<string, string> = {
+	Approved: "bg-green-100 text-green-800",
+	Pending: "bg-amber-100 text-amber-800",
+	Cancelled: "bg-gray-100 text-gray-800",
+};
 
 interface BookingCardItemProps {
 	booking: Booking;
@@ -54,6 +60,143 @@ interface BookingCardItemProps {
 	// expands in place to reveal the same comment/deal-value/attendance
 	// controls, used by the compact bookings list view.
 	variant?: "card" | "row";
+}
+
+// A labelled note that edits in place: click to open a field with Save/Cancel.
+// Empty notes render a dashed "add" prompt. onSave must throw on failure so
+// the editor stays open (the caller already shows the error toast).
+function InlineNote({
+	icon,
+	label,
+	emptyLabel,
+	kind,
+	value,
+	display,
+	onSave,
+}: {
+	icon: React.ReactNode;
+	label: string;
+	emptyLabel: string;
+	kind: "text" | "number";
+	value: string;
+	display: React.ReactNode;
+	onSave: (value: string) => Promise<void>;
+}) {
+	const [editing, setEditing] = useState(false);
+	const [draft, setDraft] = useState(value);
+	const [saving, setSaving] = useState(false);
+
+	const save = async () => {
+		setSaving(true);
+		try {
+			await onSave(draft.trim());
+			setEditing(false);
+		} catch {
+			// toast already shown by onSave; keep the editor open
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	if (editing) {
+		return (
+			<div className="flex flex-col gap-2 rounded-none border border-primary bg-background p-2.5">
+				<span className="flex items-center gap-1.5 font-medium text-muted-foreground text-xs">
+					{icon}
+					{label}
+				</span>
+				{kind === "text" ? (
+					<Textarea
+						value={draft}
+						onChange={(e) => setDraft(e.target.value.slice(0, 500))}
+						onKeyDown={(e) => {
+							if (e.key === "Escape") setEditing(false);
+							if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) save();
+						}}
+						placeholder="Meeting notes, follow-ups, impressions..."
+						className="min-h-[88px] rounded-none text-sm"
+						autoFocus
+						disabled={saving}
+					/>
+				) : (
+					<div className="relative">
+						<DollarSign className="absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+						<Input
+							type="number"
+							inputMode="decimal"
+							min={0}
+							step="0.01"
+							value={draft}
+							onChange={(e) => setDraft(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === "Escape") setEditing(false);
+								if (e.key === "Enter") save();
+							}}
+							placeholder="0.00"
+							className="h-9 rounded-none pl-8 font-semibold tabular-nums"
+							autoFocus
+							disabled={saving}
+						/>
+					</div>
+				)}
+				<div className="flex items-center justify-between gap-2">
+					<span className="text-[11px] text-muted-foreground">
+						{kind === "text"
+							? `${draft.length}/500 · Ctrl+Enter to save`
+							: "Enter to save"}
+					</span>
+					<div className="flex gap-1.5">
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							className="h-7 rounded-none text-xs"
+							onClick={() => setEditing(false)}
+							disabled={saving}
+						>
+							Cancel
+						</Button>
+						<Button
+							type="button"
+							size="sm"
+							className="h-7 rounded-none text-xs"
+							onClick={save}
+							disabled={saving}
+						>
+							{saving && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+							Save
+						</Button>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	return (
+		<button
+			type="button"
+			onClick={() => {
+				setDraft(value);
+				setEditing(true);
+			}}
+			title={`Edit ${label.toLowerCase()}`}
+			className={cn(
+				"group flex w-full flex-col gap-1 rounded-none border p-2.5 text-left transition-colors hover:bg-muted/50",
+				display ? "bg-muted/20" : "border-dashed bg-transparent",
+			)}
+		>
+			<span className="flex items-center justify-between gap-2 text-muted-foreground text-xs">
+				<span className="flex items-center gap-1.5 font-medium">
+					{icon}
+					{label}
+				</span>
+				<Pencil className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
+			</span>
+			{display || (
+				<span className="text-muted-foreground text-sm">+ {emptyLabel}</span>
+			)}
+		</button>
+	);
 }
 
 export function BookingCardItem({
@@ -73,10 +216,11 @@ export function BookingCardItem({
 		useApproveBooking(bmEventId, eventId);
 	const queryClient = useQueryClient();
 	const { openConfirm } = useConfirmDialog();
-	const { openDialog } = useDialog();
 
 	const [displayBooking, setDisplayBooking] = useState(booking); // Local display state
 	const [isExpanded, setIsExpanded] = useState(false);
+	const [profileOpen, setProfileOpen] = useState(false);
+	const isRow = variant === "row";
 
 	// Sync local state with prop updates and localStorage overrides
 	useEffect(() => {
@@ -179,34 +323,6 @@ export function BookingCardItem({
 		}
 	};
 
-	const openCommentDialog = () => {
-		openDialog({
-			component: EditBookingCommentDialog,
-			props: {
-				initialValue: displayBooking.host_comment || "",
-				onSave: handleSaveComment,
-			},
-			config: {
-				title: "Host Comment",
-				size: "md",
-			},
-		});
-	};
-
-	const openValueDialog = () => {
-		openDialog({
-			component: EditBookingValueDialog,
-			props: {
-				initialValue: displayBooking.potential_deal_value?.toString() || "",
-				onSave: handleSaveValue,
-			},
-			config: {
-				title: "Potential Deal Value",
-				size: "sm",
-			},
-		});
-	};
-
 	const handleCancelBooking = () => {
 		openConfirm({
 			message: `Are you sure you want to cancel ${displayBooking.name}'s booking? This cannot be undone.`,
@@ -289,20 +405,11 @@ export function BookingCardItem({
 
 	const statusBadge = (
 		<Badge
-			variant={
-				displayBooking.status === "Approved"
-					? "default"
-					: displayBooking.status === "Pending"
-						? "secondary"
-						: "outline"
-			}
+			variant="secondary"
 			className={cn(
-				"h-4 shrink-0 px-1 text-[10px]",
-				displayBooking.status === "Approved"
-					? "bg-green-600 hover:bg-green-700"
-					: displayBooking.status === "Pending"
-						? "bg-yellow-500 text-white hover:bg-yellow-600"
-						: "",
+				"shrink-0 rounded-none",
+				BOOKING_STATUS_STYLE[displayBooking.status] ??
+					"bg-gray-100 text-gray-800",
 			)}
 		>
 			{displayBooking.status}
@@ -312,14 +419,12 @@ export function BookingCardItem({
 	const attendanceBadge = (displayBooking.attendance === "Present" ||
 		displayBooking.attendance === "Absent") && (
 		<Badge
-			variant={
-				displayBooking.attendance === "Present" ? "default" : "destructive"
-			}
+			variant="secondary"
 			className={cn(
-				"h-4 shrink-0 px-1 text-[10px]",
+				"shrink-0 rounded-none",
 				displayBooking.attendance === "Present"
-					? "bg-green-600 hover:bg-green-700"
-					: "bg-red-500 hover:bg-red-600",
+					? "bg-emerald-100 text-emerald-800"
+					: "bg-red-100 text-red-800",
 			)}
 		>
 			{displayBooking.attendance}
@@ -327,7 +432,12 @@ export function BookingCardItem({
 	);
 
 	const contactInfoSection = (displayBooking.email || displayBooking.phone) && (
-		<div className="mt-1 flex flex-col gap-1 border-t pt-1 text-xs">
+		<div
+			className={cn(
+				"flex flex-col gap-1 text-xs",
+				!isRow && "mt-1 border-t pt-1",
+			)}
+		>
 			{displayBooking.email && (
 				<div className="group flex items-center justify-between gap-1">
 					<div
@@ -381,71 +491,74 @@ export function BookingCardItem({
 		</div>
 	);
 
+	const dealValue = displayBooking.potential_deal_value;
+	const hasDeal =
+		dealValue !== undefined && dealValue !== null && dealValue > 0;
+
 	const commentAndDealValueSection = (
-		<div className="mt-1 grid grid-cols-2 gap-1.5 border-t pt-1.5">
-			<Button
-				variant="outline"
-				size="sm"
-				className="h-7 w-full justify-start px-2 py-1 font-normal text-muted-foreground text-xs"
-				onClick={openCommentDialog}
-				title={displayBooking.host_comment || "+ Comment"}
-			>
-				<MessageSquare className="mr-1.5 h-3 w-3 shrink-0" />
-				<span className="truncate">
-					{displayBooking.host_comment
-						? displayBooking.host_comment
-						: "+ Comment"}
-				</span>
-			</Button>
-			<Button
-				variant="outline"
-				size="sm"
-				className="h-7 w-full justify-start px-2 py-1 font-normal text-muted-foreground text-xs"
-				onClick={openValueDialog}
-				title={
-					displayBooking.potential_deal_value
-						? `Deal: ${displayBooking.potential_deal_value}`
-						: "+ Potential Deal"
+		<div
+			className={cn(
+				"grid gap-2",
+				isRow ? "sm:grid-cols-2" : "mt-1 border-t pt-2",
+			)}
+		>
+			<InlineNote
+				icon={<MessageSquare className="h-3.5 w-3.5" />}
+				label="Host comment"
+				emptyLabel="Add a comment"
+				kind="text"
+				value={displayBooking.host_comment || ""}
+				display={
+					displayBooking.host_comment && (
+						<p className="line-clamp-3 whitespace-pre-wrap break-words text-foreground text-sm">
+							{displayBooking.host_comment}
+						</p>
+					)
 				}
-			>
-				<DollarSign className="mr-1.5 h-3 w-3 shrink-0" />
-				<span className="truncate">
-					{displayBooking.potential_deal_value
-						? `Deal: ${displayBooking.potential_deal_value}`
-						: "+ Potential Deal"}
-				</span>
-			</Button>
+				onSave={handleSaveComment}
+			/>
+			<InlineNote
+				icon={<DollarSign className="h-3.5 w-3.5" />}
+				label="Potential deal"
+				emptyLabel="Add deal value"
+				kind="number"
+				value={dealValue?.toString() || ""}
+				display={
+					hasDeal && (
+						<p className="font-semibold text-base text-green-700 tabular-nums dark:text-green-400">
+							{Number(dealValue).toLocaleString(undefined, {
+								maximumFractionDigits: 2,
+							})}
+						</p>
+					)
+				}
+				onSave={handleSaveValue}
+			/>
 		</div>
 	);
 
 	const bookerProfileSection = bookerProfileInfo && (
-		<div className="mt-1 border-t pt-1.5">
+		<div className={cn(isRow ? "flex-1" : "mt-1 border-t pt-1.5")}>
 			<Button
 				variant="outline"
 				size="sm"
 				type="button"
-				onClick={() =>
-					openDialog({
-						component: BookerProfileDialog,
-						props: {
-							name: displayBooking.name,
-							email: displayBooking.email,
-							phone: displayBooking.phone,
-							description: bookerProfileInfo.description,
-							sourcingIntent: bookerProfileInfo.sourcingIntent,
-							capabilities: bookerProfileInfo.capabilities,
-						},
-						config: {
-							title: "Booker Profile Details",
-							size: "md",
-						},
-					})
-				}
-				className="h-7 w-full justify-center gap-1.5 text-xs"
+				onClick={() => setProfileOpen(true)}
+				className="h-8 w-full justify-center gap-1.5 rounded-none text-xs"
 			>
-				<User className="h-3 w-3 text-primary" />
-				View Booker Profile Details
+				<User className="h-3 w-3" />
+				View booker profile
 			</Button>
+			<BookerProfileSheet
+				open={profileOpen}
+				onOpenChange={setProfileOpen}
+				name={displayBooking.name}
+				email={displayBooking.email}
+				phone={displayBooking.phone}
+				description={bookerProfileInfo.description}
+				sourcingIntent={bookerProfileInfo.sourcingIntent}
+				capabilities={bookerProfileInfo.capabilities}
+			/>
 		</div>
 	);
 
@@ -453,13 +566,17 @@ export function BookingCardItem({
 		<div className="flex w-full items-center gap-2">
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button variant="outline" size="sm" className="h-7 flex-1 text-xs">
+					<Button
+						variant="outline"
+						size="sm"
+						className="h-8 flex-1 rounded-none text-xs"
+					>
 						<Pencil className="mr-1.5 h-3 w-3" />
 						Edit
 						<ChevronDown className="ml-1 h-3 w-3 opacity-60" />
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="start" className="w-[160px]">
+				<DropdownMenuContent align="start" className="w-[160px] rounded-none">
 					{displayBooking.reschedule_link ? (
 						<DropdownMenuItem
 							onClick={() =>
@@ -488,10 +605,12 @@ export function BookingCardItem({
 				</DropdownMenuContent>
 			</DropdownMenu>
 
+			{isRow && bookerProfileSection}
+
 			{displayBooking.status === "Pending" ? (
 				<Button
 					size="sm"
-					className="h-7 flex-1 bg-green-600 text-white text-xs hover:bg-green-700"
+					className="h-8 flex-1 rounded-none bg-green-600 text-white text-xs hover:bg-green-700"
 					onClick={handleApproveBooking}
 					disabled={isApproving}
 				>
@@ -505,7 +624,7 @@ export function BookingCardItem({
 					}
 					size="sm"
 					className={cn(
-						"h-7 flex-1 text-xs",
+						"h-8 flex-1 rounded-none text-xs",
 						displayBooking.attendance === "Present" &&
 							"bg-green-600 text-white hover:bg-green-700",
 					)}
@@ -523,7 +642,7 @@ export function BookingCardItem({
 
 	if (variant === "row") {
 		return (
-			<div className="rounded-md border bg-card">
+			<div className="rounded-none border bg-card">
 				<div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2 text-sm">
 					<button
 						type="button"
@@ -570,30 +689,33 @@ export function BookingCardItem({
 				</div>
 
 				{isExpanded && (
-					<div className="grid gap-1.5 border-t p-2 pt-2">
-						{displayBooking.location && (
-							<div className="flex items-start gap-1.5 pb-1 text-muted-foreground text-xs">
-								<MapPin className="mt-0.5 h-3 w-3 shrink-0" />
-								{displayBooking.location.startsWith("http") ? (
-									<a
-										href={displayBooking.location}
-										target="_blank"
-										rel="noreferrer"
-										className="flex items-center gap-1 text-primary text-xs hover:underline"
-									>
-										Online <ExternalLink className="h-2.5 w-2.5 shrink-0" />
-									</a>
-								) : (
-									<span className="whitespace-pre-wrap break-words text-xs">
-										{displayBooking.location}
-									</span>
+					<div className="border-t">
+						<div className="grid gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+							<div className="flex flex-col gap-2">
+								{displayBooking.location && (
+									<div className="flex items-start gap-1.5 text-muted-foreground text-xs">
+										<MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+										{displayBooking.location.startsWith("http") ? (
+											<a
+												href={displayBooking.location}
+												target="_blank"
+												rel="noreferrer"
+												className="flex items-center gap-1 text-primary text-xs hover:underline"
+											>
+												Online <ExternalLink className="h-2.5 w-2.5 shrink-0" />
+											</a>
+										) : (
+											<span className="whitespace-pre-wrap break-words text-xs">
+												{displayBooking.location}
+											</span>
+										)}
+									</div>
 								)}
+								{contactInfoSection}
 							</div>
-						)}
-						{contactInfoSection}
-						{commentAndDealValueSection}
-						{bookerProfileSection}
-						<div className="mt-1 border-t pt-2">{bottomButtons}</div>
+							{commentAndDealValueSection}
+						</div>
+						<div className="border-t p-3">{bottomButtons}</div>
 					</div>
 				)}
 			</div>
@@ -602,7 +724,7 @@ export function BookingCardItem({
 
 	return (
 		<Card className="flex h-full flex-col overflow-hidden shadow-none">
-			<CardHeader className="shrink-0 space-y-0 p-2 pb-1.5">
+			<CardHeader className="shrink-0 space-y-0 border-b p-3">
 				<div className="flex items-center justify-between gap-1.5">
 					<div className="min-w-0 flex-1 leading-tight">
 						<CardTitle
@@ -618,7 +740,7 @@ export function BookingCardItem({
 					</div>
 				</div>
 			</CardHeader>
-			<CardContent className="grid flex-1 gap-1.5 p-2 pt-1">
+			<CardContent className="grid flex-1 gap-2 p-3">
 				<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
 					<div className="flex items-center gap-1.5 font-medium text-foreground">
 						<Calendar className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -655,7 +777,7 @@ export function BookingCardItem({
 				{commentAndDealValueSection}
 				{bookerProfileSection}
 			</CardContent>
-			<CardFooter className="flex shrink-0 flex-col gap-2 border-t bg-muted/10 p-2">
+			<CardFooter className="flex shrink-0 flex-col gap-2 border-t bg-muted/10 p-3">
 				{bottomButtons}
 			</CardFooter>
 		</Card>

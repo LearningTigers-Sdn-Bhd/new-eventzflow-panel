@@ -68,52 +68,60 @@ const ManageTagsDialog: React.FC<ManageTagsDialogProps> = ({ eventId }) => {
 	const isEmpty = offeringTags.length === 0 && interestTags.length === 0;
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-4 py-2">
-			<TagChipInput
-				label="Offering Tags"
-				value={offeringTags}
-				onChange={setOfferingTags}
-				onRename={(from, to) =>
-					setOfferingRenames((prev) => [...prev, { from, to }])
-				}
-				placeholder="e.g. SaaS, Consulting, Seed Fund"
-				description="What hosts and attendees can select to describe what they offer. Click the pencil to rename a tag everywhere it's already been selected."
-				disabled={isPending}
-			/>
-
-			<TagChipInput
-				label="Interest Tags"
-				value={interestTags}
-				onChange={setInterestTags}
-				onRename={(from, to) =>
-					setInterestRenames((prev) => [...prev, { from, to }])
-				}
-				placeholder="e.g. Enterprise Clients, Distributors"
-				description="What hosts and attendees can select to describe what they're seeking. Click the pencil to rename a tag everywhere it's already been selected."
-				disabled={isPending}
-			/>
-
-			{isEmpty && (
-				<div className="flex items-start gap-2 rounded-none border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-800 dark:text-yellow-200">
-					<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-					<span>
-						Hosts and attendees won't have anything to pick until you add tags.
-					</span>
+		<form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+			<div className="min-h-0 flex-1 space-y-4 overflow-y-auto py-2 pr-1">
+				<div className="border bg-muted/20 p-4">
+					<TagChipInput
+						label="Offering Tags"
+						value={offeringTags}
+						onChange={setOfferingTags}
+						onRename={(from, to) =>
+							setOfferingRenames((prev) => [...prev, { from, to }])
+						}
+						placeholder="e.g. SaaS, Consulting, Seed Fund"
+						description="What hosts and attendees can select to describe what they offer. Click the pencil to rename a tag everywhere it's already been selected."
+						disabled={isPending}
+					/>
 				</div>
-			)}
 
-			<div className="flex justify-end gap-2 pt-4">
+				<div className="border bg-muted/20 p-4">
+					<TagChipInput
+						label="Interest Tags"
+						value={interestTags}
+						onChange={setInterestTags}
+						onRename={(from, to) =>
+							setInterestRenames((prev) => [...prev, { from, to }])
+						}
+						placeholder="e.g. Enterprise Clients, Distributors"
+						description="What hosts and attendees can select to describe what they're seeking. Click the pencil to rename a tag everywhere it's already been selected."
+						disabled={isPending}
+					/>
+				</div>
+
+				{isEmpty && (
+					<div className="flex items-start gap-2 rounded-none border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-800 dark:text-yellow-200">
+						<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+						<span>
+							Hosts and attendees won't have anything to pick until you add
+							tags.
+						</span>
+					</div>
+				)}
+			</div>
+
+			<div className="flex shrink-0 justify-end gap-2 border-t bg-background pt-4">
 				<Button
 					type="button"
 					variant="outline"
 					onClick={closeDialog}
 					disabled={isPending}
+					className="rounded-none"
 				>
 					Cancel
 				</Button>
-				<Button type="submit" disabled={isPending}>
+				<Button type="submit" disabled={isPending} className="rounded-none">
 					{isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-					Save Tags
+					Save tags
 				</Button>
 			</div>
 		</form>

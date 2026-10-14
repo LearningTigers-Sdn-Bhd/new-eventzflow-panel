@@ -17,7 +17,10 @@ import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { columns } from "@/components/pages/business-matching/columns";
 import CreateSessionDialog from "@/components/pages/business-matching/create-session-dialog";
-import { DataTable } from "@/components/pages/business-matching/data-table";
+import {
+	DataTable,
+	type SessionFilter,
+} from "@/components/pages/business-matching/data-table";
 import ManageTagsDialog from "@/components/pages/business-matching/manage-tags-dialog";
 import SessionDefaultsDialog from "@/components/pages/business-matching/session-defaults-dialog";
 import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
@@ -28,7 +31,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	Tooltip,
 	TooltipContent,
@@ -74,9 +76,7 @@ export default function BusinessMatchingPage() {
 	// create sessions, in addition to whoever canManageEvent already covers.
 	const canManageSessions = canManageEvent || isBusinessMatchingAdmin;
 
-	const [sessionFilter, setSessionFilter] = useState<"active" | "archived">(
-		"active",
-	);
+	const [sessionFilter, setSessionFilter] = useState<SessionFilter>("active");
 	const isArchivedView = sessionFilter === "archived";
 
 	const {
@@ -258,6 +258,7 @@ export default function BusinessMatchingPage() {
 							config: {
 								title: "Create Matchmaking Session",
 								size: "lg",
+								className: "rounded-none",
 							},
 						});
 					}}
@@ -289,6 +290,7 @@ export default function BusinessMatchingPage() {
 										config: {
 											title: "Manage Matching Tags",
 											size: "lg",
+											className: "rounded-none",
 										},
 									});
 								}}
@@ -321,6 +323,7 @@ export default function BusinessMatchingPage() {
 												</span>
 											),
 											size: "lg",
+											className: "rounded-none",
 										},
 									});
 								}}
@@ -397,20 +400,14 @@ export default function BusinessMatchingPage() {
 					</Button>
 				</div>
 			)}
-			{canManageSessions && hasArchivedData && (
-				<Tabs
-					value={sessionFilter}
-					onValueChange={(val) =>
-						setSessionFilter(val as "active" | "archived")
-					}
-				>
-					<TabsList className="grid w-full max-w-[280px] grid-cols-2">
-						<TabsTrigger value="active">Active</TabsTrigger>
-						<TabsTrigger value="archived">Archived</TabsTrigger>
-					</TabsList>
-				</Tabs>
-			)}
-			<DataTable columns={filteredColumns} data={data || []} />
+			<DataTable
+				columns={filteredColumns}
+				data={data || []}
+				sessionFilter={sessionFilter}
+				onSessionFilterChange={
+					canManageSessions && hasArchivedData ? setSessionFilter : undefined
+				}
+			/>
 		</div>
 	);
 }

@@ -23,14 +23,18 @@ export default function SessionActivityDialog({
 	// unreachable). A definite height gives the whole chain something to
 	// resolve against. Mobile already gets one from the full-screen dialog.
 	return (
-		<div className="flex h-full min-h-0 w-full flex-col">
+		<div className="flex h-full min-h-0 w-full flex-col px-4 pb-4 md:px-6 md:pb-6">
 			<Tabs
 				defaultValue="bookings"
-				className="flex h-full min-h-0 w-full flex-1 flex-col gap-2 md:h-[70vh]"
+				className="flex h-full min-h-0 w-full flex-1 flex-col gap-3"
 			>
-				<TabsList className="grid w-full shrink-0 grid-cols-2">
-					<TabsTrigger value="bookings">Bookings</TabsTrigger>
-					<TabsTrigger value="availability">Availability</TabsTrigger>
+				<TabsList className="grid w-full shrink-0 grid-cols-2 rounded-none">
+					<TabsTrigger value="bookings" className="rounded-none">
+						Bookings
+					</TabsTrigger>
+					<TabsTrigger value="availability" className="rounded-none">
+						Availability
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent
@@ -49,7 +53,7 @@ export default function SessionActivityDialog({
 			</Tabs>
 
 			{/* Bottom bar with Cancel/Close button for mobile view */}
-			<div className="flex shrink-0 justify-end border-t bg-background/95 px-4 py-2.5 backdrop-blur-sm md:hidden">
+			<div className="-mx-4 flex shrink-0 justify-end border-t bg-background/95 px-4 py-2.5 backdrop-blur-sm md:hidden">
 				<Button type="button" variant="outline" size="sm" onClick={closeDialog}>
 					Close
 				</Button>

@@ -50,7 +50,7 @@ export default function ArchiveSessionDialog({
 	if (!canArchive) {
 		return (
 			<div className="space-y-4 py-2">
-				<div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/10 p-3.5 text-amber-900 dark:text-amber-200">
+				<div className="flex items-start gap-3 border border-amber-500/20 bg-amber-500/10 p-3.5 text-amber-900 dark:text-amber-200">
 					<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
 					<div className="space-y-1 text-sm leading-relaxed">
 						<p className="font-semibold">
@@ -63,7 +63,7 @@ export default function ArchiveSessionDialog({
 					</div>
 				</div>
 
-				<div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3.5 text-sm">
+				<div className="space-y-2 border border-border bg-muted/30 p-3.5 text-sm">
 					<p className="font-medium text-foreground text-xs">
 						To archive this session, please complete the following:
 					</p>
@@ -106,7 +106,7 @@ export default function ArchiveSessionDialog({
 						type="button"
 						variant="outline"
 						onClick={closeDialog}
-						className="min-w-[90px]"
+						className="min-w-[90px] rounded-none"
 					>
 						Close
 					</Button>
@@ -118,8 +118,8 @@ export default function ArchiveSessionDialog({
 	// Case 2: Session is eligible for archive (no bookings and no host) -> Confirmation modal
 	return (
 		<div className="space-y-4 py-2">
-			<div className="flex items-start gap-3 rounded-lg border border-border bg-muted/20 p-3.5">
-				<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+			<div className="flex items-start gap-3 border border-border bg-muted/20 p-3.5">
+				<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-none bg-amber-100 text-amber-700">
 					<Archive className="h-4 w-4" />
 				</div>
 				<div className="space-y-1 text-sm">
@@ -140,14 +140,15 @@ export default function ArchiveSessionDialog({
 					variant="outline"
 					onClick={closeDialog}
 					disabled={isArchiving}
+					className="rounded-none"
 				>
 					Cancel
 				</Button>
 				<Button
 					type="button"
-					variant="destructive"
 					onClick={handleArchive}
 					disabled={isArchiving}
+					className="rounded-none bg-amber-600 text-white hover:bg-amber-700"
 				>
 					{isArchiving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 					Archive Session
@@ -182,8 +183,8 @@ export function RestoreSessionDialog({ session }: RestoreSessionDialogProps) {
 
 	return (
 		<div className="space-y-4 py-2">
-			<div className="flex items-start gap-3 rounded-lg border border-border bg-muted/20 p-3.5">
-				<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+			<div className="flex items-start gap-3 border border-border bg-muted/20 p-3.5">
+				<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-none bg-green-100 text-green-700">
 					<ArchiveRestore className="h-4 w-4" />
 				</div>
 				<div className="space-y-1 text-sm">
@@ -203,6 +204,7 @@ export function RestoreSessionDialog({ session }: RestoreSessionDialogProps) {
 					variant="outline"
 					onClick={closeDialog}
 					disabled={isRestoring}
+					className="rounded-none"
 				>
 					Cancel
 				</Button>
@@ -210,7 +212,7 @@ export function RestoreSessionDialog({ session }: RestoreSessionDialogProps) {
 					type="button"
 					onClick={handleRestore}
 					disabled={isRestoring}
-					className="bg-emerald-600 text-white hover:bg-emerald-700"
+					className="rounded-none bg-green-600 text-white hover:bg-green-700"
 				>
 					{isRestoring && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 					Restore Session

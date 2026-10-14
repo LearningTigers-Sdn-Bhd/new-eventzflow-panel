@@ -10,60 +10,107 @@ import {
 	Clock,
 	MapPin,
 	Pencil,
-	User,
+	UserPlus,
 } from "lucide-react";
 import { ExpandableTags } from "@/components/admin-ui/expandable-tags";
+import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
+import { cn } from "@/lib/utils";
 import ArchiveSessionDialog, {
 	RestoreSessionDialog,
 } from "./archive-session-dialog";
 import AttachHostDialog from "./attach-host-dialog";
 import CreateSessionDialog from "./create-session-dialog";
 import HostDetailsDialog from "./host-details-dialog";
-import SessionActivityDialog from "./session-activity-dialog";
+
+const STATUS_BADGE = {
+	active: "bg-green-100 text-green-800 hover:bg-green-100",
+	needsHost: "bg-amber-100 text-amber-800 hover:bg-amber-100",
+	archived: "bg-gray-100 text-gray-800 hover:bg-gray-100",
+} as const;
+
+function sessionStatus(event: BusinessMatchingEvent) {
+	if (event.is_archived ?? !!event.archived_at) {
+		return { label: "Archived", className: STATUS_BADGE.archived };
+	}
+	if (!event.host) {
+		return { label: "Needs host", className: STATUS_BADGE.needsHost };
+	}
+	return { label: "Active", className: STATUS_BADGE.active };
+}
+
+function formatDateRange(start?: string, end?: string) {
+	if (!start) return null;
+	const from = parseISO(start);
+	const to = end ? parseISO(end) : from;
+	if (from.getTime() === to.getTime()) return format(from, "d MMM yyyy");
+	return `${format(from, "d MMM")} – ${format(to, "d MMM yyyy")}`;
+}
 
 export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 	{
 		accessorKey: "title",
-		header: "Session Details",
+		size: 320,
+		header: ({ column }) => <SortableHeader column={column} label="Session" />,
 		cell: ({ row }) => {
 			const event = row.original;
-			const offeringTags = event.offering_tags || [];
-			const isArchived = event.is_archived ?? !!event.archived_at;
 			return (
-				<div className="flex max-w-[280px] flex-col gap-1 py-1">
-					<div className="flex flex-wrap items-center gap-1.5">
-						<span
-							className={`break-words font-semibold text-foreground leading-snug ${
-								event.title.length > 40 ? "text-xs" : "text-sm"
-							}`}
-						>
-							{event.title}
-						</span>
-						{isArchived && (
-							<span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 font-medium text-[10px] text-amber-700 dark:text-amber-400">
-								Archived
-							</span>
-						)}
-					</div>
+				<div className="flex max-w-[300px] flex-col gap-1.5 py-2">
+					<span className="break-words font-semibold text-foreground text-sm leading-snug">
+						{event.title}
+					</span>
 					{event.location && (
-						<span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+						<span className="inline-flex items-center gap-1 text-muted-foreground text-xs">
 							<MapPin className="h-3 w-3 shrink-0" />
 							{event.location}
 						</span>
 					)}
-					<ExpandableTags tags={offeringTags} limit={3} className="mt-1" />
+					<ExpandableTags
+						tags={event.offering_tags || []}
+						limit={3}
+						colorful
+						tagClassName="text-xs"
+					/>
+				</div>
+			);
+		},
+	},
+	{
+		id: "schedule",
+		size: 190,
+		accessorFn: (row) => row.start_date ?? "",
+		header: ({ column }) => <SortableHeader column={column} label="Schedule" />,
+		cell: ({ row }) => {
+			const { start_date, end_date, start_time, end_time } = row.original;
+			const range = formatDateRange(start_date, end_date);
+			if (!range) return <span className="text-muted-foreground">—</span>;
+			return (
+				<div className="flex flex-col gap-1 py-2 text-xs">
+					<span className="flex items-center gap-1.5 font-medium text-foreground">
+						<Calendar className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+						{range}
+					</span>
+					{start_time && end_time && (
+						<span className="flex items-center gap-1.5 text-muted-foreground">
+							<Clock className="h-3.5 w-3.5 shrink-0" />
+							{start_time} – {end_time}
+						</span>
+					)}
 				</div>
 			);
 		},
 	},
 	{
 		accessorKey: "host",
-		header: "Host Profile",
+		size: 240,
+		header: "Host",
 		cell: ({ row }) => {
 			const { openDialog } = useDialog();
 			const { permissions } = useEventSidebarContext();
@@ -85,100 +132,108 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 								config: {
 									title: `Attach Host to "${row.original.title}"`,
 									size: "lg",
+									className: "rounded-none",
 								},
 							});
 						}}
-						className="h-8 text-xs"
+						className="h-8 rounded-none border-dashed text-xs"
 					>
+						<UserPlus className="h-3.5 w-3.5" />
 						Attach a host
 					</Button>
 				);
 			}
 
+			const initials = host.full_name
+				.split(" ")
+				.map((w) => w[0])
+				.slice(0, 2)
+				.join("")
+				.toUpperCase();
+
 			return (
-				<div className="flex max-w-[200px] items-center gap-1.5 py-1">
-					<button
-						type="button"
-						onClick={() => {
-							openDialog({
-								component: HostDetailsDialog,
-								props: {
-									host,
-									bmEventId: row.original.id,
-									eventId: row.original.event_id,
-								},
-								config: {
-									title: "Host Details",
-									// "sm" felt cramped for the tabbed content below — bump
-									// width and height a bit. Desktop-only: this className
-									// is dropped on the mobile/tablet dialog variant, which
-									// already goes full-screen.
-									size: "md",
-									className: "sm:max-h-[90vh]",
-								},
-							});
-						}}
-						className="flex items-center gap-1.5 text-left font-semibold text-foreground text-sm transition-colors hover:text-primary hover:underline"
-					>
-						<User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-						{host.full_name}
-					</button>
-				</div>
+				<button
+					type="button"
+					onClick={() => {
+						openDialog({
+							component: HostDetailsDialog,
+							props: {
+								host,
+								bmEventId: row.original.id,
+								eventId: row.original.event_id,
+							},
+							config: {
+								title: "Host Details",
+								// "sm" felt cramped for the tabbed content below — bump
+								// width and height a bit. Desktop-only: this className
+								// is dropped on the mobile/tablet dialog variant, which
+								// already goes full-screen.
+								size: "lg",
+								className: "rounded-none sm:max-h-[90vh]",
+							},
+						});
+					}}
+					className="group/host flex max-w-[220px] items-center gap-2.5 py-2 text-left"
+				>
+					<Avatar className="h-10 w-10">
+						<AvatarImage src={host.avatar_url ?? undefined} />
+						<AvatarFallback className="bg-primary/10 font-semibold text-primary text-sm">
+							{initials}
+						</AvatarFallback>
+					</Avatar>
+					<span className="flex min-w-0 flex-col">
+						<span className="truncate font-medium text-foreground text-sm group-hover/host:underline">
+							{host.full_name}
+						</span>
+						<span className="truncate text-muted-foreground text-xs">
+							{host.email}
+						</span>
+					</span>
+				</button>
+			);
+		},
+	},
+	{
+		id: "status",
+		size: 120,
+		accessorFn: (row) => sessionStatus(row).label,
+		header: "Status",
+		cell: ({ row }) => {
+			const { label, className } = sessionStatus(row.original);
+			return (
+				<Badge variant="secondary" className={cn("rounded-none", className)}>
+					{label}
+				</Badge>
 			);
 		},
 	},
 	{
 		id: "activity",
-		header: "Activity & Stats",
+		size: 170,
+		accessorFn: (row) => row.bookings_count ?? 0,
+		header: ({ column }) => <SortableHeader column={column} label="Bookings" />,
 		cell: ({ row }) => {
-			const { openDialog } = useDialog();
 			const event = row.original;
 			const count = event.bookings_count ?? 0;
 
 			return (
-				<div className="flex flex-col gap-1 py-1 text-xs">
-					<div>
-						<button
-							type="button"
-							onClick={() => {
-								openDialog({
-									component: SessionActivityDialog,
-									props: {
-										bmEventId: event.id,
-										eventId: event.event_id,
-									},
-									config: {
-										title: `Bookings & Availability for ${event.title}`,
-										size: "5xl",
-									},
-								});
-							}}
-							className={`inline-flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 font-semibold text-xs shadow-sm transition-all hover:shadow-md ${
-								count > 0
-									? "bg-primary text-primary-foreground hover:opacity-90"
-									: "border border-muted-foreground/30 border-dashed bg-transparent text-muted-foreground hover:bg-muted/50"
-							}`}
-						>
-							{count > 0 && <CalendarCheck className="h-3 w-3" />}
-							{count} booking{count !== 1 ? "s" : ""}
-						</button>
-					</div>
-					{event.created_at && (
-						<div className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
-							<Calendar className="h-3 w-3 shrink-0" />
-							<span>
-								Created: {format(parseISO(event.created_at), "dd MMM yyyy")}
-							</span>
-						</div>
-					)}
+				<div className="flex flex-col gap-1 py-2">
+					<Badge
+						variant={count > 0 ? "default" : "secondary"}
+						className={cn(
+							"rounded-none",
+							count > 0
+								? "bg-blue-100 text-blue-800 hover:bg-blue-100"
+								: "bg-gray-100 text-gray-800 hover:bg-gray-100",
+						)}
+					>
+						<CalendarCheck />
+						{count} booking{count !== 1 ? "s" : ""}
+					</Badge>
 					{event.updated_at && (
-						<div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-							<Clock className="h-3 w-3 shrink-0" />
-							<span>
-								Updated:{" "}
-								{format(parseISO(event.updated_at), "dd MMM yyyy, h:mm a")}
-							</span>
-						</div>
+						<span className="text-foreground/70 text-xs">
+							Updated {format(parseISO(event.updated_at), "d MMM, h:mm a")}
+						</span>
 					)}
 				</div>
 			);
@@ -186,7 +241,10 @@ export const columns: ColumnDef<BusinessMatchingEvent>[] = [
 	},
 	{
 		id: "actions",
-		header: "Actions",
+		size: 120,
+		enableHiding: false,
+		meta: { sticky: "right" },
+		header: () => <div className="text-center">Actions</div>,
 		cell: ({ row }) => <SessionActionsCell event={row.original} />,
 	},
 ];
@@ -218,6 +276,7 @@ function SessionActionsCell({ event }: { event: BusinessMatchingEvent }) {
 			config: {
 				title: canArchive ? "Archive Session" : "Cannot Archive Session",
 				size: "md",
+				className: "rounded-none",
 			},
 		});
 	};
@@ -229,16 +288,17 @@ function SessionActionsCell({ event }: { event: BusinessMatchingEvent }) {
 			config: {
 				title: "Restore Session",
 				size: "md",
+				className: "rounded-none",
 			},
 		});
 	};
 
 	return (
-		<div className="flex items-center gap-1.5 py-1">
+		<ButtonGroup>
 			{!isArchived && (
 				<Button
 					variant="outline"
-					size="icon"
+					size="icon-sm"
 					onClick={() => {
 						openDialog({
 							component: CreateSessionDialog,
@@ -250,39 +310,40 @@ function SessionActionsCell({ event }: { event: BusinessMatchingEvent }) {
 							config: {
 								title: `Edit "${event.title}"`,
 								size: "2xl",
+								className: "rounded-none",
 							},
 						});
 					}}
-					className="h-8 w-8"
+					className="h-8 w-8 rounded-none p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700 [&_svg]:text-blue-600 hover:[&_svg]:text-blue-700"
 					title="Edit"
 				>
-					<Pencil className="h-4 w-4" />
+					<Pencil className="size-4" />
 				</Button>
 			)}
 
 			{canManageSession && !isArchived && (
 				<Button
 					variant="outline"
-					size="icon"
+					size="icon-sm"
 					onClick={handleArchive}
-					className="h-8 w-8 text-muted-foreground hover:text-destructive"
+					className="h-8 w-8 rounded-none p-0 text-amber-600 hover:bg-amber-50 hover:text-amber-700 [&_svg]:text-amber-600 hover:[&_svg]:text-amber-700"
 					title="Archive session"
 				>
-					<Archive className="h-4 w-4" />
+					<Archive className="size-4" />
 				</Button>
 			)}
 
 			{canManageSession && isArchived && (
 				<Button
 					variant="outline"
-					size="icon"
+					size="icon-sm"
 					onClick={handleUnarchive}
-					className="h-8 w-8 text-muted-foreground hover:text-foreground"
+					className="h-8 w-8 rounded-none p-0 text-green-600 hover:bg-green-50 hover:text-green-700 [&_svg]:text-green-600 hover:[&_svg]:text-green-700"
 					title="Restore / Unarchive session"
 				>
-					<ArchiveRestore className="h-4 w-4" />
+					<ArchiveRestore className="size-4" />
 				</Button>
 			)}
-		</div>
+		</ButtonGroup>
 	);
 }
