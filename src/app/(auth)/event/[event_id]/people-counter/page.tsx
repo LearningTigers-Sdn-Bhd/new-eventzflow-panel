@@ -30,7 +30,7 @@ export default function PeopleCounterPage({
 		"tab",
 		parseAsStringLiteral(TABS).withDefault("live"),
 	);
-	const tab = canManage ? requestedTab : "live";
+	const tab = requestedTab === "settings" && !canManage ? "live" : requestedTab;
 
 	return (
 		<div className="p-0">
