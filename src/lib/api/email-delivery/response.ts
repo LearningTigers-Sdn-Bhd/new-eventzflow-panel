@@ -33,13 +33,42 @@ export interface BackendEmailDelivery {
 }
 
 export interface BackendEmailDeliveryPagination {
-	page: number;
-	items: number;
-	count: number;
-	pages: number;
-	next: number | null;
-	prev: number | null;
+	current_page: number;
+	total_pages: number;
+	total_count: number;
+	per_page: number;
 }
+
+export interface EmailDeliveryPage {
+	items: EmailDelivery[];
+	pagination: {
+		currentPage: number;
+		totalPages: number;
+		totalCount: number;
+		perPage: number;
+	};
+}
+
+export interface BackendEmailLogSettingsResponse {
+	data: {
+		retention_days: number;
+		protected_retention_days: number;
+		rows_to_purge: number;
+	};
+}
+
+export interface EmailLogSettings {
+	retentionDays: number;
+	protectedRetentionDays: number;
+	// Rows already past their window, deleted by the next nightly run.
+	rowsToPurge: number;
+}
+
+export interface BackendEmailDeliverySummaryResponse {
+	data: Partial<Record<z.infer<typeof emailDeliveryStatusSchema>, number>>;
+}
+
+export type EmailDeliverySummary = BackendEmailDeliverySummaryResponse["data"];
 
 export interface BackendEmailDeliveryListResponse {
 	data: BackendEmailDelivery[];

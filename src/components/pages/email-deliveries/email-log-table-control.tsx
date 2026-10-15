@@ -6,6 +6,12 @@ import type { ControlConfig } from "@/components/admin-ui/table/control/type";
 
 interface EmailLogTableControlProps<TData> {
 	table: Table<TData>;
+	// Search and status run server-side; filtering in the browser would only
+	// cover the loaded page.
+	search: string;
+	onSearchChange: (value: string) => void;
+	status: string;
+	onStatusChange: (value: string) => void;
 }
 
 function getColumnLabel(columnId: string): string {
@@ -24,6 +30,10 @@ function getColumnLabel(columnId: string): string {
 
 export function EmailLogTableControl<TData>({
 	table,
+	search,
+	onSearchChange,
+	status,
+	onStatusChange,
 }: EmailLogTableControlProps<TData>) {
 	const statusFilterControl: ControlConfig = {
 		label: "Status",
@@ -41,11 +51,8 @@ export function EmailLogTableControl<TData>({
 			{ label: "Suppressed", value: "suppressed" },
 		],
 		customFilter: {
-			value: (table.getColumn("status")?.getFilterValue() as string) || "all",
-			onChange: (value: string) => {
-				const column = table.getColumn("status");
-				column?.setFilterValue(value === "all" ? undefined : value);
-			},
+			value: status,
+			onChange: onStatusChange,
 		},
 	};
 
@@ -81,6 +88,7 @@ export function EmailLogTableControl<TData>({
 						"mailerAction",
 						"providerMessageId",
 					],
+					controlled: { value: search, onChange: onSearchChange },
 				},
 			}}
 			desktopConfig={{

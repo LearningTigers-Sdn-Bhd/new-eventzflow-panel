@@ -2,11 +2,9 @@
 
 import {
 	type ColumnDef,
-	type ColumnFiltersState,
 	getCoreRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
 	getSortedRowModel,
+	type PaginationState,
 	type SortingState,
 	type TableMeta,
 	useReactTable,
@@ -26,10 +24,25 @@ import { EmptyState } from "@/components/data-state";
 import type { EmailDelivery } from "@/lib/api/email-delivery";
 import { EmailLogTableControl } from "./email-log-table-control";
 
+interface ServerPagination {
+	pageIndex: number;
+	pageSize: number;
+	pageCount: number;
+	totalCount: number;
+	onPageChange: (pageIndex: number) => void;
+	onPageSizeChange: (size: number) => void;
+}
+
 interface EmailLogTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
+	// Always exactly one server page; search/status/paging are server-side.
 	data: TData[];
 	meta?: TableMeta<TData>;
+	search: string;
+	onSearchChange: (value: string) => void;
+	status: string;
+	onStatusChange: (value: string) => void;
+	pagination: ServerPagination;
 }
 
 function EmailLogCard({ item }: { item: EmailDelivery }) {
@@ -55,35 +68,54 @@ export function EmailLogTable<TData, TValue>({
 	columns,
 	data,
 	meta,
+	search,
+	onSearchChange,
+	status,
+	onStatusChange,
+	pagination,
 }: EmailLogTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[],
-	);
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
+	const paginationState: PaginationState = {
+		pageIndex: pagination.pageIndex,
+		pageSize: pagination.pageSize,
+	};
 
+	// Paging and filtering are server-driven; sorting only reorders the loaded
+	// page.
 	const table = useReactTable({
 		data,
 		columns,
 		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
+		manualPagination: true,
+		manualFiltering: true,
+		pageCount: pagination.pageCount,
+		onPaginationChange: (updater) => {
+			const next =
+				typeof updater === "function" ? updater(paginationState) : updater;
+			pagination.onPageChange(next.pageIndex);
+		},
 		state: {
 			sorting,
-			columnFilters,
 			columnVisibility,
+			pagination: paginationState,
 		},
 		meta,
 	});
 
 	return (
 		<div className="w-full">
-			<EmailLogTableControl table={table} />
+			<EmailLogTableControl
+				table={table}
+				search={search}
+				onSearchChange={onSearchChange}
+				status={status}
+				onStatusChange={onStatusChange}
+			/>
 
 			<div className="min-h-[calc(100vh-320px)]">
 				<ResponsiveLayout>
@@ -141,7 +173,12 @@ export function EmailLogTable<TData, TValue>({
 					</TabletView>
 				</ResponsiveLayout>
 			</div>
-			<DataPagination table={table} />
+			<DataPagination
+				table={table}
+				totalRows={pagination.totalCount}
+				pageSize={pagination.pageSize}
+				onPageSizeChange={pagination.onPageSizeChange}
+			/>
 		</div>
 	);
 }
