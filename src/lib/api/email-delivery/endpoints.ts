@@ -103,14 +103,16 @@ const mapSettings = (
 ): EmailLogSettings => ({
 	retentionDays: data.retention_days,
 	protectedRetentionDays: data.protected_retention_days,
+	purgeEnabled: data.purge_enabled,
 	rowsToPurge: data.rows_to_purge,
 });
 
 // With `preview`, the backend reports rowsToPurge for those values without
 // saving them.
-export async function getEmailLogSettings(
-	preview?: UpdateEmailLogSettingsRequest,
-): Promise<EmailLogSettings> {
+export async function getEmailLogSettings(preview?: {
+	retentionDays: number;
+	protectedRetentionDays: number;
+}): Promise<EmailLogSettings> {
 	const query = preview
 		? `?retention_days=${preview.retentionDays}&protected_retention_days=${preview.protectedRetentionDays}`
 		: "";
@@ -129,6 +131,7 @@ export async function updateEmailLogSettings(
 		{
 			retention_days: validated.retentionDays,
 			protected_retention_days: validated.protectedRetentionDays,
+			purge_enabled: validated.purgeEnabled,
 		},
 	);
 	return mapSettings(response.data);

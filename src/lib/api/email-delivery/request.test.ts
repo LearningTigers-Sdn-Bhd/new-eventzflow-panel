@@ -6,6 +6,7 @@ describe("updateEmailLogSettingsSchema", () => {
 		const result = updateEmailLogSettingsSchema.safeParse({
 			retentionDays: 365,
 			protectedRetentionDays: 730,
+			purgeEnabled: false,
 		});
 		expect(result.success).toBe(true);
 	});
@@ -14,6 +15,7 @@ describe("updateEmailLogSettingsSchema", () => {
 		const result = updateEmailLogSettingsSchema.safeParse({
 			retentionDays: 10,
 			protectedRetentionDays: 730,
+			purgeEnabled: false,
 		});
 		expect(result.success).toBe(false);
 		expect(result.error?.issues[0]?.message).toBe("Minimum is 30 days");
@@ -23,6 +25,7 @@ describe("updateEmailLogSettingsSchema", () => {
 		const result = updateEmailLogSettingsSchema.safeParse({
 			retentionDays: 365,
 			protectedRetentionDays: 200,
+			purgeEnabled: false,
 		});
 		expect(result.success).toBe(false);
 		expect(result.error?.issues[0]?.path).toEqual(["protectedRetentionDays"]);
