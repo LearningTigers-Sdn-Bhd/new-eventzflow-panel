@@ -75,15 +75,16 @@ export function EmailLogRetentionDialog({
 		enabled: open,
 	});
 
-	// Seed the selects from the server each time the dialog opens or the saved
-	// values change.
+	// Reset the form from the saved values every time the dialog opens (and when
+	// they change), so unsaved edits, especially the delete switch, never
+	// survive a dismissal.
 	useEffect(() => {
-		if (settings) {
+		if (open && settings) {
 			setRetentionDays(settings.retentionDays);
 			setProtectedDays(settings.protectedRetentionDays);
 			setPurgeEnabled(settings.purgeEnabled);
 		}
-	}, [settings]);
+	}, [open, settings]);
 
 	const changed =
 		settings !== undefined &&
