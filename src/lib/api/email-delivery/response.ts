@@ -53,6 +53,7 @@ export interface BackendEmailLogSettingsResponse {
 	data: {
 		retention_days: number;
 		protected_retention_days: number;
+		purge_enabled: boolean;
 		rows_to_purge: number;
 	};
 }
@@ -60,7 +61,10 @@ export interface BackendEmailLogSettingsResponse {
 export interface EmailLogSettings {
 	retentionDays: number;
 	protectedRetentionDays: number;
-	// Rows already past their window, deleted by the next nightly run.
+	// Nothing is deleted until an org owner turns this on.
+	purgeEnabled: boolean;
+	// Rows already past their window; deleted by the next nightly run only
+	// while purgeEnabled is true.
 	rowsToPurge: number;
 }
 

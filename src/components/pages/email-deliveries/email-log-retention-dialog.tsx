@@ -25,6 +25,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
 	getEmailLogSettings,
 	updateEmailLogSettings,
@@ -66,6 +67,7 @@ export function EmailLogRetentionDialog({
 	const queryClient = useQueryClient();
 	const [retentionDays, setRetentionDays] = useState<number | null>(null);
 	const [protectedDays, setProtectedDays] = useState<number | null>(null);
+	const [purgeEnabled, setPurgeEnabled] = useState(false);
 
 	const { data: settings, isLoading } = useQuery({
 		queryKey: SETTINGS_KEY,
@@ -79,13 +81,15 @@ export function EmailLogRetentionDialog({
 		if (settings) {
 			setRetentionDays(settings.retentionDays);
 			setProtectedDays(settings.protectedRetentionDays);
+			setPurgeEnabled(settings.purgeEnabled);
 		}
 	}, [settings]);
 
 	const changed =
 		settings !== undefined &&
 		(retentionDays !== settings.retentionDays ||
-			protectedDays !== settings.protectedRetentionDays);
+			protectedDays !== settings.protectedRetentionDays ||
+			purgeEnabled !== settings.purgeEnabled);
 
 	// How many rows the nightly run would delete for the selected values.
 	const { data: preview } = useQuery({
@@ -109,6 +113,7 @@ export function EmailLogRetentionDialog({
 				updateEmailLogSettingsSchema.parse({
 					retentionDays,
 					protectedRetentionDays: protectedDays,
+					purgeEnabled,
 				}),
 			),
 		onSuccess: (saved) => {
@@ -132,7 +137,8 @@ export function EmailLogRetentionDialog({
 				<DialogHeader>
 					<DialogTitle>Email log retention</DialogTitle>
 					<DialogDescription>
-						Older rows are deleted automatically every night at 3:30 am.
+						When automatic deletion is on, older rows are deleted every night at
+						3:30 am.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -197,19 +203,36 @@ export function EmailLogRetentionDialog({
 						</p>
 					</div>
 
+					<div className="flex items-start justify-between gap-4 border border-dashed p-3">
+						<div className="space-y-0.5">
+							<Label htmlFor="retention-purge-enabled">
+								Delete old rows automatically
+							</Label>
+							<p className="text-muted-foreground text-xs">
+								Off by default. Nothing is deleted until you turn this on.
+							</p>
+						</div>
+						<Switch
+							id="retention-purge-enabled"
+							checked={purgeEnabled}
+							onCheckedChange={setPurgeEnabled}
+							disabled={isLoading}
+						/>
+					</div>
+
 					{rowsToPurge !== undefined && (
 						<p
 							className={
-								changed && rowsToPurge > 0
+								purgeEnabled && rowsToPurge > 0
 									? "border border-destructive border-dashed p-3 text-destructive text-sm"
 									: "border border-dashed p-3 text-sm"
 							}
 						>
-							{changed ? "Saving this would delete " : ""}
-							<span className="font-medium">{rowsToPurge}</span> row(s)
-							{changed
-								? " at the next run."
-								: " are already past the saved window and will be deleted at the next run."}
+							<span className="font-medium">{rowsToPurge}</span> row(s) are past
+							this window.{" "}
+							{purgeEnabled
+								? "They will be deleted at the next nightly run."
+								: "They are kept because automatic deletion is off."}
 						</p>
 					)}
 				</div>

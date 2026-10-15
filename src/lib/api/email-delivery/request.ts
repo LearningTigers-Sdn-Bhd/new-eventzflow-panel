@@ -31,6 +31,7 @@ export type GetEmailDeliveriesRequest = z.infer<
 // rows are never kept shorter than routine ones).
 export const updateEmailLogSettingsSchema = z
 	.object({
+		purgeEnabled: z.boolean(),
 		retentionDays: z
 			.number({ message: "Enter a number of days" })
 			.int("Use whole days")
