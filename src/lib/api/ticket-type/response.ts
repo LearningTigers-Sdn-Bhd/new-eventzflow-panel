@@ -5,6 +5,7 @@ export interface BackendTicketType {
 	name: string;
 	price: string; // Decimal comes as string from Rails
 	quantity: number;
+	remaining_quantity: number | null;
 	max_per_order: number;
 	sale_starts_at: string | null;
 	sale_ends_at: string | null;
@@ -22,6 +23,7 @@ export interface TicketType {
 	name: string;
 	price: number;
 	quantity: number;
+	remainingQuantity: number | null;
 	maxPerOrder: number;
 	saleStartsAt: string | null;
 	saleEndsAt: string | null;

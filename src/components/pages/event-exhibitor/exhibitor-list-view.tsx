@@ -24,6 +24,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getEventVendors } from "@/lib/api/event-vendor";
+import { getExhibitorBoothPrices } from "@/lib/api/exhibitor-booth-price";
+import { getExhibitorZones } from "@/lib/api/exhibitor-zone";
 import { flattenExhibitorKits } from "@/lib/exhibitor-kits";
 import { CustomRequestsView } from "./custom-requests-view";
 import { ExtraTeamMemberPaymentsView } from "./extra-team-member-payments-view";
@@ -63,6 +65,14 @@ export function ExhibitorListView({
 	} = useQuery({
 		queryKey: ["event", eventId, "vendors"],
 		queryFn: () => getEventVendors(Number(eventId)),
+	});
+	const { data: boothPrices = [] } = useQuery({
+		queryKey: ["exhibitor-booth-prices", Number(eventId)],
+		queryFn: () => getExhibitorBoothPrices(Number(eventId)),
+	});
+	const { data: zones = [] } = useQuery({
+		queryKey: ["exhibitor-zones", Number(eventId)],
+		queryFn: () => getExhibitorZones(Number(eventId)),
 	});
 
 	if (isLoading) {
@@ -197,6 +207,10 @@ export function ExhibitorListView({
 								columns={columns}
 								data={flattenExhibitorKits(vendors || [])}
 								canManageVendors={canManageVendors}
+								configuredPricingLabels={boothPrices.map(
+									(boothPrice) => boothPrice.label,
+								)}
+								configuredZones={zones.map((zone) => zone.zone)}
 							/>
 						</div>
 					</TabsContent>

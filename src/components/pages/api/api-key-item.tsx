@@ -15,12 +15,14 @@ const SCOPE_LABELS: Record<ApiKeyScope, string> = {
 	read_only: "Read only",
 	check_in: "Check-in",
 	read_write: "Full access",
+	rfid: "RFID device",
 };
 
 const SCOPE_BADGE_CLASS: Record<ApiKeyScope, string> = {
 	read_only: "border-slate-500/40 text-slate-600",
 	check_in: "border-blue-500/40 text-blue-600",
 	read_write: "border-amber-500/40 text-amber-600",
+	rfid: "border-teal-600/40 text-teal-700 dark:text-teal-300",
 };
 
 // Format date with time

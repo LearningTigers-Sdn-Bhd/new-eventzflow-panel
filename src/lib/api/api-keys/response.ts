@@ -18,7 +18,7 @@ export type BackendApiKeyCreation = {
 	message: string;
 };
 
-export type ApiKeyScope = "read_only" | "check_in" | "read_write";
+export type ApiKeyScope = "read_only" | "check_in" | "read_write" | "rfid";
 
 // Frontend API key type (for list display)
 export type ApiKey = {

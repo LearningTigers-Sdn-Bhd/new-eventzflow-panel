@@ -23,11 +23,18 @@ export type EventOverview = {
 	title: string;
 	status: "draft" | "published" | "cancelled" | "completed";
 	useTicket: boolean;
+	useExhibitorKit: boolean;
 	// Ticket event stats
 	totalTickets: number;
 	scannedTickets: number;
 	totalRevenue: number;
-	pendingTickets: number;
+	awaitingCheckingTickets: number;
+	// Vendor / exhibitor stats
+	totalVendors: number;
+	totalExhibitors: number;
+	paidExhibitors: number;
+	depositExhibitors: number;
+	unpaidExhibitors: number;
 	// Non-ticket event stats
 	totalVisitors: number;
 	totalLeads: number;
@@ -54,10 +61,13 @@ export type EventAnalytics = {
 	eventName: string;
 	status: "draft" | "published" | "cancelled" | "completed";
 	totalTickets: number;
+	paidTickets: number;
+	pendingTickets: number;
+	totalVisitors: number;
 	scannedTickets: number;
 	unscannedTickets: number;
 	totalRevenue: number;
-	pendingTickets: number;
+	pendingRevenue: number;
 	locations: number;
 	recentScans: RecentScan[];
 	registrationData: ChartDataPoint[];
@@ -88,11 +98,18 @@ export type BackendEventOverview = {
 	title: string;
 	status: string;
 	use_ticket: boolean;
+	use_exhibitor_kit: boolean;
 	// Ticket event stats
 	total_tickets: number;
 	scanned_tickets: number;
 	total_revenue: number;
 	unscanned_tickets: number;
+	// Vendor / exhibitor stats
+	total_vendors: number;
+	total_exhibitors: number;
+	paid_exhibitors: number;
+	deposit_exhibitors: number;
+	unpaid_exhibitors: number;
 	// Non-ticket event stats
 	total_visitors: number;
 	total_leads: number;
@@ -101,6 +118,9 @@ export type BackendEventOverview = {
 
 export type BackendAnalyticsResponse = {
 	totalTickets: number;
+	paidTickets: number;
+	pendingTickets: number;
+	totalVisitors: number;
 };
 
 export type BackendScannedTicketsResponse = {
@@ -113,6 +133,11 @@ export type BackendUnscannedTicketsResponse = {
 
 export type BackendRevenueResponse = {
 	totalAmountPrice: number;
+	pendingAmountPrice: number;
+};
+
+export type BackendRecentScansResponse = {
+	recentScans: RecentScan[];
 };
 
 export type BackendTicket = {

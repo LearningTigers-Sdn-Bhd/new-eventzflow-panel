@@ -2,11 +2,10 @@
 
 import { ExternalLink, List, Settings } from "lucide-react";
 import { BlankCard } from "@/components/admin-ui/analytic";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { useFormatDate } from "@/hooks/use-format-date";
 import type { Event } from "@/lib/api/event/response";
 import { cn } from "@/lib/utils";
-import { EventDetailsActionButtons } from "./event-details-action-buttons";
 
 interface EventDetailsViewProps {
 	event: Event;
@@ -14,10 +13,8 @@ interface EventDetailsViewProps {
 
 export function EventDetailsView({ event }: EventDetailsViewProps) {
 	const { formatDate } = useFormatDate();
-	const { isVendor, isExhibitionContractor } = useEventPermissions(
-		event.id,
-		event,
-	);
+	const { permissions } = useEventSidebarContext();
+	const { isVendor, isExhibitionContractor } = permissions;
 
 	const showWebhookUrl = !isVendor && !isExhibitionContractor;
 	const showColumn2 = !isVendor && !isExhibitionContractor;

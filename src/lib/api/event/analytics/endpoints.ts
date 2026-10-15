@@ -7,10 +7,16 @@ import {
 } from "./request";
 import type {
 	AllEventAnalyticsResponse,
+	CustomFieldBreakdownResponse,
+	CustomFieldKeysResponse,
+	CustomFieldNamesResponse,
 	DailyHourlyBreakdown,
 	DateCountColumn,
 	HourlyBreakdownByDayResponse,
 	MallLiveFeedResponse,
+	NestedCustomFieldBreakdownResponse,
+	PartnerAnalyticsResponse,
+	TicketTypeBreakdownResponse,
 	TimeSeriesResponse,
 	TotalAmountPriceResponse,
 	TotalScannedTicketsResponse,
@@ -47,6 +53,7 @@ export async function getTimeSeries(
 		if (validated.dateMode) params.set("date_mode", validated.dateMode);
 		if (validated.startDate) params.set("start_date", validated.startDate);
 		if (validated.endDate) params.set("end_date", validated.endDate);
+		if (validated.includeMultiScans) params.set("include_multi_scans", "true");
 
 		return await restClient.get<TimeSeriesResponse>(
 			`v1/events/${validated.eventId}/metrics/time_series?${params.toString()}`,
@@ -109,9 +116,12 @@ export async function getAllEventAnalytics(
 
 		return {
 			totalTickets: totalTickets.totalTickets,
+			paidTickets: totalTickets.paidTickets,
+			pendingTickets: totalTickets.pendingTickets,
 			totalScannedTickets: totalScannedTickets.totalScannedTickets,
 			totalUnscannedTickets: totalUnscannedTickets.totalUnscannedTickets,
 			totalAmountPrice: totalAmountPrice.totalAmountPrice,
+			pendingAmountPrice: totalAmountPrice.pendingAmountPrice,
 			registrationData: toDateCountFormat(ticketsTimeSeries.data ?? []),
 			scanData: toDateCountFormat(scansTimeSeries.data ?? []),
 			revenueData: toDateCountFormat(revenueTimeSeries.data ?? []),
@@ -151,9 +161,11 @@ export async function getTotalScannedTickets(
 ): Promise<TotalScannedTicketsResponse> {
 	try {
 		const validated = getEventAnalyticsSchema.parse(data);
+		const params = new URLSearchParams();
+		if (validated.includeMultiScans) params.set("include_multi_scans", "true");
 
 		return await restClient.get<TotalScannedTicketsResponse>(
-			`v1/events/${validated.id}/metrics/total_scanned_tickets`,
+			`v1/events/${validated.id}/metrics/total_scanned_tickets?${params.toString()}`,
 		);
 	} catch (error: any) {
 		console.error(
@@ -207,6 +219,27 @@ export async function getTotalAmountPrice(
 }
 
 /**
+ * Get exhibitor analytics, or vendor analytics for non-exhibitor events.
+ */
+export async function getExhibitorAnalytics(
+	data: GetEventAnalyticsRequest,
+): Promise<PartnerAnalyticsResponse> {
+	try {
+		const validated = getEventAnalyticsSchema.parse(data);
+
+		return await restClient.get<PartnerAnalyticsResponse>(
+			`v1/events/${validated.id}/metrics/exhibitor_analytics`,
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to get exhibitor analytics for event ${data.id}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to fetch exhibitor analytics");
+	}
+}
+
+/**
  * Get mall live feed data for an event
  */
 export async function getMallLiveFeed(
@@ -256,9 +289,11 @@ export async function getTotalScannedVisitors(
 ): Promise<TotalScannedVisitorsResponse> {
 	try {
 		const validated = getEventAnalyticsSchema.parse(data);
+		const params = new URLSearchParams();
+		if (validated.includeMultiScans) params.set("include_multi_scans", "true");
 
 		return await restClient.get<TotalScannedVisitorsResponse>(
-			`v1/events/${validated.id}/metrics/total_scanned_visitors`,
+			`v1/events/${validated.id}/metrics/total_scanned_visitors?${params.toString()}`,
 		);
 	} catch (error: any) {
 		console.error(
@@ -309,6 +344,7 @@ export async function getHourlyBreakdownByDay(
 		startDate?: string;
 		endDate?: string;
 		dateMode?: "all_time" | "pre_event";
+		includeMultiScans?: boolean;
 	},
 ): Promise<DailyHourlyBreakdown[]> {
 	try {
@@ -317,6 +353,7 @@ export async function getHourlyBreakdownByDay(
 		if (options?.dateMode) params.set("date_mode", options.dateMode);
 		if (options?.startDate) params.set("start_date", options.startDate);
 		if (options?.endDate) params.set("end_date", options.endDate);
+		if (options?.includeMultiScans) params.set("include_multi_scans", "true");
 
 		const response = await restClient.get<HourlyBreakdownByDayResponse>(
 			`v1/events/${eventId}/metrics/hourly_breakdown_by_day?${params.toString()}`,
@@ -329,5 +366,226 @@ export async function getHourlyBreakdownByDay(
 			error,
 		);
 		throw new Error(error.message || "Failed to fetch hourly breakdown data");
+	}
+}
+
+/**
+ * Auto-detect the custom_fields_data jsonb keys actually used by this
+ * event's tickets, for a dropdown instead of manual typing.
+ */
+export async function getCustomFieldKeys(
+	eventId: number | string,
+): Promise<CustomFieldKeysResponse> {
+	try {
+		return await restClient.get<CustomFieldKeysResponse>(
+			`v1/events/${eventId}/metrics/custom_field_keys`,
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to get custom field keys for event ${eventId}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to fetch custom field keys");
+	}
+}
+
+/**
+ * Get count-only breakdown of tickets grouped by a custom_fields_data jsonb key.
+ * Works for any event/field — the field key is not hardcoded.
+ */
+export async function getCustomFieldBreakdown(
+	eventId: number | string,
+	fieldKey: string,
+	groupBy?: string,
+	excludedTicketTypeIds: string[] = [],
+): Promise<CustomFieldBreakdownResponse | NestedCustomFieldBreakdownResponse> {
+	try {
+		const params = new URLSearchParams();
+		params.set("field_key", fieldKey);
+		if (groupBy) params.set("group_by", groupBy);
+		for (const id of excludedTicketTypeIds) {
+			params.append("exclude_ticket_type_ids[]", id);
+		}
+
+		return await restClient.get<
+			CustomFieldBreakdownResponse | NestedCustomFieldBreakdownResponse
+		>(
+			`v1/events/${eventId}/metrics/custom_field_breakdown?${params.toString()}`,
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to get custom field breakdown for event ${eventId}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to fetch custom field breakdown");
+	}
+}
+
+/**
+ * Attendee names behind breakdown rows, for name-list PDFs. `value` narrows to
+ * one agency; `groupBy`+`groupValue` narrows to one category.
+ */
+export async function getCustomFieldNames(
+	eventId: number | string,
+	fieldKey: string,
+	opts: {
+		value?: string;
+		groupBy?: string;
+		groupValue?: string;
+		excludedTicketTypeIds?: string[];
+	} = {},
+): Promise<CustomFieldNamesResponse> {
+	const params = new URLSearchParams({ field_key: fieldKey });
+	if (opts.value) params.set("value", opts.value);
+	if (opts.groupBy && opts.groupValue) {
+		params.set("group_by", opts.groupBy);
+		params.set("group_value", opts.groupValue);
+	}
+	for (const id of opts.excludedTicketTypeIds ?? []) {
+		params.append("exclude_ticket_type_ids[]", id);
+	}
+	return restClient.get<CustomFieldNamesResponse>(
+		`v1/events/${eventId}/metrics/custom_field_names?${params.toString()}`,
+	);
+}
+
+/**
+ * Set (upsert) the registration quota for one field_key/value pair (e.g. an
+ * agency's allotted headcount). Informational only — never blocks registration.
+ */
+export async function setCustomFieldQuota(
+	eventId: number | string,
+	fieldKey: string,
+	value: string,
+	quota: number,
+): Promise<{ fieldKey: string; value: string; quota: number }> {
+	try {
+		return await restClient.put<{
+			fieldKey: string;
+			value: string;
+			quota: number;
+		}>(`v1/events/${eventId}/metrics/custom_field_quota`, {
+			field_key: fieldKey,
+			value,
+			quota,
+		});
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to set custom field quota for event ${eventId}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to set custom field quota");
+	}
+}
+
+/**
+ * Clear a previously set quota for one field_key/value pair, reverting that
+ * row back to a plain count in the breakdown.
+ */
+export async function deleteCustomFieldQuota(
+	eventId: number | string,
+	fieldKey: string,
+	value: string,
+): Promise<{ fieldKey: string; value: string }> {
+	try {
+		return await restClient.delete<{ fieldKey: string; value: string }>(
+			`v1/events/${eventId}/metrics/custom_field_quota`,
+			{ field_key: fieldKey, value },
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to delete custom field quota for event ${eventId}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to delete custom field quota");
+	}
+}
+
+/**
+ * Replace the ordered master list (e.g. a client's agency list) for one
+ * group_by value. Listed values show in this order, including ones with no
+ * registrations yet; values dropped from the list lose their slot.
+ */
+export async function setCustomFieldList(
+	eventId: number | string,
+	fieldKey: string,
+	groupValue: string,
+	/** quota omitted = keep current; null = clear. */
+	items: { value: string; quota?: number | null }[],
+): Promise<{ fieldKey: string; groupValue: string; count: number }> {
+	try {
+		return await restClient.put<{
+			fieldKey: string;
+			groupValue: string;
+			count: number;
+		}>(`v1/events/${eventId}/metrics/custom_field_list`, {
+			field_key: fieldKey,
+			group_value: groupValue,
+			items,
+		});
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to set custom field list for event ${eventId}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to set custom field list");
+	}
+}
+
+/**
+ * Get count-only breakdown of tickets grouped by ticket type.
+ */
+export async function getTicketTypeBreakdown(
+	eventId: number | string,
+): Promise<TicketTypeBreakdownResponse> {
+	try {
+		return await restClient.get<TicketTypeBreakdownResponse>(
+			`v1/events/${eventId}/metrics/ticket_type_breakdown`,
+		);
+	} catch (error: any) {
+		console.error(
+			`❌ Failed to get ticket type breakdown for event ${eventId}:`,
+			error,
+		);
+		throw new Error(error.message || "Failed to fetch ticket type breakdown");
+	}
+}
+
+/**
+ * Download all of the event's tickets as CSV, for offline charting/analysis
+ * from the custom dashboard. Honors the Content-Disposition filename when
+ * the backend provides one.
+ */
+export async function exportTicketsCsv(
+	eventId: number | string,
+): Promise<void> {
+	try {
+		const { blob, headers } = await restClient.getBlob(
+			`v1/events/${eventId}/tickets/export.csv`,
+		);
+
+		let filename = `event-${eventId}-tickets.csv`;
+		const contentDisposition = headers.get("Content-Disposition");
+		if (contentDisposition) {
+			const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+			if (filenameMatch) filename = filenameMatch[1];
+		}
+
+		const url = window.URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = filename;
+		document.body.appendChild(a);
+		a.click();
+		window.URL.revokeObjectURL(url);
+		document.body.removeChild(a);
+	} catch (error: unknown) {
+		const message =
+			error instanceof Error ? error.message : "Failed to export tickets CSV";
+		console.error(
+			`❌ Failed to export tickets CSV for event ${eventId}:`,
+			error,
+		);
+		throw new Error(message);
 	}
 }

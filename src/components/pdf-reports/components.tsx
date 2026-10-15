@@ -1,7 +1,9 @@
 "use client";
 
 import { Image, Text, View } from "@react-pdf/renderer";
+import type { Style } from "@react-pdf/types";
 import type { ReactNode } from "react";
+import { reportLabels } from "@/lib/report-labels";
 import { colors, styles } from "./styles";
 import {
 	type AnalyticsReportData,
@@ -19,11 +21,15 @@ export function ReportHeader({
 	eventName,
 	reportType,
 	metadata,
+	language = "en",
 }: {
 	eventName: string;
 	reportType: AnalyticsReportData["type"];
 	metadata: ReportMetadata;
+	language?: "en" | "bm";
 }) {
+	const labels = reportLabels[language];
+
 	return (
 		<View style={styles.header} fixed>
 			<View style={styles.headerTop}>
@@ -40,23 +46,25 @@ export function ReportHeader({
 							textTransform: "uppercase",
 						}}
 					>
-						{getReportTypeLabel(reportType)}
+						{reportType === "custom"
+							? labels.report
+							: getReportTypeLabel(reportType)}
 					</Text>
 					<Text
 						style={{ fontSize: 9, color: colors.textSecondary, marginTop: 4 }}
 					>
-						Generated on {formatReportDate(metadata.generatedAt)}
+						{labels.generatedOn} {formatReportDate(metadata.generatedAt)}
 					</Text>
 				</View>
 			</View>
 
 			<View>
-				<Text style={styles.label}>Event Name</Text>
+				<Text style={styles.label}>{labels.eventName}</Text>
 				<Text style={styles.h1}>{eventName}</Text>
 
 				<View style={[styles.headerMeta, { marginTop: 8 }]}>
 					<View>
-						<Text style={styles.label}>Event Duration</Text>
+						<Text style={styles.label}>{labels.eventDuration}</Text>
 						<Text style={styles.textSmall}>
 							{getEventDateRangeLabel(
 								metadata.eventStartDate,
@@ -114,8 +122,24 @@ export function Section({
 /**
  * Stats Grid Container
  */
-export function StatsGrid({ children }: { children: ReactNode }) {
-	return <View style={styles.statsContainer}>{children}</View>;
+export function StatsGrid({
+	children,
+	style,
+}: {
+	children: ReactNode;
+	style?: React.ComponentProps<typeof View>["style"];
+}) {
+	return (
+		<View
+			style={
+				style
+					? [styles.statsContainer, ...(Array.isArray(style) ? style : [style])]
+					: styles.statsContainer
+			}
+		>
+			{children}
+		</View>
+	);
 }
 
 /**
@@ -170,18 +194,33 @@ export function Table({
 	headers,
 	rows,
 	columnWidths,
+	footer,
+	columnAligns,
 }: {
 	headers: string[];
 	rows: (string | number)[][];
 	columnWidths: string[];
+	footer?: (string | number)[];
+	/** Per-column text alignment. Defaults to left, with the last column
+	 * right-aligned, matching every report's original count-only layout. */
+	columnAligns?: ("left" | "right")[];
 }) {
+	const alignFor = (index: number, lastIndex: number) =>
+		columnAligns?.[index] ?? (index === lastIndex ? "right" : "left");
+
 	return (
 		<View style={styles.table}>
 			<View style={styles.tableHeader}>
 				{headers.map((header, index) => (
 					<Text
 						key={`header-${index}`}
-						style={[styles.tableHeaderCell, { width: columnWidths[index] }]}
+						style={[
+							styles.tableHeaderCell,
+							{
+								width: columnWidths[index],
+								textAlign: alignFor(index, headers.length - 1),
+							},
+						]}
 					>
 						{header}
 					</Text>
@@ -203,7 +242,13 @@ export function Table({
 						{row.map((cell, cellIndex) => (
 							<Text
 								key={`cell-${cellIndex}`}
-								style={[styles.tableCell, { width: columnWidths[cellIndex] }]}
+								style={[
+									styles.tableCell,
+									{
+										width: columnWidths[cellIndex],
+										textAlign: alignFor(cellIndex, row.length - 1),
+									},
+								]}
 							>
 								{cell}
 							</Text>
@@ -215,6 +260,31 @@ export function Table({
 					<Text style={styles.textSmall}>
 						No data available for this selection.
 					</Text>
+				</View>
+			)}
+			{footer && rows.length > 0 && (
+				<View
+					style={[
+						styles.tableRow,
+						{ backgroundColor: colors.backgroundHeader },
+					]}
+					wrap={false}
+				>
+					{footer.map((cell, cellIndex) => (
+						<Text
+							key={`footer-${cellIndex}`}
+							style={[
+								styles.tableCell,
+								{
+									width: columnWidths[cellIndex],
+									fontFamily: "Helvetica-Bold",
+									textAlign: alignFor(cellIndex, footer.length - 1),
+								},
+							]}
+						>
+							{cell}
+						</Text>
+					))}
 				</View>
 			)}
 		</View>

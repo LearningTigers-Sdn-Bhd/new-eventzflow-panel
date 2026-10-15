@@ -13,6 +13,7 @@ export interface UseDialogReturn {
 	openDialog: <T = unknown>(params: OpenDialogParams<T>) => void;
 	closeDialog: () => void;
 	resetDialog: () => void;
+	goBack: () => void;
 	isOpen: boolean;
 }
 
@@ -39,12 +40,14 @@ export function useDialog(): UseDialogReturn {
 	const openDialog = useDialogStore((state) => state.openDialog);
 	const closeDialog = useDialogStore((state) => state.closeDialog);
 	const resetDialog = useDialogStore((state) => state.resetDialog);
+	const goBack = useDialogStore((state) => state.goBack);
 	const isOpen = useDialogStore((state) => state.isOpen);
 
 	return {
 		openDialog,
 		closeDialog,
 		resetDialog,
+		goBack,
 		isOpen,
 	};
 }

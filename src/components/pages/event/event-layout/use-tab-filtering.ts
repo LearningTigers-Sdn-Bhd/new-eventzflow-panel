@@ -97,7 +97,6 @@ export function useTabFiltering(
 				[
 					"tickets",
 					"pending-tickets",
-					"scanned-logs",
 					"ticket-types",
 					"ticket-analytics",
 				].includes(tab.id)
@@ -113,6 +112,13 @@ export function useTabFiltering(
 			// Visitor analytics - only for non-ticket events
 			if (tab.id === "visitor-analytics") {
 				return currentEvent?.use_ticket === false;
+			}
+
+			if (tab.id === "exhibitor-analytics") {
+				return (
+					currentEvent?.use_exhibitor_kit === true &&
+					permissions.canViewVendorsTab
+				);
 			}
 
 			// Event staff - only org_owner can manage

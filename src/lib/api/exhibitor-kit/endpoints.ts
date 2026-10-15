@@ -6,7 +6,7 @@ import {
 	type UpdateExhibitorKitRequest,
 	updateExhibitorKitSchema,
 } from "./request";
-import type { ExhibitorKit } from "./response";
+import type { ExhibitorKit, ImportExhibitorKitsResponse } from "./response";
 
 /**
  * Get all exhibitor kits for an event
@@ -106,6 +106,120 @@ export async function submitExhibitorKitOrder(
 	);
 }
 
+async function downloadExhibitorKitExport(
+	eventId: number,
+	format: "xlsx" | "csv",
+	fallbackFilename: string,
+): Promise<void> {
+	const { blob, headers } = await restClient.getBlob(
+		`v1/events/${eventId}/exhibitor_kits/export?format=${format}`,
+	);
+
+	let filename = fallbackFilename;
+	const contentDisposition = headers.get("Content-Disposition");
+	if (contentDisposition) {
+		// Prefer the quoted filename="..." segment; Rails also appends an
+		// RFC 5987 filename*=UTF-8''... segment which a greedy match would swallow.
+		const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+		if (filenameMatch) {
+			filename = filenameMatch[1];
+		}
+	}
+
+	const url = window.URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	document.body.appendChild(a);
+	a.click();
+	window.URL.revokeObjectURL(url);
+	document.body.removeChild(a);
+}
+
+/**
+ * Download the multi-sheet Excel workbook of registered exhibitor kits for an event
+ * (Summary, Registered Exhibitor, Exhibitor Crew sheets).
+ */
+export async function exportExhibitorKits(eventId: number): Promise<void> {
+	return downloadExhibitorKitExport(
+		eventId,
+		"xlsx",
+		`exhibitor-kits-${eventId}.xlsx`,
+	);
+}
+
+/**
+ * Download a plain CSV of registered exhibitor kits for an event (same columns as
+ * the Excel report's "Registered Exhibitor" sheet).
+ */
+export async function exportExhibitorKitsCsv(eventId: number): Promise<void> {
+	return downloadExhibitorKitExport(
+		eventId,
+		"csv",
+		`exhibitor-kits-${eventId}.csv`,
+	);
+}
+
+/**
+ * Download the exhibitor import template (.xlsx) for an event — main "Exhibitors"
+ * sheet to fill in plus a read-only "Reference" sheet of current booth pricing.
+ */
+export async function downloadExhibitorKitImportTemplate(
+	eventId: number,
+): Promise<void> {
+	const { blob, headers } = await restClient.getBlob(
+		`v1/events/${eventId}/exhibitor_kits/import_template`,
+	);
+
+	let filename = `exhibitor-import-template-${eventId}.xlsx`;
+	const contentDisposition = headers.get("Content-Disposition");
+	if (contentDisposition) {
+		const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+		if (filenameMatch) {
+			filename = filenameMatch[1];
+		}
+	}
+
+	const url = window.URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	document.body.appendChild(a);
+	a.click();
+	window.URL.revokeObjectURL(url);
+	document.body.removeChild(a);
+}
+
+/**
+ * Upload a filled-in exhibitor import workbook. Pass `dryRun: true` to validate
+ * without persisting the rows. `forceDuplicateRows` re-submits specific row
+ * numbers that a previous preview/import flagged as matching an existing
+ * booking (same vendor/booth/package/quantity) — the admin explicitly wants
+ * that duplicate created anyway.
+ */
+export async function importExhibitorKits(
+	eventId: number,
+	file: File,
+	options?: { dryRun?: boolean; forceDuplicateRows?: number[] },
+): Promise<ImportExhibitorKitsResponse> {
+	const formData = new FormData();
+	formData.append("file", file);
+
+	const params = new URLSearchParams();
+	if (options?.dryRun) {
+		params.append("dry_run", "true");
+	}
+	for (const row of options?.forceDuplicateRows ?? []) {
+		params.append("force_duplicate_rows[]", String(row));
+	}
+	const queryString = params.toString();
+	const url = queryString
+		? `v1/events/${eventId}/exhibitor_kits/import?${queryString}`
+		: `v1/events/${eventId}/exhibitor_kits/import`;
+
+	return restClient.postFormData<ImportExhibitorKitsResponse>(url, formData);
+}
+
 export async function downloadExhibitorKitIcCopy(
 	eventId: number,
 	kitId: number,
@@ -121,6 +235,52 @@ export async function downloadExhibitorKitCustomsDeclaration(
 ): Promise<{ blob: Blob; headers: Headers }> {
 	return restClient.getBlob(
 		`v1/events/${eventId}/exhibitor_kits/${kitId}/customs_declaration`,
+	);
+}
+
+export async function downloadExhibitorKitCustomsDutyEstimate(
+	eventId: number,
+	kitId: number,
+): Promise<{ blob: Blob; headers: Headers }> {
+	return restClient.getBlob(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/customs_duty_estimate`,
+	);
+}
+
+export async function downloadExhibitorKitIndemnityForm(
+	eventId: number,
+	kitId: number,
+): Promise<{ blob: Blob; headers: Headers }> {
+	return restClient.getBlob(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/indemnity_form`,
+	);
+}
+
+export interface ResyncTeamMembersOutcome {
+	id: number;
+	full_name: string;
+	reason?: string;
+}
+
+export interface ResyncTeamMembersResponse {
+	updated: ResyncTeamMembersOutcome[];
+	unchanged: ResyncTeamMembersOutcome[];
+	skipped: ResyncTeamMembersOutcome[];
+	failed: ResyncTeamMembersOutcome[];
+}
+
+/**
+ * Re-applies the exhibitor kit's current company name onto every team
+ * member's linked ticket. Fixes tickets left stale after a company name typo
+ * is corrected post-registration — without touching ticket status/payment.
+ */
+export async function resyncExhibitorKitTeamMembers(
+	eventId: number,
+	kitId: number,
+): Promise<ResyncTeamMembersResponse> {
+	return restClient.post<ResyncTeamMembersResponse>(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/resync_team_members`,
+		{},
 	);
 }
 

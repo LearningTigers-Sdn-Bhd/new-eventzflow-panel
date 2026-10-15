@@ -70,3 +70,31 @@ export async function getRecentGlobalLeads(
 		`v1/event-leads/recent?limit=${limit}`,
 	);
 }
+
+/**
+ * Download the styled Excel workbook of captured leads for an event
+ * (own leads only for a vendor, all leads for staff — same scoping as getEventLeads).
+ */
+export async function exportEventLeads(eventId: string): Promise<void> {
+	const { blob, headers } = await restClient.getBlob(
+		`v1/events/${eventId}/event-leads/export`,
+	);
+
+	let filename = `event-leads-${eventId}.xlsx`;
+	const contentDisposition = headers.get("Content-Disposition");
+	if (contentDisposition) {
+		const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+		if (filenameMatch) {
+			filename = filenameMatch[1];
+		}
+	}
+
+	const url = window.URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	document.body.appendChild(a);
+	a.click();
+	window.URL.revokeObjectURL(url);
+	document.body.removeChild(a);
+}

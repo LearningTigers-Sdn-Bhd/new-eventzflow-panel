@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, RefreshCw, Send } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,11 +16,16 @@ import {
 } from "@/components/ui/dialog";
 import {
 	type CertificateParticipant,
+	type CertificateTemplate,
 	downloadAllCertificates,
 	downloadCertificate,
 	getCertificateParticipants,
 	sendOneCertificate,
+	updateCertificateTemplate,
 } from "@/lib/api/certificate";
+import { getEventById } from "@/lib/api/event";
+import { getFeedbackForm } from "@/lib/api/feedback-form";
+import { AutoSendFilter } from "./auto-send-filter";
 import {
 	type CertificateParticipantsTableMeta,
 	certificateParticipantsColumns,
@@ -31,11 +37,13 @@ type CertificateParticipantsProps = {
 	eventId: string;
 	/** When false, the template isn't ready so sending is disabled. */
 	canSend: boolean;
+	templates: CertificateTemplate[];
 };
 
 export function CertificateParticipants({
 	eventId,
 	canSend,
+	templates,
 }: CertificateParticipantsProps) {
 	const queryClient = useQueryClient();
 	const [pendingSendId, setPendingSendId] = useState<string | null>(null);
@@ -43,6 +51,11 @@ export function CertificateParticipants({
 		null,
 	);
 	const [sendDialogOpen, setSendDialogOpen] = useState(false);
+
+	const hasTemplates = templates.length > 0;
+	const requireFeedback =
+		hasTemplates && templates.every((t) => t.require_feedback);
+	const anyRequireFeedback = templates.some((t) => t.require_feedback);
 
 	const queryKey = ["event", eventId, "certificate-participants"];
 
@@ -63,6 +76,63 @@ export function CertificateParticipants({
 				e instanceof Error ? e.message : "Failed to send certificate",
 			),
 		onSettled: () => setPendingSendId(null),
+	});
+
+	// Same keys as the event / feedback pages, so these read from cache.
+	const { data: event } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+		enabled: anyRequireFeedback,
+	});
+	const { data: feedbackForm } = useQuery({
+		queryKey: ["event", eventId, "feedback-form"],
+		queryFn: () => getFeedbackForm(eventId),
+		enabled: anyRequireFeedback,
+	});
+
+	// Anything that would stop attendees from ever getting a feedback link,
+	// which means nobody gets a certificate while the toggle is on.
+	const feedbackGateProblems: string[] = [];
+	if (anyRequireFeedback && event && feedbackForm !== undefined) {
+		const setting = event.event_email_setting;
+		if (templates.some((t) => t.status !== "ready"))
+			feedbackGateProblems.push("A certificate template is not marked ready.");
+		if (!feedbackForm?.is_active || !feedbackForm.questions.length)
+			feedbackGateProblems.push(
+				"The feedback form is missing, closed or has no questions.",
+			);
+		if (setting && !setting.emails_enabled)
+			feedbackGateProblems.push("Emails are turned off for this event.");
+		if (setting?.disabled_categories.includes("thank_you"))
+			feedbackGateProblems.push("The thank-you email is turned off.");
+		if (!setting?.thank_you_include_feedback)
+			feedbackGateProblems.push(
+				"The feedback link is off in Email Settings, so attendees won't receive a link.",
+			);
+		if (setting?.disabled_categories.includes("certificate"))
+			feedbackGateProblems.push("The E-Certificate email is turned off.");
+	}
+
+	const requireFeedbackMutation = useMutation({
+		// One switch for the whole event: every template follows it.
+		mutationFn: (value: boolean) =>
+			Promise.all(
+				templates.map((t) =>
+					updateCertificateTemplate(eventId, t.id, { require_feedback: value }),
+				),
+			),
+		onSuccess: (saved) => {
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "certificate-templates"],
+			});
+			toast.success(
+				saved[0]?.require_feedback
+					? "Certificates will now be sent after feedback."
+					: "Feedback is no longer required for certificates.",
+			);
+		},
+		onError: (e: unknown) =>
+			toast.error(e instanceof Error ? e.message : "Failed to update setting"),
 	});
 
 	const downloadMutation = useMutation({
@@ -185,9 +255,41 @@ export function CertificateParticipants({
 				</div>
 			</div>
 
+			{hasTemplates && (
+				<SwitchCardInput
+					variant="no-rounded"
+					label="Require feedback before sending certificate"
+					htmlFor="certificate-require-feedback"
+					checked={requireFeedback}
+					onCheckedChange={(checked) => requireFeedbackMutation.mutate(checked)}
+					disabled={requireFeedbackMutation.isPending}
+					description="Each attendee gets their certificate by email right after they submit the feedback form. Needs the template marked ready and an active feedback form. You can still send manually, e.g. to the 'Submitted feedback' audience."
+				/>
+			)}
+
+			{hasTemplates && requireFeedback && (
+				<AutoSendFilter eventId={eventId} templates={templates} />
+			)}
+
+			{feedbackGateProblems.length > 0 && (
+				<div
+					role="alert"
+					className="border border-amber-300 bg-amber-50 p-3 text-amber-900 text-xs dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200"
+				>
+					<p className="font-medium">
+						No certificates will go out until this is fixed:
+					</p>
+					<ul className="mt-1 list-disc pl-4">
+						{feedbackGateProblems.map((problem) => (
+							<li key={problem}>{problem}</li>
+						))}
+					</ul>
+				</div>
+			)}
+
 			{!canSend && hasParticipants && (
 				<div className="border border-dashed bg-muted/40 px-3 py-2 text-muted-foreground text-xs">
-					Your certificate template is still a draft. Go to the{" "}
+					No certificate template is ready yet. Go to the{" "}
 					<span className="font-medium">Design Certificate</span> tab and choose
 					&ldquo;Save &amp; mark ready&rdquo; to enable sending.
 				</div>
@@ -212,14 +314,17 @@ export function CertificateParticipants({
 			)}
 
 			<Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
-				<DialogContent className="max-h-[90vh] overflow-y-auto rounded-none sm:max-w-2xl">
-					<DialogHeader>
-						<DialogTitle>Send certificates</DialogTitle>
-						<DialogDescription>
-							Choose who receives a certificate. You can exclude individual
-							attendees before sending.
-						</DialogDescription>
-					</DialogHeader>
+				<DialogContent className="!max-w-none sm:!max-w-none !w-screen !h-[100dvh] !rounded-none !border-0 !p-0 !gap-0 flex flex-col bg-background shadow-none duration-200">
+					<div className="flex-none border-b px-6 py-4">
+						<DialogHeader className="sm:text-left">
+							<DialogTitle>Send certificates</DialogTitle>
+							<DialogDescription>
+								Choose who receives a certificate on the left; the guests it
+								applies to are listed on the right. You can untick individual
+								guests before sending.
+							</DialogDescription>
+						</DialogHeader>
+					</div>
 					<SendCertificatesPanel
 						eventId={eventId}
 						onClose={() => setSendDialogOpen(false)}

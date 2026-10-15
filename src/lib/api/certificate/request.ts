@@ -16,16 +16,36 @@ export const certificateFieldSchema = z.object({
 });
 
 export const upsertCertificateTemplateSchema = z.object({
+	name: z.string().min(1).max(100).optional(),
+	/** Ticket types this template applies to. Empty = default for all others. */
+	ticket_type_ids: z.array(z.number()).optional(),
 	status: z.enum(["draft", "ready", "archived"]).optional(),
 	orientation: z.enum(["portrait", "landscape"]).optional(),
 	canvas_width: z.number().positive().optional(),
 	canvas_height: z.number().positive().optional(),
 	fields: z.array(certificateFieldSchema).optional(),
+	require_feedback: z.boolean().optional(),
+	/** Auto-send only to guests whose registration answer is one of `values`. Empty = everyone. */
+	auto_send_filter: z
+		.object({ key: z.string(), values: z.array(z.string()) })
+		.optional(),
 });
 
 export const sendCertificatesSchema = z.object({
-	audience: z.enum(["all", "checked_in", "unsent"]).default("all"),
+	audience: z
+		.enum([
+			"all",
+			"checked_in",
+			"unsent",
+			"feedback_submitted",
+			"rfid_qualified",
+			"sessions_done",
+			"sessions_or_feedback",
+		])
+		.default("all"),
 	excluded_public_ids: z.array(z.string()).default([]),
+	// Leave off to deliberately resend to people who already got a certificate.
+	skip_sent: z.boolean().default(false),
 });
 
 export type CertificateFieldInput = z.infer<typeof certificateFieldSchema>;

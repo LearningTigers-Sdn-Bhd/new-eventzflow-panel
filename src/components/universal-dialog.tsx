@@ -1,6 +1,8 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -25,7 +27,7 @@ const sizeClassMap: Record<string, string> = {
 	"3xl": "sm:max-w-3xl",
 	"4xl": "sm:max-w-4xl",
 	"5xl": "sm:max-w-5xl",
-	full: "!max-w-none !h-screen w-screen",
+	full: "top-0! left-0! h-[100dvh]! w-screen max-w-none! translate-x-0! translate-y-0!",
 };
 
 export function UniversalDialog() {
@@ -35,7 +37,11 @@ export function UniversalDialog() {
 		props,
 		config,
 		closeDialog,
+		goBack,
+		history,
+		instanceId,
 	} = useDialogStore();
+	const canGoBack = history.length > 0;
 
 	const [isMounted, setIsMounted] = useState(false);
 
@@ -45,7 +51,27 @@ export function UniversalDialog() {
 
 	const handleOpenChange = (open: boolean) => {
 		if (!open) {
-			closeDialog();
+			if (canGoBack) {
+				goBack();
+			} else {
+				closeDialog();
+			}
+		}
+	};
+
+	const handlePointerDownOutside = (
+		e: CustomEvent<{ originalEvent: PointerEvent }>,
+	) => {
+		if (canGoBack) {
+			e.preventDefault();
+			goBack();
+		}
+	};
+
+	const handleEscapeKeyDown = (e: KeyboardEvent) => {
+		if (canGoBack) {
+			e.preventDefault();
+			goBack();
 		}
 	};
 
@@ -62,23 +88,40 @@ export function UniversalDialog() {
 				<MobileTabletView>
 					<DialogContent
 						className={cn(
-							"gap-0 rounded-none border-0 p-0",
-							"h-screen! w-screen max-w-none!",
+							"flex flex-col gap-0 overflow-hidden rounded-none border-0 p-0",
+							"top-0! left-0! h-[100dvh]! max-h-[100dvh]! w-screen max-w-none! translate-x-0! translate-y-0!",
 						)}
 						showCloseButton={config.showCloseButton}
+						onPointerDownOutside={handlePointerDownOutside}
+						onEscapeKeyDown={handleEscapeKeyDown}
 					>
 						<DialogHeader
 							className={cn(
-								"flex flex-col items-center gap-1 px-6 pt-6 pb-4 md:items-start",
+								"flex shrink-0 flex-col items-start gap-1 px-4 pr-10 pb-3",
+								"pt-[max(0.75rem,env(safe-area-inset-top))]",
 							)}
 						>
+							{canGoBack && (
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									onClick={goBack}
+									className="mb-1 -ml-2 h-7 gap-1 self-start px-2 text-muted-foreground"
+								>
+									<ArrowLeft className="h-3.5 w-3.5" />
+									Back
+								</Button>
+							)}
 							{config.title ? (
-								<DialogTitle>{config.title}</DialogTitle>
+								<DialogTitle className="line-clamp-2 text-left text-base leading-tight">
+									{config.title}
+								</DialogTitle>
 							) : (
 								<DialogTitle className="sr-only">Dialog</DialogTitle>
 							)}
 							{config.description ? (
-								<DialogDescription className="text-sm">
+								<DialogDescription className="text-xs">
 									{config.description}
 								</DialogDescription>
 							) : (
@@ -90,30 +133,46 @@ export function UniversalDialog() {
 
 						<div
 							className={cn(
-								"h-[calc(100vh-8rem)] flex-1 justify-start overflow-auto",
+								"flex min-h-0 flex-1 flex-col justify-start overflow-y-auto",
 								!isFullScreen && "px-4",
 							)}
 						>
-							<ContentComponent {...props} />
+							<ContentComponent key={instanceId} {...props} />
 						</div>
 					</DialogContent>
 				</MobileTabletView>
 				<DesktopView>
 					<DialogContent
 						className={cn(
-							"gap-0 p-6",
+							"flex flex-col gap-0 overflow-hidden p-6",
 							sizeClass,
-							isFullScreen && "rounded-none border-0 p-0",
+							isFullScreen
+								? "max-h-[100dvh]! rounded-none border-0 p-0"
+								: "max-h-[85vh]",
 							config.className,
 						)}
 						showCloseButton={config.showCloseButton}
+						onPointerDownOutside={handlePointerDownOutside}
+						onEscapeKeyDown={handleEscapeKeyDown}
 					>
 						<DialogHeader
 							className={cn(
-								"flex flex-col items-center gap-1 pb-4 md:items-start",
+								"flex shrink-0 flex-col items-center gap-1 pb-4 md:items-start",
 								isFullScreen ? "px-6 pt-6" : "px-0",
 							)}
 						>
+							{canGoBack && (
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									onClick={goBack}
+									className="mb-1 -ml-2 h-7 gap-1 self-start px-2 text-muted-foreground"
+								>
+									<ArrowLeft className="h-3.5 w-3.5" />
+									Back
+								</Button>
+							)}
 							{config.title ? (
 								<DialogTitle>{config.title}</DialogTitle>
 							) : (
@@ -132,11 +191,11 @@ export function UniversalDialog() {
 
 						<div
 							className={cn(
-								"flex-1 justify-start",
-								isFullScreen && "h-[calc(100vh-8rem)] flex-1 overflow-auto",
+								"flex min-h-0 flex-1 flex-col justify-start overflow-y-auto",
+								isFullScreen && "overflow-auto",
 							)}
 						>
-							<ContentComponent {...props} />
+							<ContentComponent key={instanceId} {...props} />
 						</div>
 					</DialogContent>
 				</DesktopView>

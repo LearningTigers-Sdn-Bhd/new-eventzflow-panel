@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { FilterableHeader } from "@/components/admin-ui/table/header/filterable-header";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { TicketActionsMenu } from "./event-ticket-action-menu";
 
@@ -31,6 +32,21 @@ export type BaseTicket = {
 		id: number;
 		name: string;
 	} | null;
+	documents?: Array<{
+		key: string | null;
+		filename: string;
+		url: string;
+	}>;
+	vehicleRegistration?: {
+		plate: string;
+		registrationFormId: number;
+		registrationFormName: string | null;
+		registrationFormSlug: string | null;
+	} | null;
+	ticketApplication?: {
+		reviewStatus: "pending_review" | "approved" | "rejected";
+		rsvpStatus: "not_sent" | "sent" | "confirmed" | "declined" | "expired";
+	};
 };
 
 // Status filter options
@@ -52,10 +68,45 @@ function formatDateTime(dateString: string): {
 
 export function generateColumns(
 	labelsData?: Record<string, string>,
+	showSelectColumn = false,
 ): ColumnDef<BaseTicket>[] {
 	// Base columns that everyone sees
 	// Order: Name, Phone (hidden), Email, Ticket Type, Status, Created At, Actions
 	const baseColumns: ColumnDef<BaseTicket>[] = [
+		...(showSelectColumn
+			? [
+					{
+						id: "select",
+						size: 40,
+						enableHiding: false,
+						enableSorting: false,
+						meta: {
+							sticky: "left",
+						},
+						header: ({ table }) => (
+							<Checkbox
+								checked={
+									table.getIsAllPageRowsSelected() ||
+									(table.getIsSomePageRowsSelected() && "indeterminate")
+								}
+								onCheckedChange={(value) =>
+									table.toggleAllPageRowsSelected(!!value)
+								}
+								aria-label="Select all"
+								className="rounded-none"
+							/>
+						),
+						cell: ({ row }) => (
+							<Checkbox
+								checked={row.getIsSelected()}
+								onCheckedChange={(value) => row.toggleSelected(!!value)}
+								aria-label="Select row"
+								className="rounded-none"
+							/>
+						),
+					} satisfies ColumnDef<BaseTicket>,
+				]
+			: []),
 		{
 			accessorKey: "name",
 			size: 200,
@@ -111,6 +162,33 @@ export function generateColumns(
 			},
 		},
 		{
+			id: "custom_participation_category",
+			accessorFn: (row) => {
+				const customLabel = row.customLabels?.find(
+					(l) => l.name === "participation_category",
+				);
+				return customLabel?.value || "";
+			},
+			size: 140,
+			header: "Category",
+			cell: ({ row }) => {
+				const customLabel = row.original.customLabels?.find(
+					(l) => l.name === "participation_category",
+				);
+				const value = customLabel?.value || "";
+				return (
+					<div
+						className={cn(
+							"truncate font-medium",
+							!value && "text-muted-foreground italic",
+						)}
+					>
+						{value || "N/A"}
+					</div>
+				);
+			},
+		},
+		{
 			accessorKey: "ticketTypeName",
 			size: 140,
 			header: "Ticket Type",
@@ -120,7 +198,7 @@ export function generateColumns(
 					<div className="truncate font-medium">
 						{ticket.ticketTypeName || "N/A"}{" "}
 						{ticket.ticketTypeId && (
-							<span className="text-muted-foreground text-xs font-normal">
+							<span className="font-normal text-muted-foreground text-xs">
 								(#{ticket.ticketTypeId})
 							</span>
 						)}
@@ -222,6 +300,8 @@ export function generateColumns(
 	const customColumns: ColumnDef<BaseTicket>[] = [];
 	if (labelsData && Object.keys(labelsData).length > 0) {
 		Object.entries(labelsData).forEach(([key, labelName]) => {
+			// participation_category already has its own fixed column above
+			if (key === "participation_category") return;
 			customColumns.push({
 				id: `custom_${key}`,
 				accessorFn: (row) => {

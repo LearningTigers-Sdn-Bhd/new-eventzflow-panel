@@ -9,21 +9,35 @@ export interface BackendPendingTicket {
 	ticket_type_id: number;
 	event_id: number;
 	status: "purchased" | "scanned" | "refunded" | "canceled" | "pending_payment";
+	waiting_list?: boolean;
 	payment_status: "pending" | "paid" | "failed" | "refunded_payment" | number; // Can be string or number
 	payment_screenshot_url?: string | null;
 	transaction_id?: string | null;
 	payment_method?: string | null;
 	checked_in: boolean;
 	check_in_at: string | null;
-	custom_fields_data: Record<string, string> | null;
+	custom_fields_data: Record<string, unknown> | null;
 	created_at: string;
 	updated_at: string;
+	/** Set when the ticket has been soft-archived; null/absent when active. */
+	deleted_at?: string | null;
 	ticket_type?: {
 		id: number;
 		name: string;
 		price: number;
 	};
 	ticket_application?: BackendTicketApplication | null;
+	registration_documents_data?: Array<{
+		key: string | null;
+		filename: string;
+		url: string;
+	}>;
+	vehicle_registration_data?: {
+		plate: string;
+		registration_form_id: number;
+		registration_form_name: string | null;
+		registration_form_slug: string | null;
+	} | null;
 }
 
 export type ReviewStatus = "pending_review" | "approved" | "rejected";
@@ -56,7 +70,10 @@ export type PendingTicket = {
 	status: "scanned" | "not_scanned";
 	customLabels: Array<{ name: string; value: string }>;
 	createdAt: string;
+	/** Non-null when the ticket is soft-archived (drives the Restore action). */
+	deletedAt?: string | null;
 	paymentStatus: "pending" | "paid" | "failed" | "refunded_payment";
+	waitingList?: boolean;
 	paymentScreenshotUrl?: string;
 	transactionId?: string;
 	paymentMethod?: string;
@@ -71,8 +88,34 @@ export type PendingTicket = {
 		rsvpConfirmedAt: string | null;
 		rsvpExpiresAt: string | null;
 	};
+	documents?: Array<{
+		key: string | null;
+		filename: string;
+		url: string;
+	}>;
+	vehicleRegistration?: {
+		plate: string;
+		registrationFormId: number;
+		registrationFormName: string | null;
+		registrationFormSlug: string | null;
+	} | null;
 };
 
 // Response types for operations
 export type CreatePendingTicketResponse = PendingTicket;
 export type UpdatePendingTicketResponse = PendingTicket;
+
+// Pagination metadata for the pending tickets index, read off response
+// headers (X-Total-Count etc.) — see getPendingTicketsPaged and
+// ticket/response.ts's TicketsPagination (same shape, same backend headers).
+export type PendingTicketsPagination = {
+	currentPage: number;
+	totalPages: number;
+	totalCount: number;
+	perPage: number;
+};
+
+export type PagedPendingTicketsResult = {
+	data: PendingTicket[];
+	pagination: PendingTicketsPagination;
+};

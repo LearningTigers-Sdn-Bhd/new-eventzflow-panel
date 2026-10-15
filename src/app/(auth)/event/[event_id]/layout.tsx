@@ -1,8 +1,9 @@
 "use client";
 
 import { Menu } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import type { Route } from "next";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
 
 import { IconHeading } from "@/components/admin-ui/icon-heading";
 import {
@@ -22,7 +23,6 @@ import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
 import { useEventActionsStore } from "@/stores/event-actions-store";
 
@@ -98,12 +98,14 @@ export default function EventDetailLayout({
 		"seat-ticketing/sessions/",
 	);
 	const isReviewSubmitRoute = pathname.includes("review-submit");
+	const isRfidDisplayRoute = pathname.endsWith("/rfid/display");
 
 	// Early return for special routes that don't use sidebar
 	if (
 		isLuckyDrawSessionRoute ||
 		isPrizeRouletteSessionRoute ||
-		isSeatTicketingSessionRoute
+		isSeatTicketingSessionRoute ||
+		isRfidDisplayRoute
 	) {
 		return <div className="w-full">{children}</div>;
 	}
@@ -129,11 +131,65 @@ function EventDetailLayoutContent({
 	pathname: string;
 }) {
 	const isMobile = useIsMobile();
-	const isTablet = useIsTablet();
 	const { toggleSidebar } = useSidebar();
+	const router = useRouter();
 
 	// Use context from EventSidebarProvider - no more duplicate data fetching!
 	const { currentEvent, permissions, isLoading } = useEventSidebarContext();
+
+	// A pure business host's only concerns on this event are Business
+	// Matching and their own Host Profile — the sidebar only ever shows
+	// those two tabs, but nothing stops them from typing/bookmarking any
+	// other event URL (analytics, scanned-logs, etc.) directly. Guard at
+	// the layout level too, not just in the nav.
+	useEffect(() => {
+		if (isLoading || !currentEvent?.id) return;
+
+		const isPureBusinessHost =
+			permissions.isBusinessHost &&
+			!permissions.isOrgOwner &&
+			!permissions.isOrganizer &&
+			!permissions.isEventAdmin &&
+			!permissions.isEventTeamMember &&
+			!permissions.isEventVendor &&
+			!permissions.isExhibitionContractor;
+
+		const segments = pathname.split("/").filter(Boolean);
+
+		if (
+			isPureBusinessHost &&
+			!segments.includes("business-matching") &&
+			!segments.includes("host-profile")
+		) {
+			router.replace(`/event/${currentEvent.id}/business-matching` as Route);
+		}
+	}, [isLoading, permissions, pathname, currentEvent?.id, router]);
+
+	// A business_matching_admin's only concern on this event is Business
+	// Matching — their sidebar only ever shows that one tab, but nothing
+	// stops them from typing/bookmarking any other event URL directly.
+	// Guard at the layout level too, not just in the nav.
+	useEffect(() => {
+		if (isLoading || !currentEvent?.id) return;
+
+		const isPureBusinessMatchingAdmin =
+			permissions.isBusinessMatchingAdmin &&
+			!permissions.isOrgOwner &&
+			!permissions.isOrganizer &&
+			!permissions.isEventAdmin &&
+			!permissions.isEventTeamMember &&
+			!permissions.isEventVendor &&
+			!permissions.isExhibitionContractor;
+
+		const segments = pathname.split("/").filter(Boolean);
+
+		if (
+			isPureBusinessMatchingAdmin &&
+			!segments.includes("business-matching")
+		) {
+			router.replace(`/event/${currentEvent.id}/business-matching` as Route);
+		}
+	}, [isLoading, permissions, pathname, currentEvent?.id, router]);
 
 	// Determine current menu from pathname
 	const currentMenu = useMemo(() => {
@@ -189,49 +245,14 @@ function EventDetailLayoutContent({
 
 	return (
 		<div className="flex min-h-screen flex-col gap-2 md:gap-4">
-			{/* Event Header */}
-			<div className="rounded-none border-b-0 border-dashed px-0 pt-4 pb-0 md:border-b md:px-4 md:pb-4">
+			{/* Mobile Event Sticky Header (hidden on desktop where left sidebar and breadcrumbs display event info) */}
+			<div className="rounded-none border-b-0 border-dashed px-0 pt-4 pb-0 md:hidden">
 				{isLoading ? (
-					<>
+					<div className="px-4 py-2">
 						<Skeleton className="mb-2 h-9 w-64" />
 						<Skeleton className="h-5 w-96" />
-					</>
-				) : !isMobile ? (
-					<div className="mx-auto flex w-full flex-row justify-between gap-4 3xl:px-4 md:max-w-5xl md:px-0 2xl:max-w-7xl">
-						<div className="flex w-full flex-row gap-4">
-							<AvatarIcon title={currentEvent?.title || ""} />
-							<div className="flex flex-col gap-2">
-								<div className="flex flex-col items-start">
-									<h3 className="line-clamp-1 font-bold text-lg leading-none tracking-tight md:text-xl">
-										{currentEvent?.title}
-									</h3>
-									<p className="text-muted-foreground text-sm md:text-base">
-										{`Manage current event details, team members and vendors, and ${currentEvent?.use_ticket ? "tickets" : "visitors"}.`}
-									</p>
-								</div>
-								<div className="flex items-center gap-2">
-									<EventBadges
-										status={currentEvent?.status || "draft"}
-										use_ticket={currentEvent?.use_ticket || false}
-									/>
-								</div>
-							</div>
-						</div>
-						{isTablet && (
-							<div className="flex items-center justify-end">
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={toggleSidebar}
-									className="size-8 rounded-none"
-								>
-									<Menu className="size-5" />
-									<span className="sr-only">Open Event Navigation</span>
-								</Button>
-							</div>
-						)}
 					</div>
-				) : currentEvent ? (
+				) : isMobile && currentEvent ? (
 					<MobileStickyHeader>
 						<MobileStickyHeaderMain>
 							<MobileStickyHeaderRow>
@@ -261,7 +282,7 @@ function EventDetailLayoutContent({
 			</div>
 
 			{/* Current Menu Header */}
-			<div className="mx-auto w-full max-w-4xl rounded-none bg-transparent px-0 md:max-w-5xl 2xl:max-w-7xl">
+			<div className="mx-auto w-full max-w-4xl rounded-none bg-transparent px-0 md:max-w-5xl md:pt-5 2xl:max-w-7xl">
 				<div className="flex flex-col gap-2 px-0 py-0 md:flex-row md:items-center md:justify-between md:px-4">
 					<IconHeading
 						icon={currentMenu.icon}

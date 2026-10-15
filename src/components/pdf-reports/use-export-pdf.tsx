@@ -2,10 +2,16 @@
 
 import { pdf } from "@react-pdf/renderer";
 import { useCallback, useRef, useState } from "react";
+import { CustomReport } from "./custom-report";
+import { ExhibitorAnalyticsReport } from "./exhibitor-report";
 import { TicketAnalyticsReport } from "./ticket-report";
 import type {
 	AnalyticsReportData,
+	CustomReportData,
 	DailyHourlyBreakdown,
+	ExhibitorReportData,
+	NestedReportBreakdown,
+	ReportBreakdown,
 	TicketReportData,
 	VisitorReportData,
 	VoucherReportData,
@@ -29,12 +35,16 @@ function createPdfDocument(data: AnalyticsReportData) {
 			return <VisitorAnalyticsReport data={data as VisitorReportData} />;
 		case "voucher":
 			return <VoucherAnalyticsReport data={data as VoucherReportData} />;
+		case "exhibitor":
+			return <ExhibitorAnalyticsReport data={data as ExhibitorReportData} />;
+		case "custom":
+			return <CustomReport data={data as CustomReportData} />;
 		default:
 			throw new Error("Unknown report type");
 	}
 }
 
-function isMobileDevice(): boolean {
+function _isMobileDevice(): boolean {
 	if (typeof navigator === "undefined") return false;
 	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 		navigator.userAgent,
@@ -141,9 +151,13 @@ export function prepareTicketReportData(
 	event: { id: string; name: string; start_date: string; end_date: string },
 	stats: {
 		totalTickets: number;
+		paidTickets: number;
+		pendingTickets: number;
+		totalVisitors: number;
 		scannedTickets: number;
 		unscannedTickets: number;
 		totalRevenue: number;
+		pendingRevenue: number;
 	},
 	timeSeries: {
 		registrations?: { date: string; value: number }[];
@@ -155,6 +169,10 @@ export function prepareTicketReportData(
 		scans?: DailyHourlyBreakdown[];
 	},
 	dateFilterLabel?: string,
+	customFieldBreakdown?: {
+		fieldLabel: string;
+		rows: { value: string; count: number }[];
+	},
 ): TicketReportData {
 	return {
 		type: "ticket",
@@ -173,8 +191,8 @@ export function prepareTicketReportData(
 		stats: {
 			...stats,
 			scanRate:
-				stats.totalTickets > 0
-					? (stats.scannedTickets / stats.totalTickets) * 100
+				stats.paidTickets > 0
+					? (stats.scannedTickets / stats.paidTickets) * 100
 					: 0,
 		},
 		timeSeries: {
@@ -183,6 +201,7 @@ export function prepareTicketReportData(
 			revenue: timeSeries.revenue ?? [],
 		},
 		hourlyBreakdown,
+		customFieldBreakdown,
 	};
 }
 
@@ -294,5 +313,102 @@ export function prepareVoucherReportData(
 		},
 		topVouchers: data.topScannedVouchers,
 		latestTransactions: data.latestRedemptionTransactions,
+	};
+}
+
+/**
+ * Helper function to prepare exhibitor analytics data for export
+ */
+export function prepareExhibitorReportData(
+	event: { id: string; name: string; start_date: string; end_date: string },
+	analytics: {
+		totalPartners: number;
+		paidPartners: number;
+		depositPartners: number;
+		unpaidPartners: number;
+		bookedBooths: number;
+		paidBooths: number;
+		depositBooths: number;
+		unpaidBooths: number;
+		collectedRevenue: number;
+		pendingRevenue: number;
+		breakdown: {
+			label: string;
+			zone: string | null;
+			boothType: string | null;
+			bookedQuantity: number;
+			paidQuantity: number;
+			depositQuantity: number;
+			unpaidQuantity: number;
+			collectedRevenue: number;
+			pendingRevenue: number;
+		}[];
+	},
+	timeSeries: {
+		bookings?: { date: string; value: number }[];
+		revenue?: { date: string; value: number }[];
+	} = {},
+): ExhibitorReportData {
+	return {
+		type: "exhibitor",
+		event: {
+			id: event.id,
+			name: event.name,
+			startDate: event.start_date,
+			endDate: event.end_date,
+		},
+		metadata: {
+			generatedAt: new Date(),
+			eventStartDate: event.start_date,
+			eventEndDate: event.end_date,
+		},
+		stats: {
+			totalPartners: analytics.totalPartners,
+			paidPartners: analytics.paidPartners,
+			depositPartners: analytics.depositPartners,
+			unpaidPartners: analytics.unpaidPartners,
+			bookedBooths: analytics.bookedBooths,
+			paidBooths: analytics.paidBooths,
+			depositBooths: analytics.depositBooths,
+			unpaidBooths: analytics.unpaidBooths,
+			collectedRevenue: analytics.collectedRevenue,
+			pendingRevenue: analytics.pendingRevenue,
+		},
+		breakdown: analytics.breakdown,
+		timeSeries: {
+			bookings: timeSeries.bookings ?? [],
+			revenue: timeSeries.revenue ?? [],
+		},
+	};
+}
+
+/**
+ * Helper function to prepare custom report data (ticket type + custom field
+ * breakdowns) for export
+ */
+export function prepareCustomReportData(
+	event: { id: string; name: string; start_date: string; end_date: string },
+	breakdowns: {
+		ticketTypeBreakdown?: ReportBreakdown;
+		customFieldBreakdown?: ReportBreakdown | NestedReportBreakdown;
+	},
+	language?: "en" | "bm",
+): CustomReportData {
+	return {
+		type: "custom",
+		event: {
+			id: event.id,
+			name: event.name,
+			startDate: event.start_date,
+			endDate: event.end_date,
+		},
+		metadata: {
+			generatedAt: new Date(),
+			eventStartDate: event.start_date,
+			eventEndDate: event.end_date,
+		},
+		ticketTypeBreakdown: breakdowns.ticketTypeBreakdown,
+		customFieldBreakdown: breakdowns.customFieldBreakdown,
+		language,
 	};
 }

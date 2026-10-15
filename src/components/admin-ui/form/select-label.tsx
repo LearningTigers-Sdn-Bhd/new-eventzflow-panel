@@ -97,7 +97,11 @@ export function SelectLabel({
 					<span className="ml-0.5 text-destructive">*</span>
 				)}
 			</FieldLabel>
-			<Select value={value || undefined} onValueChange={onChange} disabled={disabled}>
+			<Select
+				value={value || undefined}
+				onValueChange={onChange}
+				disabled={disabled}
+			>
 				<SelectTrigger
 					id={htmlFor}
 					className={cn(

@@ -37,6 +37,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useFullScreenDialogOpen } from "@/hooks/use-full-screen-dialog-open";
 import { getExhibitorBoothPrices } from "@/lib/api/exhibitor-booth-price";
 import { getExhibitorPackages } from "@/lib/api/exhibitor-package";
@@ -98,6 +99,8 @@ function formatScope(voucher: ExhibitorVoucher) {
 
 export function VoucherDialog({ eventId, trigger }: VoucherDialogProps) {
 	const queryClient = useQueryClient();
+	const { user } = useAuth();
+	const isOrgOwner = user?.role === "org_owner";
 	const [isOpen, setIsOpen] = useFullScreenDialogOpen(
 		`voucher-dialog-${eventId}`,
 	);
@@ -144,7 +147,6 @@ export function VoucherDialog({ eventId, trigger }: VoucherDialogProps) {
 		onSuccess: () => {
 			invalidateVouchers();
 			toast.success("Voucher created");
-			setForm(DEFAULT_FORM);
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to create voucher");
@@ -414,6 +416,7 @@ export function VoucherDialog({ eventId, trigger }: VoucherDialogProps) {
 									) : (
 										vouchers.map((voucher) => {
 											const isRedeemed = voucher.status === "redeemed";
+											const canDelete = !isRedeemed || isOrgOwner;
 
 											return (
 												<TableRow key={voucher.id}>
@@ -445,7 +448,7 @@ export function VoucherDialog({ eventId, trigger }: VoucherDialogProps) {
 																				})
 																			}
 																			disabled={
-																				isRedeemed || deleteMutation.isPending
+																				!canDelete || deleteMutation.isPending
 																			}
 																			className="h-8 w-8 rounded-none p-0 text-destructive hover:text-destructive"
 																			aria-label={`Delete ${voucher.code}`}
@@ -455,9 +458,11 @@ export function VoucherDialog({ eventId, trigger }: VoucherDialogProps) {
 																	</span>
 																</TooltipTrigger>
 																<TooltipContent className="rounded-none">
-																	{isRedeemed
+																	{!canDelete
 																		? "Already redeemed"
-																		: "Delete voucher"}
+																		: isRedeemed
+																			? "Redeemed — delete as org owner"
+																			: "Delete voucher"}
 																</TooltipContent>
 															</Tooltip>
 														</TooltipProvider>

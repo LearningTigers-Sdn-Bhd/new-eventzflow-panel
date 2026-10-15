@@ -1,8 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { use, useMemo } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
+import { ScanLogDetailSheet } from "@/components/pages/scanned-log/scan-log-detail-sheet";
 import { TicketScanButton } from "@/components/pages/scanned-log/ticket-scan-button";
 import { columns } from "@/components/pages/scanned-log/ticket-scanned-log-columns";
 import { DataTable } from "@/components/pages/scanned-log/ticket-scanned-log-table";
@@ -11,6 +12,19 @@ import { useAuth } from "@/hooks/auth/use-auth";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventStaff } from "@/lib/api/event/event-staff";
 import { getScanLogs } from "@/lib/api/event/scan-log";
+import type { ScannedLog } from "@/lib/api/event/scan-log/response";
+import { getEventTicketTypes } from "@/lib/api/ticket-type";
+
+function useDebounced<T>(value: T, delay = 300): T {
+	const [debounced, setDebounced] = useState(value);
+
+	useEffect(() => {
+		const timer = setTimeout(() => setDebounced(value), delay);
+		return () => clearTimeout(timer);
+	}, [value, delay]);
+
+	return debounced;
+}
 
 interface ScannedLogsPageProps {
 	params: Promise<{ event_id: string }>;
@@ -19,15 +33,57 @@ interface ScannedLogsPageProps {
 export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 	const { event_id } = use(params);
 	const { user: currentUser } = useAuth();
+	const [page, setPage] = useState(1);
+	const [search, setSearch] = useState("");
+	const [source, setSource] = useState("all");
+	const [ticketTypeId, setTicketTypeId] = useState("all");
+	const [selectedRow, setSelectedRow] = useState<ScannedLog | null>(null);
+
+	const debouncedSearch = useDebounced(search);
+
+	const handleSearchChange = (value: string) => {
+		setSearch(value);
+		setPage(1);
+	};
+
+	const handleSourceChange = (value: string) => {
+		setSource(value);
+		setPage(1);
+	};
+
+	const handleTicketTypeIdChange = (value: string) => {
+		setTicketTypeId(value);
+		setPage(1);
+	};
 
 	const {
-		data: scannedLogs,
+		data: scanLogs,
 		isLoading,
 		error,
 		refetch,
 	} = useQuery({
-		queryKey: ["event", event_id, "scan-logs"],
-		queryFn: () => getScanLogs({ eventId: event_id }),
+		queryKey: [
+			"event",
+			event_id,
+			"scan-logs",
+			page,
+			debouncedSearch,
+			source,
+			ticketTypeId,
+		],
+		queryFn: () =>
+			getScanLogs({
+				eventId: event_id,
+				page,
+				perPage: 25,
+				q: debouncedSearch || undefined,
+				source:
+					source === "all"
+						? undefined
+						: (source as "staff_scan" | "self_check_in" | "kiosk"),
+				ticketTypeId: ticketTypeId === "all" ? undefined : Number(ticketTypeId),
+			}),
+		placeholderData: (previous) => previous,
 	});
 
 	// Fetch event staff
@@ -35,6 +91,17 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 		queryKey: ["event", event_id, "staff"],
 		queryFn: () => getEventStaff({ eventId: event_id }),
 	});
+
+	const { data: ticketTypes } = useQuery({
+		queryKey: ["event", event_id, "ticket-types"],
+		queryFn: () => getEventTicketTypes({ eventId: event_id }),
+	});
+
+	const ticketTypeOptions =
+		ticketTypes?.map((type) => ({
+			label: type.name,
+			value: String(type.id),
+		})) ?? [];
 
 	// Check if current user has permission to scan tickets
 	const canScanTickets = useMemo(() => {
@@ -84,7 +151,32 @@ export default function ScannedLogsPage({ params }: ScannedLogsPageProps) {
 					}
 				/>
 			) : (
-				<DataTable columns={columns} data={scannedLogs || []} />
+				<>
+					<DataTable
+						columns={columns}
+						data={scanLogs?.data ?? []}
+						search={search}
+						onSearchChange={handleSearchChange}
+						source={source}
+						onSourceChange={handleSourceChange}
+						ticketTypeId={ticketTypeId}
+						onTicketTypeIdChange={handleTicketTypeIdChange}
+						ticketTypeOptions={ticketTypeOptions}
+						onRowClick={setSelectedRow}
+						pagination={{
+							pageIndex: (scanLogs?.pagination.current_page ?? 1) - 1,
+							pageSize: scanLogs?.pagination.per_page ?? 25,
+							pageCount: scanLogs?.pagination.total_pages ?? 0,
+							totalCount: scanLogs?.pagination.total_count ?? 0,
+							onPageChange: (pageIndex) => setPage(pageIndex + 1),
+						}}
+					/>
+					<ScanLogDetailSheet
+						eventId={event_id}
+						row={selectedRow}
+						onOpenChange={(open) => !open && setSelectedRow(null)}
+					/>
+				</>
 			)}
 		</div>
 	);

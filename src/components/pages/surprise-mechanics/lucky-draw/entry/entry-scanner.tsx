@@ -1,0 +1,322 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	Camera,
+	CameraOff,
+	CheckCircle2,
+	QrCode,
+	ScanLine,
+	Users,
+	XCircle,
+} from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useBarcodeScanner } from "@/hooks/use-barcode-scanner";
+import { useScanner } from "@/hooks/use-scanner";
+import {
+	addLuckyDrawEntry,
+	getLuckyDrawEntries,
+	type LuckyDrawEntry,
+} from "@/lib/api/lucky-draw";
+import { cn } from "@/lib/utils";
+
+const SCANNER_ID = "lucky-draw-entry-reader";
+const DUPLICATE_SCAN_MS = 3000;
+
+const MODE_KEY = "lucky-draw-entry-scan-mode";
+
+type ScanMode = "camera" | "hardware";
+type ScanResult = { ok: boolean; message: string };
+
+// Hardware scanner is the default; a device that switched to camera stays on camera
+function loadMode(): ScanMode {
+	try {
+		return localStorage.getItem(MODE_KEY) === "camera" ? "camera" : "hardware";
+	} catch {
+		return "hardware";
+	}
+}
+
+interface EntryScannerProps {
+	eventId: string;
+	sessionId: number;
+}
+
+export function EntryScanner({ eventId, sessionId }: EntryScannerProps) {
+	const queryClient = useQueryClient();
+	const [isScanning, setIsScanning] = useState(false);
+	const [isTransitioning, setIsTransitioning] = useState(false);
+	const [mode, setMode] = useState<ScanMode>(loadMode);
+	const [result, setResult] = useState<ScanResult | null>(null);
+	const lastScan = useRef({ value: "", at: 0 });
+	const addedAny = useRef(false);
+
+	const entriesKey = ["lucky-draw-entries", eventId, sessionId];
+	const { data } = useQuery({
+		queryKey: entriesKey,
+		queryFn: () => getLuckyDrawEntries(eventId, sessionId),
+	});
+	const entries = data?.entries ?? [];
+	const total = data?.total ?? 0;
+
+	const { mutate } = useMutation({
+		mutationFn: (publicId: string) =>
+			addLuckyDrawEntry(eventId, sessionId, publicId),
+		onSuccess: (entry) => {
+			addedAny.current = true;
+			setResult({ ok: true, message: entry.name });
+			// Prepend locally instead of refetching: scans stay fast however many entries exist
+			queryClient.setQueryData(
+				entriesKey,
+				(prev: { entries: LuckyDrawEntry[]; total: number } | undefined) => ({
+					entries: [entry, ...(prev?.entries ?? [])].slice(0, 20),
+					total: (prev?.total ?? 0) + 1,
+				}),
+			);
+		},
+		onError: (error: Error) => setResult({ ok: false, message: error.message }),
+	});
+
+	const onScanSuccess = useCallback(
+		(decodedText: string) => {
+			const code = decodedText.trim();
+			if (!code) return;
+			const now = Date.now();
+			const last = lastScan.current;
+			if (code === last.value && now - last.at < DUPLICATE_SCAN_MS) return;
+			lastScan.current = { value: code, at: now };
+			mutate(code);
+		},
+		[mutate],
+	);
+
+	// Physical (keyboard-emulating) scanner works alongside the camera, like check-in
+	useBarcodeScanner({ onScanSuccess });
+
+	const { startScanner, stopScanner } = useScanner({
+		scannerId: SCANNER_ID,
+		onScanSuccess,
+	});
+
+	const handleStart = async () => {
+		setIsTransitioning(true);
+		if (await startScanner()) setIsScanning(true);
+		setIsTransitioning(false);
+	};
+
+	const handleStop = async () => {
+		setIsTransitioning(true);
+		if (await stopScanner()) setIsScanning(false);
+		setIsTransitioning(false);
+	};
+
+	// In camera mode, start the camera once the DOM is ready
+	// biome-ignore lint/correctness/useExhaustiveDependencies: restart only when the mode changes
+	useEffect(() => {
+		if (mode !== "camera") return;
+		const timer = setTimeout(handleStart, 300);
+		return () => clearTimeout(timer);
+	}, [mode]);
+
+	// The draw pool is refreshed once when the dialog closes, not on every scan
+	// biome-ignore lint/correctness/useExhaustiveDependencies: cleanup-only effect
+	useEffect(() => {
+		return () => {
+			if (!addedAny.current) return;
+			queryClient.invalidateQueries({
+				queryKey: ["lucky-draw", "participants", eventId, sessionId],
+			});
+		};
+	}, []);
+
+	const switchMode = async (next: ScanMode) => {
+		if (next === mode) return;
+		if (next === "hardware" && isScanning) await handleStop();
+		try {
+			localStorage.setItem(MODE_KEY, next);
+		} catch {}
+		setMode(next);
+		// A focused button would swallow the scanner's trailing Enter as a click
+		(document.activeElement as HTMLElement | null)?.blur();
+	};
+
+	return (
+		<div className="space-y-4">
+			<div className="grid grid-cols-2 border">
+				{(
+					[
+						{ value: "camera", label: "Camera", icon: Camera },
+						{ value: "hardware", label: "Hardware Scanner", icon: ScanLine },
+					] as const
+				).map(({ value, label, icon: Icon }) => (
+					<button
+						key={value}
+						type="button"
+						onClick={() => switchMode(value)}
+						className={cn(
+							"flex items-center justify-center gap-2 px-3 py-2 font-medium text-sm transition-colors",
+							mode === value
+								? "bg-primary text-primary-foreground"
+								: "bg-background text-muted-foreground hover:bg-muted",
+						)}
+					>
+						<Icon className="h-4 w-4" />
+						{label}
+					</button>
+				))}
+			</div>
+
+			<Card className="overflow-hidden rounded-none border-primary/20 border-dashed bg-accent p-2 shadow-none sm:p-3">
+				{mode === "hardware" ? (
+					<div className="mx-auto flex aspect-square w-full max-w-sm flex-col items-center justify-center gap-4 border border-primary/30 border-dashed bg-white px-4 text-center">
+						<div className="relative inline-flex border border-primary/10 bg-primary/5 p-5">
+							<ScanLine className="h-12 w-12 text-primary/60" />
+							<span className="absolute top-2 right-2 flex h-2.5 w-2.5">
+								<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
+								<span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
+							</span>
+						</div>
+						<div className="space-y-1">
+							<h3 className="font-semibold text-foreground text-lg">
+								Hardware Scanner Ready
+							</h3>
+							<p className="text-muted-foreground text-xs leading-relaxed">
+								Scan a participant's ticket QR with your scanner. No camera
+								needed.
+							</p>
+						</div>
+					</div>
+				) : (
+					<div className="relative flex items-center justify-center bg-white">
+						<div
+							id={SCANNER_ID}
+							className="aspect-square w-full max-w-sm rounded-none"
+							style={{ position: "relative", overflow: "hidden" }}
+						/>
+
+						{!isScanning && (
+							<div className="absolute inset-0 flex flex-col items-center justify-center rounded-none border border-primary/30 border-dashed">
+								<div className="max-w-xs space-y-4 px-4 text-center">
+									<div className="inline-flex rounded-none border border-primary/10 bg-primary/5 p-5">
+										<QrCode className="h-12 w-12 text-primary/60" />
+									</div>
+									<div className="space-y-1">
+										<h3 className="font-semibold text-foreground text-lg">
+											Scanner Ready
+										</h3>
+										<p className="text-muted-foreground text-xs leading-relaxed">
+											Activate the camera, then scan each participant's ticket
+											QR
+										</p>
+									</div>
+									<Button
+										onClick={handleStart}
+										className="w-full gap-2 rounded-none"
+										disabled={isTransitioning}
+									>
+										<Camera className="h-4 w-4" />
+										Activate Camera
+									</Button>
+								</div>
+							</div>
+						)}
+
+						{isScanning && (
+							<>
+								<div className="absolute top-2 left-1/2 z-20 -translate-x-1/2">
+									<div className="flex items-center gap-2 rounded-none bg-primary px-3 py-1.5 shadow-lg">
+										<span className="relative flex h-2 w-2">
+											<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+											<span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+										</span>
+										<span className="font-medium text-primary-foreground text-xs">
+											Scanning Active
+										</span>
+									</div>
+								</div>
+								<div className="absolute bottom-2 left-1/2 z-20 -translate-x-1/2">
+									<Button
+										onClick={handleStop}
+										variant="destructive"
+										className="gap-2 rounded-none shadow-lg"
+										disabled={isTransitioning}
+									>
+										<CameraOff className="h-4 w-4" />
+										Stop Scanner
+									</Button>
+								</div>
+							</>
+						)}
+					</div>
+				)}
+			</Card>
+
+			{result && (
+				<div
+					className={cn(
+						"flex items-start gap-3 rounded-none border-y border-r border-l-4 p-3",
+						result.ok
+							? "border-green-600 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-100"
+							: "border-destructive bg-destructive/5 text-destructive",
+					)}
+				>
+					{result.ok ? (
+						<CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+					) : (
+						<XCircle className="mt-0.5 h-5 w-5 shrink-0" />
+					)}
+					<div className="min-w-0">
+						<p className="font-semibold text-sm">
+							{result.ok ? "Entered into draw" : "Not entered"}
+						</p>
+						<p className="truncate text-sm">{result.message}</p>
+					</div>
+				</div>
+			)}
+
+			<div className="rounded-none border">
+				<div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2">
+					<div className="flex items-center gap-2 font-semibold text-sm">
+						<Users className="h-4 w-4 text-muted-foreground" />
+						Entries
+						{total > entries.length && (
+							<span className="font-normal text-muted-foreground text-xs">
+								(latest {entries.length})
+							</span>
+						)}
+					</div>
+					<span className="rounded-none border border-primary/20 bg-primary/5 px-2 py-0.5 font-medium text-primary text-xs">
+						{total}
+					</span>
+				</div>
+				{entries.length === 0 ? (
+					<p className="px-3 py-6 text-center text-muted-foreground text-xs">
+						No entries yet. Scanned participants will appear here.
+					</p>
+				) : (
+					<ul className="max-h-56 divide-y overflow-y-auto">
+						{entries.map((e, i) => (
+							<li
+								key={e.id}
+								className="flex items-center gap-3 px-3 py-2 text-sm"
+							>
+								<span className="w-6 text-muted-foreground text-xs tabular-nums">
+									{total - i}
+								</span>
+								<span className="min-w-0 flex-1 truncate">{e.name}</span>
+								<span className="text-muted-foreground text-xs tabular-nums">
+									{new Date(e.entered_at).toLocaleTimeString([], {
+										hour: "2-digit",
+										minute: "2-digit",
+									})}
+								</span>
+							</li>
+						))}
+					</ul>
+				)}
+			</div>
+		</div>
+	);
+}

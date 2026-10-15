@@ -44,11 +44,48 @@ describe("updateExhibitorKitSchema", () => {
 		]);
 	});
 
-	test("rejects exhibitor team members without email and phone", () => {
+	test("rejects exhibitor team members missing the email/phone keys entirely", () => {
 		const parsed = updateExhibitorKitSchema.safeParse({
 			exhibitor_team_members_attributes: [
 				{
 					full_name: "Jane Expo",
+				},
+			],
+		});
+
+		expect(parsed.success).toBe(false);
+	});
+
+	test("accepts an active exhibitor team member with blank email and phone (optional for fast on-site registration)", () => {
+		const parsed = updateExhibitorKitSchema.safeParse({
+			exhibitor_team_members_attributes: [
+				{
+					full_name: "Walk-in Member",
+					email: "",
+					phone: "",
+				},
+			],
+		});
+
+		expect(parsed.success).toBe(true);
+		if (!parsed.success) return;
+
+		expect(parsed.data.exhibitor_team_members_attributes).toEqual([
+			{
+				full_name: "Walk-in Member",
+				email: "",
+				phone: "",
+			},
+		]);
+	});
+
+	test("still rejects an active exhibitor team member missing a name", () => {
+		const parsed = updateExhibitorKitSchema.safeParse({
+			exhibitor_team_members_attributes: [
+				{
+					full_name: "",
+					email: "",
+					phone: "",
 				},
 			],
 		});

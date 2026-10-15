@@ -99,12 +99,27 @@ export function BaseTable<TData>({
 									className={cn(
 										"group transition-colors hover:bg-muted/50",
 										clickableRowConfig?.isEnabled
-											? "cursor-pointer"
+											? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 											: undefined,
 									)}
+									tabIndex={clickableRowConfig?.isEnabled ? 0 : undefined}
+									onKeyDown={(event) => {
+										if (
+											!clickableRowConfig?.isEnabled ||
+											event.target !== event.currentTarget ||
+											(event.key !== "Enter" && event.key !== " ")
+										) {
+											return;
+										}
+										event.preventDefault();
+										clickableRowConfig.onRowClick?.(row.original);
+									}}
 								>
 									{row.getVisibleCells().map((cell) => {
 										const isSticky = !!cell.column.columnDef.meta?.sticky;
+										const stickyBg = row.getIsSelected()
+											? "bg-muted"
+											: "bg-background";
 										return (
 											<TableCell
 												key={cell.id}
@@ -113,9 +128,15 @@ export function BaseTable<TData>({
 													table.getVisibleLeafColumns()[0]?.id ===
 														cell.column.id && "ps-4",
 													cell.column.columnDef.meta?.sticky === "left" &&
-														"sticky left-0 z-10 bg-background group-hover:bg-muted/50",
+														cn(
+															"sticky left-0 z-10 group-hover:bg-muted/50",
+															stickyBg,
+														),
 													cell.column.columnDef.meta?.sticky === "right" &&
-														"sticky right-0 z-10 bg-background group-hover:bg-muted/50",
+														cn(
+															"sticky right-0 z-10 group-hover:bg-muted/50",
+															stickyBg,
+														),
 													isSticky && "p-0",
 												)}
 												onClick={(e) => {

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	Circle,
 	Defs,
 	G,
 	Line,
@@ -67,9 +68,10 @@ export function AreaChart({
 					(data.length === 1
 						? innerWidth / 2
 						: (i / (data.length - 1)) * innerWidth);
+				const value = d.value ?? 0;
 				const y =
-					paddingTop + innerHeight - (d.value / adjustedMax) * innerHeight;
-				return { x, y, value: d.value, date: d.date };
+					paddingTop + innerHeight - (value / adjustedMax) * innerHeight;
+				return { x, y, value, date: d.date };
 			})
 		: [];
 
@@ -172,7 +174,7 @@ export function AreaChart({
 
 			{/* Chart area */}
 			<View style={{ backgroundColor: colors.background, padding: 8 }}>
-				{hasData && points.length >= 2 ? (
+				{hasData && points.length >= 1 ? (
 					<Svg
 						width={chartWidth}
 						height={height}
@@ -224,6 +226,16 @@ export function AreaChart({
 							stroke={areaColor}
 							strokeWidth={1.5}
 						/>
+
+						{/* Single-point marker (line/area paths are empty with only 1 point) */}
+						{points.length === 1 && (
+							<Circle
+								cx={points[0].x}
+								cy={points[0].y}
+								r={3}
+								fill={areaColor}
+							/>
+						)}
 
 						{/* Data point labels */}
 						{points.map((point, i) => {

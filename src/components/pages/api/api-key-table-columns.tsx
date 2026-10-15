@@ -22,12 +22,14 @@ const SCOPE_LABELS: Record<ApiKeyScope, string> = {
 	read_only: "Read only",
 	check_in: "Check-in",
 	read_write: "Full access",
+	rfid: "RFID device",
 };
 
 const SCOPE_BADGE_CLASS: Record<ApiKeyScope, string> = {
 	read_only: "bg-slate-500 text-white",
 	check_in: "bg-blue-500 text-white",
 	read_write: "bg-amber-500 text-white",
+	rfid: "bg-teal-600 text-white",
 };
 
 // Status filter options

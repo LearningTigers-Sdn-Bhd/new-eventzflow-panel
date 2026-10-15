@@ -1,9 +1,13 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import {
+	BarChart3,
 	ChevronDown,
+	FileSpreadsheet,
 	LayoutGrid,
 	Link2,
+	Map as MapIcon,
 	MapPinned,
 	PackageOpen,
 	Plus,
@@ -13,7 +17,9 @@ import {
 	Users,
 	Vault,
 } from "lucide-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -23,10 +29,12 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDialog } from "@/hooks/use-dialog";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
+import { getEventById } from "@/lib/api/event";
 import { useFullScreenDialogStore } from "@/stores/full-screen-dialog-store";
 import { InviteVendorDialog } from "../../event-vendors/dialogs/invite-vendor-dialog";
+import { ExhibitorImportDialog } from "../../event-vendors/exhibitor-import-dialog";
 import { BoothInventoryDialog } from "../dialogs/booth-inventory-dialog";
+import { BoothPlanDialog } from "../dialogs/booth-plan-dialog";
 import { BoothPricingDialog } from "../dialogs/booth-pricing-dialog";
 import { BoothTypesDialog } from "../dialogs/booth-types-dialog";
 import { PackageDialog } from "../dialogs/package-dialog";
@@ -39,7 +47,12 @@ export function ExhibitorPageButton() {
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
-	const permissions = useEventPermissions(eventId);
+	const { permissions } = useEventSidebarContext();
+	const { data: event } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+		enabled: !!eventId,
+	});
 	const setFullScreenDialogOpen = useFullScreenDialogStore(
 		(state) => state.setOpen,
 	);
@@ -69,6 +82,16 @@ export function ExhibitorPageButton() {
 
 	return (
 		<div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">
+			<Button
+				variant="outline"
+				className="w-full rounded-none sm:w-auto"
+				asChild
+			>
+				<Link href={`/event/${eventId}/analytics/exhibitor`}>
+					<BarChart3 className="mr-2 h-4 w-4" />
+					Analytics
+				</Link>
+			</Button>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button variant="outline" className="w-full rounded-none sm:w-auto">
@@ -134,6 +157,16 @@ export function ExhibitorPageButton() {
 						Manage Booths
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
+					<DropdownMenuItem
+						onSelect={() =>
+							setFullScreenDialogOpen(`booth-plan-dialog-${eventId}`, true)
+						}
+						className="rounded-none"
+					>
+						<MapIcon className="h-4 w-4" />
+						Booth Plan
+					</DropdownMenuItem>
+					<DropdownMenuSeparator />
 					<BoothTypesDialog
 						eventId={Number(eventId)}
 						trigger={
@@ -159,6 +192,23 @@ export function ExhibitorPageButton() {
 							</DropdownMenuItem>
 						}
 					/>
+					{event?.use_exhibitor_kit === true && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								onSelect={() =>
+									setFullScreenDialogOpen(
+										`exhibitor-import-dialog-${eventId}`,
+										true,
+									)
+								}
+								className="rounded-none"
+							>
+								<FileSpreadsheet className="h-4 w-4" />
+								Import Exhibitors
+							</DropdownMenuItem>
+						</>
+					)}
 					{canInviteVendor && (
 						<>
 							<DropdownMenuSeparator />
@@ -194,6 +244,16 @@ export function ExhibitorPageButton() {
 				eventId={Number(eventId)}
 				trigger={<span className="hidden" />}
 			/>
+			<BoothPlanDialog
+				eventId={Number(eventId)}
+				trigger={<span className="hidden" />}
+			/>
+			{event?.use_exhibitor_kit === true && (
+				<ExhibitorImportDialog
+					eventId={Number(eventId)}
+					trigger={<span className="hidden" />}
+				/>
+			)}
 			<Button
 				onClick={handleAssignExhibitor}
 				className="w-full rounded-none sm:w-auto"

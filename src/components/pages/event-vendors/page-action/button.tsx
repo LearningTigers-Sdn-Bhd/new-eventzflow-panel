@@ -2,9 +2,9 @@
 
 import { Link2, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { InviteVendorDialog } from "../dialogs/invite-vendor-dialog";
 import AddVendorModal from "../forms/add-vendor";
 
@@ -12,7 +12,7 @@ export function EventVendorsPageButton() {
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
-	const permissions = useEventPermissions(eventId);
+	const { permissions } = useEventSidebarContext();
 
 	const handleAssignVendor = () => {
 		openDialog({

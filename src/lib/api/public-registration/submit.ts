@@ -56,8 +56,11 @@ export async function submitGroupRegistrations(params: {
 
 			try {
 				const data = await createPublicRegistration(params.eventSlug, {
-					attendee_name: attendee.attendee_name,
-					attendee_email: attendee.attendee_email,
+					attendee_name:
+						attendee.attendee_name?.trim() || params.attendees[0].attendee_name,
+					attendee_email:
+						attendee.attendee_email?.trim() ||
+						params.attendees[0].attendee_email,
 					attendee_phone: attendee.attendee_phone,
 					ticket_type_id: params.ticketTypeId,
 					role: params.role,

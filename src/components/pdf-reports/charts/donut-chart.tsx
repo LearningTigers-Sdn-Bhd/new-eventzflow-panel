@@ -11,6 +11,9 @@ interface DonutChartProps {
 	color1?: string;
 	color2?: string;
 	size?: number;
+	centerValue?: string;
+	centerLabel?: string;
+	summary?: string;
 }
 
 /**
@@ -23,7 +26,10 @@ export function DonutChart({
 	label2,
 	color1 = colors.brandSecondary,
 	color2 = colors.border,
-	size = 140,
+	size = 110,
+	centerValue,
+	centerLabel,
+	summary,
 }: DonutChartProps) {
 	const total = value1 + value2;
 	const percentage1 = total > 0 ? (value1 / total) * 100 : 0;
@@ -68,7 +74,7 @@ export function DonutChart({
 				alignItems: "center",
 				justifyContent: "space-between",
 				width: "100%",
-				paddingVertical: 12,
+				paddingVertical: 6,
 				paddingHorizontal: 24,
 			}}
 			wrap={false}
@@ -93,6 +99,41 @@ export function DonutChart({
 						<Path d={createArc(0, angle1, radius, innerRadius)} fill={color1} />
 					)}
 				</Svg>
+				{centerValue && (
+					<View
+						style={{
+							position: "absolute",
+							top: 0,
+							left: 0,
+							width: size,
+							height: size,
+							alignItems: "center",
+							justifyContent: "center",
+						}}
+					>
+						<Text
+							style={{
+								fontSize: 18,
+								fontFamily: "Helvetica-Bold",
+								color: colors.textMain,
+							}}
+						>
+							{centerValue}
+						</Text>
+						{centerLabel && (
+							<Text
+								style={{
+									fontSize: 7,
+									color: colors.textSecondary,
+									textTransform: "uppercase",
+									letterSpacing: 0.4,
+								}}
+							>
+								{centerLabel}
+							</Text>
+						)}
+					</View>
+				)}
 			</View>
 
 			{/* Data Table Legend */}
@@ -193,6 +234,17 @@ export function DonutChart({
 						</Text>
 					</View>
 				</View>
+				{summary && (
+					<Text
+						style={{
+							marginTop: 12,
+							fontSize: 9,
+							color: colors.textSecondary,
+						}}
+					>
+						{summary}
+					</Text>
+				)}
 			</View>
 		</View>
 	);

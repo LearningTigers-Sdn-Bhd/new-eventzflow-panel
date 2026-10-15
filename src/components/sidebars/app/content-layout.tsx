@@ -35,7 +35,7 @@ export function ContentLayout({
 
 	return (
 		<ResponsiveLayout>
-			<DesktopView>
+			<DesktopView className="h-svh">
 				<div className="relative flex h-full w-full overflow-hidden bg-background">
 					{/* Top Left Corner */}
 					<div className="absolute top-0 left-0 z-50 flex h-12 w-12 items-center justify-center border-border border-r border-b border-dashed bg-background">

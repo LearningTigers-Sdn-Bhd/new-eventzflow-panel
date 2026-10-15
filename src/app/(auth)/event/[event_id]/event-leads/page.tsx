@@ -3,6 +3,7 @@
 import { use, useMemo } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { DataTable } from "@/components/pages/event-leads/lead-log-table";
+import { ExportLeadsButton } from "@/components/pages/event-leads/page-action/export-leads-button";
 import { ScanLeadButton } from "@/components/pages/event-leads/page-action/scan-lead-button";
 import { Button } from "@/components/ui/button";
 import { useEventLeads } from "@/hooks/use-event-leads";
@@ -25,6 +26,7 @@ export default function EventLeadsPage({ params }: EventLeadsPageProps) {
 	const eventActions = useMemo(
 		() => (
 			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
+				<ExportLeadsButton eventId={event_id} />
 				<ScanLeadButton eventId={event_id} onRefetch={refetch} />
 			</div>
 		),

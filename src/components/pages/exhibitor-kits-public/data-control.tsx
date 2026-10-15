@@ -192,6 +192,9 @@ export function DataControl<TData>({ table, events }: DataControlProps<TData>) {
 								<SelectItem value="sponsored" className="rounded-none">
 									Sponsored
 								</SelectItem>
+								<SelectItem value="deposit" className="rounded-none">
+									Deposit
+								</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>

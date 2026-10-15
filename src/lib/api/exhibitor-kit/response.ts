@@ -51,7 +51,12 @@ export interface ExhibitorKitPrinting {
 }
 
 export type BoothType = string;
-export type PaymentStatus = "unpaid" | "paid" | "waived" | "sponsored";
+export type PaymentStatus =
+	| "unpaid"
+	| "paid"
+	| "waived"
+	| "sponsored"
+	| "deposit";
 
 export interface CustomRequest {
 	id: number;
@@ -92,6 +97,7 @@ export interface ExhibitorTeamMemberPaymentInKit {
 
 export interface ExhibitorKit {
 	id: number;
+	public_id?: string;
 	event_vendor_id: number;
 	booth_number: string;
 	booth_type: BoothType;
@@ -116,6 +122,11 @@ export interface ExhibitorKit {
 	payment_proof_url?: string | null;
 	payment_proof_status?: "pending" | "submitted" | "rejected" | "paid" | string;
 	amount_paid?: string;
+	/** Booth price x booth quantity for this kit, computed server-side. Used to
+	 * pre-fill amount_paid when settling payments in bulk. */
+	booking_value?: string | number | null;
+	booth_quantity?: number;
+	price_snapshot?: string | number | null;
 	payment_note?: string;
 	indemnity_link?: string;
 	exhibitor_booth_price_id?: number;
@@ -135,6 +146,8 @@ export interface ExhibitorKit {
 	custom_fields_data?: Record<string, unknown>;
 	ic_copy_uploaded?: boolean;
 	customs_declaration_uploaded?: boolean;
+	customs_duty_estimate_uploaded?: boolean;
+	indemnity_form_uploaded?: boolean;
 	booking_batch_id?: string | null;
 	exhibitor_team_members: ExhibitorTeamMember[];
 	exhibitor_kit_items?: ExhibitorKitItem[];
@@ -153,4 +166,45 @@ export interface ExhibitorKit {
 	extra_team_member_payment_mode?: "manual_bank_in" | "payment_gateway";
 	created_at?: string;
 	updated_at?: string;
+}
+
+export interface ImportExhibitorKitsRowResult {
+	row: number;
+	id?: number;
+	public_id?: string;
+	vendor_email?: string;
+	vendor_name?: string;
+	company_name?: string;
+	pic_name?: string;
+	booth_type?: string;
+	zone?: string;
+	price_label?: string;
+	/** The Booth No cell for this row. Only meaningfully validated when the
+	 * resolved Booth Type has real numbered-booth inventory set up — otherwise
+	 * it's just a free-text label passed through as-is. */
+	booth_no?: string | null;
+	package_name?: string;
+	booth_quantity?: number;
+	payment_status?: string;
+	amount?: number;
+	error?: string;
+	/** True for rows in `skipped` that matched an already-imported booking (same
+	 * vendor/booth/package/quantity) — re-uploading the same file lands here
+	 * instead of creating a second booking. Not present on plain error rows. */
+	duplicate?: boolean;
+	existing_kit_id?: number;
+	existing_kit_public_id?: string;
+	existing_created_at?: string;
+	/** True on an `errors` row whose Booth No belongs to a real inventory booth
+	 * that's already claimed by another active/paid booking — as opposed to a
+	 * not-found or wrong-booth-type Booth No error. Lets the preview badge this
+	 * case distinctly from a generic row error. */
+	booth_taken?: boolean;
+}
+
+export interface ImportExhibitorKitsResponse {
+	total: number;
+	created: { count: number; data: ImportExhibitorKitsRowResult[] };
+	skipped: { count: number; data: ImportExhibitorKitsRowResult[] };
+	errors: { count: number; data: ImportExhibitorKitsRowResult[] };
 }

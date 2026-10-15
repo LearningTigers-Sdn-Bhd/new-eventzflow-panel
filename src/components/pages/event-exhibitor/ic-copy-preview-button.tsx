@@ -12,35 +12,58 @@ import {
 } from "@/components/ui/dialog";
 import {
 	downloadExhibitorKitCustomsDeclaration,
+	downloadExhibitorKitCustomsDutyEstimate,
 	downloadExhibitorKitIcCopy,
+	downloadExhibitorKitIndemnityForm,
 } from "@/lib/api/exhibitor-kit";
+import { createTypedObjectUrl } from "@/lib/utils/file-type";
+
+const DOCUMENT_LABELS = {
+	"ic-copy": "IC Copy",
+	"customs-declaration": "Customs Declaration",
+	"customs-duty-estimate": "Customs Duty Estimate",
+	"indemnity-form": "Indemnity Form",
+} as const;
+
+const DOCUMENT_DOWNLOADERS = {
+	"ic-copy": downloadExhibitorKitIcCopy,
+	"customs-declaration": downloadExhibitorKitCustomsDeclaration,
+	"customs-duty-estimate": downloadExhibitorKitCustomsDutyEstimate,
+	"indemnity-form": downloadExhibitorKitIndemnityForm,
+} as const;
 
 export function IcCopyPreviewButton({
 	eventId,
 	kitId,
 	available,
 	document = "ic-copy",
+	boothNumber,
 }: {
 	eventId: number;
 	kitId: number;
 	available?: boolean;
-	document?: "ic-copy" | "customs-declaration";
+	document?:
+		| "ic-copy"
+		| "customs-declaration"
+		| "customs-duty-estimate"
+		| "indemnity-form";
+	boothNumber?: string | null;
 }) {
 	const [preview, setPreview] = useState<{ url: string; type: string } | null>(
 		null,
 	);
 	const [loading, setLoading] = useState(false);
+	const label = DOCUMENT_LABELS[document];
 	if (!available)
 		return <span className="text-muted-foreground text-xs">Not uploaded</span>;
 	const open = async () => {
 		setLoading(true);
 		try {
-			const download =
-				document === "ic-copy"
-					? downloadExhibitorKitIcCopy
-					: downloadExhibitorKitCustomsDeclaration;
-			const { blob } = await download(eventId, kitId);
-			setPreview({ url: URL.createObjectURL(blob), type: blob.type });
+			const { blob } = await DOCUMENT_DOWNLOADERS[document](eventId, kitId);
+			// Sniff the real type from the bytes — the served Content-Type can be
+			// missing or a generic attachment type after security hardening, which
+			// would otherwise leave the preview dialog blank.
+			setPreview(await createTypedObjectUrl(blob));
 		} finally {
 			setLoading(false);
 		}
@@ -68,28 +91,34 @@ export function IcCopyPreviewButton({
 			>
 				<DialogContent className="max-w-4xl rounded-none p-0">
 					<DialogHeader className="border-b p-4 text-left">
-						<DialogTitle>
-							{document === "ic-copy"
-								? "IC Copy Preview"
-								: "Customs Declaration Preview"}
-						</DialogTitle>
+						<DialogTitle>{label} Preview</DialogTitle>
 					</DialogHeader>
 					<div className="flex max-h-[68vh] min-h-64 items-center justify-center overflow-auto bg-muted/30 p-4">
 						{preview?.type === "application/pdf" ? (
 							<iframe
 								src={preview.url}
-								title={
-									document === "ic-copy" ? "IC copy" : "Customs declaration"
-								}
+								title={label}
 								className="h-[62vh] w-full border-0"
 							/>
-						) : preview ? (
-							<object
-								data={preview.url}
-								type={preview.type}
-								aria-label={`Uploaded ${document === "ic-copy" ? "IC copy" : "customs declaration"}`}
+						) : preview?.type.startsWith("image/") ? (
+							// <img> is allowed by img-src 'blob:' and not subject to
+							// object-src 'none', so images render without loosening the CSP.
+							// A blob URL can't be optimized by next/image, so a plain img is correct here.
+							// biome-ignore lint/performance/noImgElement: blob preview URL, not optimizable by next/image
+							<img
+								src={preview.url}
+								alt={`Uploaded ${label}`}
 								className="h-auto max-h-[62vh] max-w-full object-contain"
 							/>
+						) : preview ? (
+							<div className="max-w-sm text-center">
+								<p className="text-sm">
+									This file type can't be previewed here.
+									{boothNumber
+										? ` Download the ${label.toLowerCase()} for booth ${boothNumber} to view it.`
+										: ` Download the ${label.toLowerCase()} to view it.`}
+								</p>
+							</div>
 						) : null}
 					</div>
 					<DialogFooter className="border-t p-4">
@@ -99,10 +128,10 @@ export function IcCopyPreviewButton({
 						{preview && (
 							<a
 								href={preview.url}
-								download={document}
+								download={`${document}${boothNumber ? `-${boothNumber}` : ""}`}
 								className="inline-flex h-9 items-center justify-center bg-primary px-4 font-medium text-primary-foreground text-sm"
 							>
-								Download
+								Download {label}
 							</a>
 						)}
 					</DialogFooter>

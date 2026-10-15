@@ -3,11 +3,10 @@ import type {
 	AllEventsStats,
 	BackendAllEventsStats,
 	BackendAnalyticsResponse,
-	BackendEventLocation,
 	BackendEventOverview,
+	BackendRecentScansResponse,
 	BackendRevenueResponse,
 	BackendScannedTicketsResponse,
-	BackendTicket,
 	BackendUnscannedTicketsResponse,
 	DailyHourlyBreakdown,
 	EventAnalytics,
@@ -69,11 +68,18 @@ export async function getEventsOverview(): Promise<EventOverview[]> {
 		title: event.title,
 		status: event.status as "draft" | "published" | "cancelled" | "completed",
 		useTicket: event.use_ticket ?? true,
+		useExhibitorKit: event.use_exhibitor_kit ?? false,
 		// Ticket event stats
 		totalTickets: event.total_tickets ?? 0,
 		scannedTickets: event.scanned_tickets ?? 0,
 		totalRevenue: centsToDollars(event.total_revenue ?? 0),
-		pendingTickets: event.unscanned_tickets ?? 0,
+		awaitingCheckingTickets: event.unscanned_tickets ?? 0,
+		// Vendor / exhibitor stats
+		totalVendors: event.total_vendors ?? 0,
+		totalExhibitors: event.total_exhibitors ?? 0,
+		paidExhibitors: event.paid_exhibitors ?? 0,
+		depositExhibitors: event.deposit_exhibitors ?? 0,
+		unpaidExhibitors: event.unpaid_exhibitors ?? 0,
 		// Non-ticket event stats
 		totalVisitors: event.total_visitors ?? 0,
 		totalLeads: event.total_leads ?? 0,
@@ -91,6 +97,7 @@ export async function getEventAnalytics(
 		endDate?: string;
 		dateMode?: "all_time" | "pre_event";
 		groupBy?: "hour" | "day" | "week" | "month";
+		includeMultiScans?: boolean;
 	},
 ): Promise<EventAnalytics> {
 	const eventIdNum = Number.parseInt(eventId, 10);
@@ -103,8 +110,28 @@ export async function getEventAnalytics(
 		if (options?.dateMode) params.set("date_mode", options.dateMode);
 		if (options?.startDate) params.set("start_date", options.startDate);
 		if (options?.endDate) params.set("end_date", options.endDate);
+		if (metric === "scans" && options?.includeMultiScans) {
+			params.set("include_multi_scans", "true");
+		}
 		return `v1/events/${eventIdNum}/metrics/time_series?${params.toString()}`;
 	};
+
+	// Shared date-range params so the summary cards (totals/revenue) are scoped
+	// to the same filter as the Analytics Trends charts.
+	const dateRangeParams = new URLSearchParams();
+	if (options?.dateMode) dateRangeParams.set("date_mode", options.dateMode);
+	if (options?.startDate) dateRangeParams.set("start_date", options.startDate);
+	if (options?.endDate) dateRangeParams.set("end_date", options.endDate);
+
+	const totalTicketsParams = new URLSearchParams(dateRangeParams);
+	if (options?.includeMultiScans) {
+		totalTicketsParams.set("include_multi_scans", "true");
+	}
+
+	const scannedTicketsParams = new URLSearchParams(dateRangeParams);
+	if (options?.includeMultiScans) {
+		scannedTicketsParams.set("include_multi_scans", "true");
+	}
 
 	// Fetch event details
 	const event = await restClient.get<{
@@ -113,7 +140,9 @@ export async function getEventAnalytics(
 		status: string;
 	}>(`v1/events/${eventIdNum}`);
 
-	// Fetch all analytics data in parallel (using new time_series endpoint)
+	// Fetch all analytics data in parallel (using new time_series endpoint).
+	// Recent scans come from a dedicated backend query (ScanLog, limit 5) —
+	// never dump the full ticket table just to sort/slice client-side.
 	const [
 		totalTickets,
 		scannedTickets,
@@ -122,89 +151,46 @@ export async function getEventAnalytics(
 		ticketsTimeSeries,
 		scansTimeSeries,
 		revenueTimeSeries,
+		locations,
+		recentScansResponse,
 	] = await Promise.all([
 		restClient.get<BackendAnalyticsResponse>(
-			`v1/events/${eventIdNum}/metrics/total_tickets`,
+			`v1/events/${eventIdNum}/metrics/total_tickets?${totalTicketsParams.toString()}`,
 		),
 		restClient.get<BackendScannedTicketsResponse>(
-			`v1/events/${eventIdNum}/metrics/total_scanned_tickets`,
+			`v1/events/${eventIdNum}/metrics/total_scanned_tickets?${scannedTicketsParams.toString()}`,
 		),
 		restClient.get<BackendUnscannedTicketsResponse>(
-			`v1/events/${eventIdNum}/metrics/total_unscanned_tickets`,
+			`v1/events/${eventIdNum}/metrics/total_unscanned_tickets?${dateRangeParams.toString()}`,
 		),
 		restClient.get<BackendRevenueResponse>(
-			`v1/events/${eventIdNum}/metrics/total_amount_price`,
+			`v1/events/${eventIdNum}/metrics/total_amount_price?${dateRangeParams.toString()}`,
 		),
 		restClient.get<TimeSeriesResponse>(buildTimeSeriesUrl("tickets")),
 		restClient.get<TimeSeriesResponse>(buildTimeSeriesUrl("scans")),
 		restClient.get<TimeSeriesResponse>(buildTimeSeriesUrl("revenue")),
+		restClient.get<Array<{ id: number }>>(
+			`v1/events/${eventIdNum}/event_locations`,
+		),
+		restClient.get<BackendRecentScansResponse>(
+			`v1/events/${eventIdNum}/metrics/recent_scans?limit=5`,
+		),
 	]);
 
-	// Fetch event locations to get count
-	const locations = await restClient.get<Array<{ id: number }>>(
-		`v1/events/${eventIdNum}/event_locations`,
-	);
-
-	// Fetch recent scans from backend (last 5 scanned tickets)
-	const allTickets = await restClient.get<BackendTicket[]>(
-		`v1/events/${eventIdNum}/tickets`,
-	);
-
-	// Filter for scanned tickets and get the 5 most recent
-	const recentScannedTickets = allTickets
-		.filter((ticket) => ticket.status === "scanned" && ticket.checked_in)
-		.sort((a, b) => {
-			const dateA = new Date(a.check_in_at || 0).getTime();
-			const dateB = new Date(b.check_in_at || 0).getTime();
-			return dateB - dateA; // Sort descending (most recent first)
-		})
-		.slice(0, 5);
-
-	// Create a map of user_id -> location_name
-	const locationsWithMembers = await restClient.get<BackendEventLocation[]>(
-		`v1/events/${eventIdNum}/event_locations`,
-	);
-
-	const userLocationMap = new Map<number, string>();
-	for (const location of locationsWithMembers) {
-		// Combine staff_members and vendors arrays
-		const allMembers = [
-			...(location.staff_members || []),
-			...(location.vendors || []),
-		];
-
-		for (const member of allMembers) {
-			userLocationMap.set(member.id, location.name);
-		}
-	}
-
-	// Map to RecentScan format
-	const recentScans: RecentScan[] = recentScannedTickets.map((ticket) => {
-		const scannedBy = ticket.scanned_by?.full_name || "Auto Check-in";
-		const locationName = ticket.scanned_by_id
-			? userLocationMap.get(ticket.scanned_by_id) || "General Access"
-			: "N/A";
-
-		return {
-			id: ticket.public_id,
-			ticketHolder: ticket.attendee_name,
-			email: ticket.attendee_email,
-			location: locationName,
-			scannedBy,
-			timestamp: ticket.check_in_at || new Date().toISOString(),
-			status: "scanned",
-		};
-	});
+	const recentScans: RecentScan[] = recentScansResponse.recentScans;
 
 	return {
 		eventId: event.id.toString(),
 		eventName: event.title,
 		status: event.status as "draft" | "published" | "cancelled" | "completed",
 		totalTickets: totalTickets.totalTickets,
+		paidTickets: totalTickets.paidTickets,
+		pendingTickets: totalTickets.pendingTickets,
+		totalVisitors: totalTickets.totalVisitors,
 		scannedTickets: scannedTickets.totalScannedTickets,
 		unscannedTickets: unscannedTickets.totalUnscannedTickets,
 		totalRevenue: centsToDollars(totalRevenue.totalAmountPrice),
-		pendingTickets: unscannedTickets.totalUnscannedTickets,
+		pendingRevenue: centsToDollars(totalRevenue.pendingAmountPrice),
 		locations: locations.length,
 		recentScans,
 		registrationData: (ticketsTimeSeries.data ?? []).map((d) => ({

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Building2, FileText, Loader2, MapPin, User } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Building2, FileText, Loader2, MapPin, Tag, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { getEventById } from "@/lib/api/event";
 import type { ExhibitorKit } from "@/lib/api/exhibitor-kit";
 import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
 
@@ -34,6 +35,17 @@ export function EditExhibitorKitDialog({
 	onOpenChange,
 }: EditExhibitorKitDialogProps) {
 	const queryClient = useQueryClient();
+
+	// Custom fields configured for this event (Event Settings > Exhibitor Fields)
+	const { data: event } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId.toString()),
+		enabled: open,
+	});
+	const exhibitorLabels = event?.exhibitor_labels_data ?? {};
+	const [customFieldValues, setCustomFieldValues] = useState<
+		Record<string, string>
+	>({});
 
 	// Booth information
 	const [boothDimensions, setBoothDimensions] = useState(
@@ -89,6 +101,21 @@ export function EditExhibitorKitDialog({
 		}
 	}, [kit, open]);
 
+	// Separate effect: exhibitorLabels resolves from its own query after `open`
+	// flips, so custom field values are seeded once that data arrives rather
+	// than only on the initial [kit, open] pass above.
+	const labelsFromEvent = event?.exhibitor_labels_data;
+	useEffect(() => {
+		if (!open) return;
+
+		const values: Record<string, string> = {};
+		for (const key of Object.keys(labelsFromEvent ?? {})) {
+			const existing = kit.custom_fields_data?.[key];
+			values[key] = typeof existing === "string" ? existing : "";
+		}
+		setCustomFieldValues(values);
+	}, [kit, open, labelsFromEvent]);
+
 	const updateMutation = useMutation({
 		mutationFn: (data: Parameters<typeof updateExhibitorKit>[2]) =>
 			updateExhibitorKit(eventId, kit.id, data),
@@ -110,6 +137,13 @@ export function EditExhibitorKitDialog({
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
+		// custom_fields_data is a full-replace column, and it also carries internal
+		// bookkeeping keys (dedup fingerprints, batch ids — see
+		// ExhibitorKit::SYSTEM_CUSTOM_FIELD_KEYS on the backend). Only overlay the
+		// configured label keys on top of the kit's existing data so those keys,
+		// and any other field not in this form, survive the update untouched.
+		const hasCustomFields = Object.keys(exhibitorLabels).length > 0;
+
 		updateMutation.mutate({
 			booth_dimensions: boothDimensions || undefined,
 			side_wall_left_required: sideWallLeftRequired,
@@ -122,6 +156,9 @@ export function EditExhibitorKitDialog({
 			pic_email_address: picEmailAddress || undefined,
 			special_requirements: specialRequirements || undefined,
 			digital_brochure_link: digitalBrochureLink || undefined,
+			custom_fields_data: hasCustomFields
+				? { ...kit.custom_fields_data, ...customFieldValues }
+				: undefined,
 		});
 	};
 
@@ -306,6 +343,37 @@ export function EditExhibitorKitDialog({
 								</div>
 							</div>
 						</div>
+
+						{/* Additional Info Section */}
+						{Object.keys(exhibitorLabels).length > 0 && (
+							<div className="space-y-4 rounded-none border bg-background p-4">
+								<div className="flex items-center gap-2 border-b pb-2">
+									<Tag className="size-4 text-primary" />
+									<h3 className="font-semibold text-sm uppercase tracking-wide">
+										Additional Info
+									</h3>
+								</div>
+
+								<div className="space-y-4">
+									{Object.entries(exhibitorLabels).map(([key, label]) => (
+										<div className="space-y-2" key={key}>
+											<Label htmlFor={`custom-${key}`}>{label}</Label>
+											<Input
+												id={`custom-${key}`}
+												value={customFieldValues[key] ?? ""}
+												onChange={(e) =>
+													setCustomFieldValues((prev) => ({
+														...prev,
+														[key]: e.target.value,
+													}))
+												}
+												className="rounded-none"
+											/>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
 
 						{/* Additional Information Section */}
 						<div className="space-y-4 rounded-none border bg-background p-4">

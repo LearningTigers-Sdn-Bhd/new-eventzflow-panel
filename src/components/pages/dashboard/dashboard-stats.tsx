@@ -1,6 +1,7 @@
 import {
 	Activity,
 	Calendar,
+	MoveHorizontal,
 	Scan,
 	ShoppingBag,
 	Store,
@@ -136,22 +137,32 @@ function MobileRenderStats({
 	];
 
 	return (
-		<Carousel
-			opts={{
-				align: "start",
-				loop: false,
-				dragFree: true,
-			}}
-			className="w-full"
-		>
-			<CarouselContent className="-ml-4">
-				{cards.map((card) => (
-					<CarouselItem key={card.id} className="basis-[66.666%] pl-4">
-						<ProgressStatsCard data={card} />
-					</CarouselItem>
-				))}
-			</CarouselContent>
-		</Carousel>
+		<div className="relative">
+			<Carousel
+				opts={{
+					align: "start",
+					loop: false,
+					dragFree: true,
+				}}
+				className="w-full"
+			>
+				<CarouselContent className="-ml-4">
+					{cards.map((card) => (
+						<CarouselItem key={card.id} className="basis-[66.666%] pl-4">
+							<ProgressStatsCard data={card} />
+						</CarouselItem>
+					))}
+				</CarouselContent>
+			</Carousel>
+			<div
+				aria-hidden="true"
+				className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-linear-to-l from-background via-background/80 to-transparent"
+			/>
+			<div className="mt-2 flex items-center justify-center gap-1 text-muted-foreground text-xs">
+				<MoveHorizontal className="size-3.5" aria-hidden="true" />
+				<span>Swipe to see more</span>
+			</div>
+		</div>
 	);
 }
 

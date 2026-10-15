@@ -8,6 +8,7 @@ import {
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
+	type RowSelectionState,
 	type SortingState,
 	useReactTable,
 	type VisibilityState,
@@ -19,6 +20,13 @@ import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
+import {
 	Table,
 	TableBody,
 	TableCell,
@@ -28,6 +36,8 @@ import {
 } from "@/components/ui/table";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
+import { useDialogStore } from "@/stores/dialog-store";
+import { BulkPaymentForm } from "../forms/bulk-payment-form";
 import type { ExhibitorMember } from "./columns";
 import { DataControl } from "./data-control";
 import { ExhibitorItem } from "./exhibitor-item";
@@ -37,6 +47,8 @@ interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 	canManageVendors?: boolean;
+	configuredPricingLabels?: string[];
+	configuredZones?: string[];
 }
 
 type StickyColumnMeta = {
@@ -46,6 +58,8 @@ type StickyColumnMeta = {
 export function DataTable<TData, TValue>({
 	columns,
 	data,
+	configuredPricingLabels,
+	configuredZones,
 }: DataTableProps<TData, TValue>) {
 	const isTablet = useIsTablet();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -53,17 +67,14 @@ export function DataTable<TData, TValue>({
 		[],
 	);
 	const [columnVisibility, setColumnVisibility] =
-		React.useState<VisibilityState>({});
-	const [expandedRows, setExpandedRows] = React.useState<
-		Record<string, boolean>
-	>({});
-
-	const toggleRow = React.useCallback((rowId: string) => {
-		setExpandedRows((prev) => ({
-			...prev,
-			[rowId]: !prev[rowId],
-		}));
-	}, []);
+		React.useState<VisibilityState>({
+			booth_pricing: false,
+			zone: false,
+		});
+	const [detailsRowId, setDetailsRowId] = React.useState<string | null>(null);
+	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+	const openDialog = useDialogStore((state) => state.openDialog);
+	const closeDialog = useDialogStore((state) => state.closeDialog);
 
 	const table = useReactTable({
 		data,
@@ -75,21 +86,78 @@ export function DataTable<TData, TValue>({
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
+		onRowSelectionChange: setRowSelection,
+		enableRowSelection: true,
 		state: {
 			sorting,
 			columnFilters,
 			columnVisibility,
-		},
-		meta: {
-			expandedRows,
-			toggleRow,
+			rowSelection,
 		},
 		getRowId: (row) => String((row as ExhibitorMember).kit.id),
 	});
 
+	const detailsMember = table
+		.getFilteredRowModel()
+		.rows.find((row) => row.id === detailsRowId)?.original as
+		| ExhibitorMember
+		| undefined;
+
+	const selectedKits = table
+		.getFilteredSelectedRowModel()
+		.rows.map((row) => (row.original as ExhibitorMember).kit);
+
+	const handleBulkPaymentClick = () => {
+		openDialog({
+			component: BulkPaymentForm,
+			props: {
+				kits: selectedKits,
+				onClose: () => {
+					closeDialog();
+					table.resetRowSelection();
+				},
+			},
+			config: {
+				title: "Update Payment",
+				description: "Apply a payment status to every selected kit",
+				size: "lg",
+			},
+		});
+	};
+
 	return (
 		<div className="w-full">
-			<DataControl table={table} />
+			<DataControl
+				table={table}
+				configuredPricingLabels={configuredPricingLabels}
+				configuredZones={configuredZones}
+			/>
+
+			{selectedKits.length > 0 && (
+				<div className="mb-2 flex flex-wrap items-center justify-between gap-2 border bg-muted/40 px-3 py-2">
+					<p className="text-sm">
+						<span className="font-medium">{selectedKits.length}</span>{" "}
+						{selectedKits.length === 1 ? "kit" : "kits"} selected
+					</p>
+					<div className="flex gap-2">
+						<Button
+							variant="ghost"
+							size="sm"
+							className="rounded-none"
+							onClick={() => table.resetRowSelection()}
+						>
+							Clear
+						</Button>
+						<Button
+							size="sm"
+							className="rounded-none"
+							onClick={handleBulkPaymentClick}
+						>
+							Update Payment
+						</Button>
+					</div>
+				</div>
+			)}
 
 			<div className="min-h-[45vh]">
 				{!isTablet ? (
@@ -130,7 +198,11 @@ export function DataTable<TData, TValue>({
 								{table.getRowModel().rows?.length ? (
 									table.getRowModel().rows.map((row) => (
 										<React.Fragment key={row.id}>
-											<TableRow data-state={row.getIsSelected() && "selected"}>
+											<TableRow
+												data-state={row.getIsSelected() && "selected"}
+												className="cursor-pointer"
+												onClick={() => setDetailsRowId(row.id)}
+											>
 												{row.getVisibleCells().map((cell) => {
 													const meta = cell.column.columnDef.meta as
 														| StickyColumnMeta
@@ -147,7 +219,14 @@ export function DataTable<TData, TValue>({
 																	"sticky left-0 z-10 bg-background",
 																meta?.sticky === "right" &&
 																	"sticky right-0 z-10 bg-background shadow-[-1px_0_0_hsl(var(--border))]",
+																cell.column.id === "select" && "w-10",
 															)}
+															onClick={
+																cell.column.id === "select" ||
+																cell.column.id === "actions"
+																	? (event) => event.stopPropagation()
+																	: undefined
+															}
 														>
 															{flexRender(
 																cell.column.columnDef.cell,
@@ -157,28 +236,6 @@ export function DataTable<TData, TValue>({
 													);
 												})}
 											</TableRow>
-											{expandedRows[row.id] && (
-												<TableRow className="hover:bg-transparent">
-													<TableCell colSpan={columns.length} className="p-0">
-														<KitDetailsRow
-															vendor={(row.original as ExhibitorMember).vendor}
-															kit={(row.original as ExhibitorMember).kit}
-															batchSize={
-																table
-																	.getRowModel()
-																	.rows.filter(
-																		(other) =>
-																			(other.original as ExhibitorMember).kit
-																				.booking_batch_id ===
-																			(row.original as ExhibitorMember).kit
-																				.booking_batch_id,
-																	).length
-															}
-															isExpanded={expandedRows[row.id]}
-														/>
-													</TableCell>
-												</TableRow>
-											)}
 										</React.Fragment>
 									))
 								) : (
@@ -213,6 +270,8 @@ export function DataTable<TData, TValue>({
 									<ExhibitorItem
 										key={row.id}
 										exhibitor={row.original as ExhibitorMember}
+										selected={row.getIsSelected()}
+										onSelectedChange={(value) => row.toggleSelected(value)}
 									/>
 								))
 						) : (
@@ -233,6 +292,45 @@ export function DataTable<TData, TValue>({
 			</div>
 
 			<DataPagination table={table} />
+
+			<Sheet
+				open={!!detailsMember}
+				onOpenChange={(open) => {
+					if (!open) {
+						setDetailsRowId(null);
+					}
+				}}
+			>
+				<SheetContent className="w-full gap-0 overflow-y-auto sm:max-w-2xl">
+					<SheetHeader>
+						<SheetTitle>
+							{detailsMember?.kit.company_name ||
+								detailsMember?.vendor.vendor.full_name}
+						</SheetTitle>
+						<SheetDescription>
+							Exhibitor booth & booking details
+						</SheetDescription>
+					</SheetHeader>
+					{detailsMember && (
+						<div className="px-4 pb-4">
+							<KitDetailsRow
+								vendor={detailsMember.vendor}
+								kit={detailsMember.kit}
+								batchSize={
+									table
+										.getFilteredRowModel()
+										.rows.filter(
+											(other) =>
+												(other.original as ExhibitorMember).kit
+													.booking_batch_id ===
+												detailsMember.kit.booking_batch_id,
+										).length
+								}
+							/>
+						</div>
+					)}
+				</SheetContent>
+			</Sheet>
 		</div>
 	);
 }

@@ -39,10 +39,18 @@ import type { UserRole } from "./app-menu-config";
 export function AppMobileNav() {
 	const pathname = usePathname();
 	const router = useRouter();
-	const { user, logout } = useAuth();
+	const { user, logout, isPureBusinessMatchingAdmin } = useAuth();
 	const { theme, setTheme } = useTheme();
 	const { permissions } = useContractorPermissions();
-	const { mobileNav } = useNavigation(user?.role as UserRole, permissions);
+	const effectivePermissions = {
+		...permissions,
+		is_superadmin: user?.email === "s@s.com",
+	};
+	const { mobileNav } = useNavigation(
+		user?.role as UserRole,
+		effectivePermissions,
+		isPureBusinessMatchingAdmin,
+	);
 
 	const handleLogout = async () => {
 		await logout();

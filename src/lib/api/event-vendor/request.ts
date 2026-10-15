@@ -101,3 +101,64 @@ export const updateEventVendorSchema = z.object({
 // Export types for form data
 export type CreateEventVendorRequest = z.infer<typeof createEventVendorSchema>;
 export type UpdateEventVendorRequest = z.infer<typeof updateEventVendorSchema>;
+
+// Batch multi-booth booking (organizer Manual Add form)
+export const createEventVendorBatchBoothSchema = z.object({
+	exhibitor_booth_price_id: z.number().int().positive().optional(),
+	booth_type: z.string().trim().optional(),
+	exhibitor_package_id: z.number().int().positive().optional(),
+	booth_number: z.string().trim().optional(),
+	voucher_code: z.string().trim().optional(),
+});
+
+export const createEventVendorBatchSchema = z.object({
+	vendor_id: z.number(),
+	redirect_url: z
+		.string()
+		.regex(urlPattern, "Must be a valid URL")
+		.optional()
+		.or(z.literal(""))
+		.or(z.undefined()),
+	poster_url: z
+		.string()
+		.regex(urlPattern, "Must be a valid URL")
+		.optional()
+		.or(z.literal(""))
+		.or(z.undefined()),
+	qr_url: z
+		.string()
+		.regex(urlPattern, "Must be a valid URL")
+		.optional()
+		.or(z.literal(""))
+		.or(z.undefined()),
+	exhibitor: z.object({
+		company_name: z.string().trim().optional(),
+		name_on_fascia: z
+			.string()
+			.trim()
+			.max(30, "Name on fascia must be 30 characters or less")
+			.optional(),
+		pic_full_name: z.string().trim().min(1, "PIC full name is required"),
+		pic_contact_number: z
+			.string()
+			.trim()
+			.min(1, "PIC contact number is required"),
+		pic_email_address: z
+			.string()
+			.trim()
+			.email("Must be a valid email address")
+			.optional()
+			.or(z.literal("")),
+		special_requirements: z.string().trim().optional(),
+	}),
+	booths: z
+		.array(createEventVendorBatchBoothSchema)
+		.min(1, "At least one booth is required"),
+});
+
+export type CreateEventVendorBatchBooth = z.infer<
+	typeof createEventVendorBatchBoothSchema
+>;
+export type CreateEventVendorBatchRequest = z.infer<
+	typeof createEventVendorBatchSchema
+>;

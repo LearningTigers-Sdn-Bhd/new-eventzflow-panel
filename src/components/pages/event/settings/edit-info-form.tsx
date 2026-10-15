@@ -23,6 +23,8 @@ import {
 	FieldGroup,
 	FieldLabel,
 } from "@/components/ui/field";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { getEventById, updateEvent } from "@/lib/api/event";
 import {
@@ -31,12 +33,35 @@ import {
 	guestPolicyValueFromLimit,
 } from "@/lib/api/event/guest-policy";
 import type { UpdateEventRequest } from "@/lib/api/event/request";
+import type { ScanMode } from "@/lib/api/event/response";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/utils/rest-api";
 import {
 	canConfigureAdvancedEventOptions,
 	canConfigureExhibitorKit,
 } from "./access";
+
+const SCAN_MODE_OPTIONS: Array<{
+	value: ScanMode;
+	label: string;
+	description: string;
+}> = [
+	{
+		value: "unlimited",
+		label: "Unlimited",
+		description: "Scan anytime, any number of times. Good for re-entry.",
+	},
+	{
+		value: "per_location",
+		label: "Once per location",
+		description: "Each entrance or zone counts once, and resets each day.",
+	},
+	{
+		value: "per_day",
+		label: "Once per day",
+		description: "One scan per calendar day. Good for multi-day events.",
+	},
+];
 
 const formSchema = z.object({
 	title: z.string().min(3, "Title must be at least 3 characters"),
@@ -64,12 +89,15 @@ const formSchema = z.object({
 		),
 	allowPrintingServices: z.boolean(),
 	useBusinessMatching: z.boolean(),
+	businessMatchingLinkedExhibitorEnabled: z.boolean(),
 	useVoucher: z.boolean(),
 	useSponsorship: z.boolean(),
 	// photoBoothEnabled: z.boolean(),
 	useEventLeads: z.boolean(),
 	useCertificate: z.boolean(),
+	useFeedback: z.boolean(),
 	useApiAccess: z.boolean(),
+	vehiclesEnabled: z.boolean(),
 	description: z.string(),
 	venueName: z.string(),
 	venueAddress: z.string(),
@@ -88,7 +116,11 @@ const formSchema = z.object({
 		.refine((val) => val === "" || z.string().url().safeParse(val).success, {
 			message: "Please enter a valid URL",
 		}),
+	registrationPathTemplate: z.string(),
 	multipleScans: z.boolean(),
+	multipleScanMode: z.enum(["unlimited", "per_location", "per_day"]),
+	allowMultipleTicketsPerEmail: z.boolean(),
+	requireUniqueMembershipNumbers: z.boolean(),
 	startDate: z.date(),
 	endDate: z.date(),
 });
@@ -158,19 +190,26 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 			exhibitorReservationTtlHours: "",
 			allowPrintingServices: false,
 			useBusinessMatching: false,
+			businessMatchingLinkedExhibitorEnabled: false,
 			useVoucher: true,
 			useSponsorship: false,
 			// photoBoothEnabled: false,
 			useEventLeads: false,
 			useCertificate: false,
+			useFeedback: false,
 			useApiAccess: false,
+			vehiclesEnabled: false,
 			description: "",
 			venueName: "",
 			venueAddress: "",
 			webhookUrl: "",
 			businessMatchingWebhookUrl: "",
 			publicRegistrationUrl: "",
+			registrationPathTemplate: "",
 			multipleScans: false,
+			multipleScanMode: "unlimited" as ScanMode,
+			allowMultipleTicketsPerEmail: false,
+			requireUniqueMembershipNumbers: true,
 			startDate: new Date(),
 			endDate: new Date(),
 		},
@@ -201,11 +240,15 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 							: Number(value.exhibitorReservationTtlHours),
 					allow_contractor_printing_services: value.allowPrintingServices,
 					use_business_matching: value.useBusinessMatching,
+					business_matching_linked_exhibitor_enabled:
+						value.businessMatchingLinkedExhibitorEnabled,
 					use_voucher: value.useVoucher,
 					use_sponsorship: value.useSponsorship,
 					use_event_leads: value.useEventLeads,
 					use_certificate: value.useCertificate,
+					use_feedback: value.useFeedback,
 					use_api_access: value.useApiAccess,
+					vehicles_enabled: value.vehiclesEnabled,
 					// photo_booth_enabled: value.photoBoothEnabled,
 					description: value.description,
 					venue_name: value.venueName || "",
@@ -213,7 +256,12 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					webhook_url: value.webhookUrl || "",
 					business_matching_webhook_url: value.businessMatchingWebhookUrl || "",
 					public_registration_url: value.publicRegistrationUrl || "",
+					registration_path_template: value.registrationPathTemplate || "",
 					multiple_scans: value.multipleScans,
+					multiple_scan_mode: value.multipleScanMode,
+					allow_multiple_tickets_per_email: value.allowMultipleTicketsPerEmail,
+					require_unique_membership_numbers:
+						value.requireUniqueMembershipNumbers,
 					start_date: value.startDate.toISOString(),
 					end_date: value.endDate.toISOString(),
 				},
@@ -260,11 +308,17 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					"useBusinessMatching",
 					event.use_business_matching ?? false,
 				);
+				form.setFieldValue(
+					"businessMatchingLinkedExhibitorEnabled",
+					event.business_matching_linked_exhibitor_enabled ?? false,
+				);
 				form.setFieldValue("useVoucher", event.use_voucher ?? true);
 				form.setFieldValue("useSponsorship", event.use_sponsorship ?? false);
 				form.setFieldValue("useEventLeads", event.use_event_leads ?? false);
 				form.setFieldValue("useCertificate", event.use_certificate ?? false);
+				form.setFieldValue("useFeedback", event.use_feedback ?? false);
 				form.setFieldValue("useApiAccess", event.use_api_access ?? false);
+				form.setFieldValue("vehiclesEnabled", event.vehicles_enabled ?? false);
 				// form.setFieldValue("photoBoothEnabled", event.photo_booth_enabled ?? false);
 				form.setFieldValue("description", event.description || "");
 				form.setFieldValue("venueName", event.venue_name || "");
@@ -278,7 +332,23 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 					"publicRegistrationUrl",
 					event.public_registration_url || "",
 				);
+				form.setFieldValue(
+					"registrationPathTemplate",
+					event.registration_path_template || "",
+				);
 				form.setFieldValue("multipleScans", event.multiple_scans || false);
+				form.setFieldValue(
+					"multipleScanMode",
+					(event.multiple_scan_mode as ScanMode) || "unlimited",
+				);
+				form.setFieldValue(
+					"requireUniqueMembershipNumbers",
+					event.require_unique_membership_numbers ?? true,
+				);
+				form.setFieldValue(
+					"allowMultipleTicketsPerEmail",
+					event.allow_multiple_tickets_per_email ?? false,
+				);
 				form.setFieldValue(
 					"startDate",
 					event.start_date ? new Date(event.start_date) : new Date(),
@@ -504,6 +574,26 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 									);
 								}}
 							</form.Field>
+
+							<form.Field name="registrationPathTemplate">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<InputLabel
+											label="Registration Path Template"
+											htmlFor={field.name}
+											value={field.state.value}
+											onChange={field.handleChange}
+											onBlur={field.handleBlur}
+											errors={field.state.meta.errors}
+											isInvalid={isInvalid}
+											placeholder="/luncheon-talk-registration?form=delegate"
+											disabled={updateEventMutation.isPending}
+										/>
+									);
+								}}
+							</form.Field>
 						</div>
 
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -589,11 +679,10 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 							description: "Configure the event settings and options.",
 						}}
 					>
-						<div className={cn("grid grid-cols-1 gap-4", "xl:grid-cols-2")}>
-							<div className="flex flex-col gap-6 md:gap-4">
-								{isOrgOwner && (
-									<>
-										<FieldContent className="flex w-full flex-none flex-col gap-1">
+						<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+							{isOrgOwner && (
+								<div className="flex flex-col gap-4">
+									<FieldContent className="flex w-full flex-none flex-col gap-1">
 											<FieldLabel>Event Visibility</FieldLabel>
 											<FieldDescription className="text-balance">
 												Select the visibility of your event.
@@ -631,15 +720,16 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 												);
 											}}
 										</form.Field>
-									</>
+									</div>
 								)}
 
-								<FieldContent className="flex w-full flex-none flex-col gap-1">
-									<FieldLabel>Event Type</FieldLabel>
-									<FieldDescription className="text-balance">
-										Select the type of event to be held.
-									</FieldDescription>
-								</FieldContent>
+								<div className="flex flex-col gap-4">
+									<FieldContent className="flex w-full flex-none flex-col gap-1">
+										<FieldLabel>Event Type</FieldLabel>
+										<FieldDescription className="text-balance">
+											Select the type of event to be held.
+										</FieldDescription>
+									</FieldContent>
 								<form.Field name="useTicket">
 									{(field) => {
 										const isInvalid =
@@ -788,176 +878,6 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										);
 									}}
 								</form.Field>
-							</div>
-							<div className="flex flex-col gap-4">
-								<FieldContent className="flex w-full flex-none flex-col gap-1">
-									<FieldLabel>Option Flags</FieldLabel>
-									<FieldDescription className="text-balance">
-										Select the options for your event.
-									</FieldDescription>
-								</FieldContent>
-								<form.Field name="multipleScans">
-									{(field) => (
-										<SwitchCardInput
-											label="Multiple Scans"
-											description="Allow tickets or visitors to be scanned multiple times during the event."
-											htmlFor={field.name}
-											variant="no-rounded"
-											border={true}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
-									)}
-								</form.Field>
-								{canManageAdvancedEventOptions && (
-									<form.Field name="useBusinessMatching">
-										{(field) => (
-											<div className="flex flex-col gap-4">
-												<SwitchCardInput
-													label="Business Matching"
-													description="Allow business matching for this event."
-													htmlFor={field.name}
-													variant="no-rounded"
-													border={true}
-													checked={field.state.value}
-													onCheckedChange={field.handleChange}
-													disabled={updateEventMutation.isPending}
-												/>
-												{field.state.value && (
-													<form.Field name="businessMatchingWebhookUrl">
-														{(urlField) => {
-															const isInvalid =
-																urlField.state.meta.isTouched &&
-																!urlField.state.meta.isValid;
-															return (
-																<InputLabel
-																	label="Business Matching Webhook URL"
-																	htmlFor={urlField.name}
-																	value={urlField.state.value}
-																	onChange={urlField.handleChange}
-																	onBlur={urlField.handleBlur}
-																	errors={urlField.state.meta.errors}
-																	isInvalid={isInvalid}
-																	placeholder="https://webhook.example.com/bm"
-																	disabled={updateEventMutation.isPending}
-																/>
-															);
-														}}
-													</form.Field>
-												)}
-											</div>
-										)}
-									</form.Field>
-								)}
-								<form.Field name="useSponsorship">
-									{(field) => (
-										<SwitchCardInput
-											label="Sponsorships"
-											description="Enable sponsorship management for this event."
-											htmlFor={field.name}
-											variant="no-rounded"
-											border={true}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
-									)}
-								</form.Field>
-								{canManageAdvancedEventOptions && (
-									<form.Field name="useVoucher">
-										{(field) => (
-											<SwitchCardInput
-												label="Vouchers"
-												description="Enable voucher creation, redemption, and analytics for this event."
-												htmlFor={field.name}
-												variant="no-rounded"
-												border={true}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												disabled={updateEventMutation.isPending}
-											/>
-										)}
-									</form.Field>
-								)}
-								{canManageAdvancedEventOptions && (
-									<form.Field name="useEventLeads">
-										{(field) => (
-											<SwitchCardInput
-												label="Event Leads"
-												description="Allow vendors to scan attendee QR codes to capture leads."
-												htmlFor={field.name}
-												variant="no-rounded"
-												border={true}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												disabled={updateEventMutation.isPending}
-											/>
-										)}
-									</form.Field>
-								)}
-								{canManageAdvancedEventOptions && (
-									<form.Field name="useCertificate">
-										{(field) => (
-											<SwitchCardInput
-												label="E-Certificates"
-												description="Design certificate templates and email them to attendees."
-												htmlFor={field.name}
-												variant="no-rounded"
-												border={true}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												disabled={updateEventMutation.isPending}
-											/>
-										)}
-									</form.Field>
-								)}
-								{canManageAdvancedEventOptions && (
-									<form.Field name="useApiAccess">
-										{(field) => (
-											<SwitchCardInput
-												label="API Access"
-												description="Allow API keys to be scoped to this event for external integrations."
-												htmlFor={field.name}
-												variant="no-rounded"
-												border={true}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												disabled={updateEventMutation.isPending}
-											/>
-										)}
-									</form.Field>
-								)}
-								{/*								<form.Field name="photoBoothEnabled">
-									{(field) => (
-										<SwitchCardInput
-											label="Photo Booth"
-											description="Enable dedicated photo booth feature for this event."
-											htmlFor={field.name}
-											variant="no-rounded"
-											border={true}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											disabled={updateEventMutation.isPending}
-										/>
-									)}
-								</form.Field>*/}
-								{canManageAdvancedEventOptions && (
-									<form.Field name="useSeatTicketing">
-										{(field) => (
-											<SwitchCardInput
-												label="Seat Ticketing System"
-												description="Enable reserved seat sessions and seat maps for this event."
-												htmlFor={field.name}
-												variant="no-rounded"
-												border={true}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												disabled={updateEventMutation.isPending}
-											/>
-										)}
-									</form.Field>
-								)}
 							</div>
 						</div>
 					</FormGroupContainer>

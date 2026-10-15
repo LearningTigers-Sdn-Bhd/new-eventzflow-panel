@@ -13,7 +13,13 @@ export type TeamMember = {
 	full_name: string;
 	email: string;
 	phone?: string;
-	role: "org_owner" | "organizer" | "member" | "vendor" | "exhibitor" | "exhibition_contractor";
+	role:
+		| "org_owner"
+		| "organizer"
+		| "member"
+		| "vendor"
+		| "exhibitor"
+		| "exhibition_contractor";
 	status: "active" | "inactive";
 	createdAt: string;
 	updatedAt: string;

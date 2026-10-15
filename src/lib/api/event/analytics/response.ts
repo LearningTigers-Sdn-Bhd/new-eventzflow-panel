@@ -2,6 +2,8 @@
 
 export type TotalTicketsResponse = {
 	totalTickets: number;
+	paidTickets: number;
+	pendingTickets: number;
 };
 
 export type TotalScannedTicketsResponse = {
@@ -14,6 +16,47 @@ export type TotalUnscannedTicketsResponse = {
 
 export type TotalAmountPriceResponse = {
 	totalAmountPrice: number;
+	pendingAmountPrice: number;
+};
+
+export type PartnerAnalyticsBreakdown = {
+	breakdownKey?: string;
+	label: string;
+	zone: string | null;
+	boothType: string | null;
+	packageLabel: string | null;
+	bookedQuantity: number;
+	paidQuantity: number;
+	depositQuantity: number;
+	unpaidQuantity: number;
+	collectedRevenue: number;
+	pendingRevenue: number;
+};
+
+export type PartnerAnalyticsFilterOptions = {
+	zones: string[];
+	boothPricing: string[];
+};
+
+export type PartnerAnalyticsResponse = {
+	mode: "exhibitor" | "vendor";
+	totalPartners: number;
+	paidPartners: number;
+	depositPartners: number;
+	unpaidPartners: number;
+	bookedBooths: number;
+	paidBooths: number;
+	depositBooths: number;
+	unpaidBooths: number;
+	collectedRevenue: number;
+	pendingRevenue: number;
+	breakdown: PartnerAnalyticsBreakdown[];
+	filterOptions?: PartnerAnalyticsFilterOptions;
+	vendorMetrics: {
+		totalLeads: number;
+		voucherSales: number;
+		voucherRedemptions: number;
+	};
 };
 
 // Visitor analytics response types
@@ -53,9 +96,12 @@ export type DateCountColumn = {
 // Aggregated analytics response
 export type AllEventAnalyticsResponse = {
 	totalTickets: number;
+	paidTickets: number;
+	pendingTickets: number;
 	totalScannedTickets: number;
 	totalUnscannedTickets: number;
 	totalAmountPrice: number;
+	pendingAmountPrice: number;
 	registrationData: DateCountColumn[];
 	scanData: DateCountColumn[];
 	revenueData: DateCountColumn[];
@@ -98,4 +144,50 @@ export type HourlyBreakdownByDayResponse = {
 	start_date: string;
 	end_date: string;
 	data: DailyHourlyBreakdown[];
+};
+
+// Custom field breakdown (count-only), grouped by a custom_fields_data jsonb key
+// quota/registered/remaining are present only when a quota was set for this value.
+export type CustomFieldBreakdownRow = {
+	value: string;
+	count: number;
+	quota?: number;
+	registered?: number;
+	remaining?: number;
+};
+
+export type CustomFieldBreakdownResponse = {
+	fieldKey: string;
+	data: CustomFieldBreakdownRow[];
+};
+
+// Nested variant: field_key counts grouped under a second jsonb key (group_by)
+export type CustomFieldBreakdownGroup = {
+	group: string;
+	rows: CustomFieldBreakdownRow[];
+	total: number;
+};
+
+export type NestedCustomFieldBreakdownResponse = {
+	fieldKey: string;
+	groupBy: string;
+	groups: CustomFieldBreakdownGroup[];
+};
+
+// Attendee names behind a custom field breakdown, keyed by field value
+export type CustomFieldNamesResponse = {
+	data: Record<
+		string,
+		{ name: string; email: string | null; phone: string | null }[]
+	>;
+};
+
+// Ticket type breakdown (count-only)
+export type TicketTypeBreakdownResponse = {
+	data: CustomFieldBreakdownRow[];
+};
+
+// Auto-detected custom_fields_data keys actually used by this event's tickets
+export type CustomFieldKeysResponse = {
+	keys: string[];
 };

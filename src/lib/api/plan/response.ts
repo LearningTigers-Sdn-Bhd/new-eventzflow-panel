@@ -10,6 +10,7 @@ export interface PlanObject {
 	height: number;
 	path?: string | null;
 	label: string | null;
+	table_number: string | null;
 	capacity: number | null;
 	locked: boolean;
 	z_index: number;
@@ -51,10 +52,24 @@ export interface AutoDistributeResponse {
 	skipped_groups: AutoDistributeSkippedGroup[];
 }
 
+export interface SyncTableNumbersWarning {
+	ticket_id: number;
+	attendee_name: string;
+	table_number: string;
+	reason: string;
+}
+
+export interface SyncTableNumbersResponse {
+	synced_count: number;
+	warnings: SyncTableNumbersWarning[];
+	field_key: string;
+}
+
 export interface Plan {
 	id: number;
 	event_id: number;
 	name: string;
+	created_at: string;
 	canvas_width: number;
 	canvas_height: number;
 	pixels_per_unit: number;

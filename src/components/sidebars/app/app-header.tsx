@@ -1,4 +1,4 @@
-import { PanelLeftOpen, PanelRightOpen } from "lucide-react";
+import { PanelLeftIcon, PanelRightOpen } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BsCalendar2Event } from "react-icons/bs";
@@ -18,46 +18,24 @@ export function AppHeader() {
 
 	const isCollapsed = state === "collapsed";
 
-	// Collapsed state: Show icon only with toggle button below
+	// Collapsed state: logo mark doubles as the expand affordance. Clicking it
+	// reopens the sidebar; the active event context is still reachable via the
+	// feature sidebar and breadcrumbs, so we don't spend a second icon on Home.
 	if (isCollapsed) {
 		return (
 			<SidebarMenu>
 				<SidebarMenuItem>
-					<div className="flex flex-col items-center gap-2">
-						{/* Icon-only home button */}
-						<SidebarMenuButton
-							size="lg"
-							className="size-8 cursor-pointer rounded-none"
-							onClick={() => {
-								router.push("/");
-							}}
-							tooltip="Home"
-						>
-							<div className="flex aspect-square size-8 items-center justify-center rounded-none bg-sidebar-primary text-sidebar-primary-foreground">
-								<BsCalendar2Event className="size-4" />
-							</div>
-							<span className="sr-only">Home</span>
-						</SidebarMenuButton>
-					</div>
-				</SidebarMenuItem>
-				<SidebarMenuItem>
-					<div className="flex flex-col items-center gap-2">
-						<SidebarMenuButton
-							size="lg"
-							className="cursor-pointer rounded-none"
-							onClick={toggleMainSidebar}
-							tooltip="Toggle Sidebar"
-							asChild
-						>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="size-8 cursor-pointer rounded-none"
-							>
-								<PanelLeftOpen className="size-4" />
-							</Button>
-						</SidebarMenuButton>
-					</div>
+					<SidebarMenuButton
+						size="lg"
+						className="size-8 cursor-pointer rounded-none"
+						onClick={toggleMainSidebar}
+						tooltip="Expand sidebar"
+					>
+						<div className="flex aspect-square size-8 items-center justify-center rounded-none bg-sidebar-primary text-sidebar-primary-foreground">
+							<PanelLeftIcon className="size-4" />
+						</div>
+						<span className="sr-only">Expand sidebar</span>
+					</SidebarMenuButton>
 				</SidebarMenuItem>
 			</SidebarMenu>
 		);

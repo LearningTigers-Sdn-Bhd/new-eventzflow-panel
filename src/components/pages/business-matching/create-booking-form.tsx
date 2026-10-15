@@ -63,7 +63,7 @@ export default function CreateBookingForm({
 			queryClient.invalidateQueries({
 				queryKey: ["business-matching-availability", bmEventId, eventId],
 			});
-			onClose(); // Resets the selected slot in AvailabilityDialog
+			onClose(); // Resets the selected slot in AvailabilitySlotsPanel
 			closeDialog(); // Closes the main UniversalDialog
 		},
 		onError: (error: Error) => {

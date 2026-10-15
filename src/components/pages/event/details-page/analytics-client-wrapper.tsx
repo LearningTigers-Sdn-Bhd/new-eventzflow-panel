@@ -5,7 +5,11 @@ import {
 	MobileTabletView,
 	ResponsiveLayout,
 } from "@/components/admin-ui/layout/responsive-layout";
+import type { EventDateSelection } from "@/components/ui/event-date-filter";
+import { Label } from "@/components/ui/label";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFormatDate } from "@/hooks/use-format-date";
 import type { EventAnalytics as EventAnalyticsType } from "@/lib/api/dashboard/response";
@@ -13,6 +17,7 @@ import type { MallLiveFeedResponse } from "@/lib/api/event/analytics/response";
 import type { Event } from "@/lib/api/event/response";
 import type { VoucherAnalyticsResponse } from "@/lib/api/voucher-analytics/response";
 
+import { EventDetailsExhibitorStats } from "./event-details-exhibitor-stats";
 import { EventDetailsKeyMetrics } from "./event-details-key-metrics";
 import { EventDetailsQuickInfo } from "./event-details-quick-info";
 import { EventDetailsRecentScans } from "./event-details-recent-scans";
@@ -22,25 +27,51 @@ import { EventDetailsVisitorStats } from "./event-details-visitor-stats";
 interface AnalyticsClientWrapperProps {
 	event: Event;
 	ticketAnalytics?: EventAnalyticsType;
+	ticketAnalyticsLoading?: boolean;
 	mallData?: MallLiveFeedResponse;
 	voucherAnalytics?: VoucherAnalyticsResponse;
+	includeMultiScans?: boolean;
+	onIncludeMultiScansChange?: (value: boolean) => void;
+	dateSelection: EventDateSelection;
+	onDateSelectionChange: (value: EventDateSelection) => void;
 }
 
 export function AnalyticsClientWrapper({
 	event,
 	ticketAnalytics,
+	ticketAnalyticsLoading = false,
 	mallData,
 	voucherAnalytics,
+	includeMultiScans = false,
+	onIncludeMultiScansChange,
+	dateSelection,
+	onDateSelectionChange,
 }: AnalyticsClientWrapperProps) {
 	const { formatDate } = useFormatDate();
 	const isTicketEvent = event.use_ticket !== false;
 
-	// Calculate rates
+	const multiScanToggle = event.multiple_scans && onIncludeMultiScansChange && (
+		<div className="flex items-center gap-2">
+			<Switch
+				id="include-multi-scans"
+				checked={includeMultiScans}
+				onCheckedChange={onIncludeMultiScansChange}
+			/>
+			<Label htmlFor="include-multi-scans" className="text-sm">
+				Include re-scans
+			</Label>
+		</div>
+	);
+
+	// Calculate rates. Use unique checked-in tickets (total - unscanned), never
+	// scannedTickets directly — with multi-scan re-entries included, scannedTickets
+	// can exceed totalTickets and would push the rate past 100%.
+	const uniqueScannedTickets = ticketAnalytics
+		? ticketAnalytics.totalTickets - ticketAnalytics.unscannedTickets
+		: 0;
 	const scanRate =
 		ticketAnalytics && ticketAnalytics.totalTickets > 0
-			? Math.round(
-					(ticketAnalytics.scannedTickets / ticketAnalytics.totalTickets) * 100,
-				)
+			? Math.round((uniqueScannedTickets / ticketAnalytics.totalTickets) * 100)
 			: 0;
 	const redemptionRate = mallData?.redemption_rate ?? 0;
 
@@ -56,6 +87,9 @@ export function AnalyticsClientWrapper({
 		<ResponsiveLayout>
 			<MobileTabletView>
 				<div className="space-y-6">
+					{multiScanToggle && (
+						<div className="flex justify-end px-4">{multiScanToggle}</div>
+					)}
 					{/* Analytics Tabs */}
 					<Tabs defaultValue="key-metrics" className="rounded-none">
 						<div className="relative w-full">
@@ -98,9 +132,19 @@ export function AnalyticsClientWrapper({
 
 						<TabsContent value="time-series-stats" className="mt-2">
 							{isTicketEvent ? (
-								<EventDetailsTicketStats event={event} />
+								<EventDetailsTicketStats
+									event={event}
+									includeMultiScans={includeMultiScans}
+									ticketAnalytics={ticketAnalytics}
+									isLoading={ticketAnalyticsLoading}
+									dateSelection={dateSelection}
+									onDateSelectionChange={onDateSelectionChange}
+								/>
 							) : (
 								<EventDetailsVisitorStats event={event} />
+							)}
+							{event.use_exhibitor_kit && (
+								<EventDetailsExhibitorStats event={event} />
 							)}
 						</TabsContent>
 
@@ -130,6 +174,9 @@ export function AnalyticsClientWrapper({
 			<DesktopView>
 				<div className="space-y-6">
 					{/* Key Metrics */}
+					{multiScanToggle && (
+						<div className="flex justify-end">{multiScanToggle}</div>
+					)}
 					<EventDetailsKeyMetrics
 						isTicketEvent={isTicketEvent}
 						ticketAnalytics={ticketAnalytics}
@@ -139,9 +186,22 @@ export function AnalyticsClientWrapper({
 
 					{/* Analytics */}
 					{isTicketEvent ? (
-						<EventDetailsTicketStats event={event} />
+						<EventDetailsTicketStats
+							event={event}
+							includeMultiScans={includeMultiScans}
+							ticketAnalytics={ticketAnalytics}
+							isLoading={ticketAnalyticsLoading}
+							dateSelection={dateSelection}
+							onDateSelectionChange={onDateSelectionChange}
+						/>
 					) : (
 						<EventDetailsVisitorStats event={event} />
+					)}
+					{event.use_exhibitor_kit && (
+						<>
+							<EventDetailsExhibitorStats event={event} />
+							<Separator />
+						</>
 					)}
 
 					{/* Quick Info */}

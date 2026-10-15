@@ -93,8 +93,8 @@ export function PublicVouchersPage() {
 		error,
 	} = useQuery({
 		queryKey: ["public", "event", eventId, "vouchers"],
-		queryFn: () => getPublicVouchers({ event_id: Number(eventId) }),
-		enabled: Boolean(eventId) && Boolean(event),
+		queryFn: () => getPublicVouchers({ event_id: event?.id ?? 0 }),
+		enabled: Boolean(event),
 	});
 
 	const filteredVouchers =

@@ -1,16 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Check, Clock, Loader2, Mail, X } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { ErrorState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import {
-	confirmTicketRsvp,
-	declineTicketRsvp,
-} from "@/lib/api/ticket-rsvp";
 import type { PublicTicketRsvpData } from "@/lib/api/ticket-rsvp";
+import { confirmTicketRsvp, declineTicketRsvp } from "@/lib/api/ticket-rsvp";
 import { formatDateTime } from "@/lib/date-utils";
 
 interface TicketRsvpContentProps {
@@ -75,11 +72,20 @@ export default function TicketRsvpContent({
 					<div className="relative">
 						<div className="zoom-in flex size-20 animate-in items-center justify-center rounded-full border border-black/5 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.05)] duration-700 lg:size-24">
 							{isConfirmed || isRsvpDisabled ? (
-								<Check className="size-8 text-brand-green lg:size-10" strokeWidth={2.5} />
+								<Check
+									className="size-8 text-brand-green lg:size-10"
+									strokeWidth={2.5}
+								/>
 							) : isDeclined || isExpired ? (
-								<X className="size-8 text-zinc-300 lg:size-10" strokeWidth={2.5} />
+								<X
+									className="size-8 text-zinc-300 lg:size-10"
+									strokeWidth={2.5}
+								/>
 							) : (
-								<Mail className="size-8 text-brand-green lg:size-10" strokeWidth={1.5} />
+								<Mail
+									className="size-8 text-brand-green lg:size-10"
+									strokeWidth={1.5}
+								/>
 							)}
 						</div>
 					</div>
@@ -116,7 +122,9 @@ export default function TicketRsvpContent({
 						{isConfirmed ? (
 							<p className="mx-auto max-w-md text-base text-zinc-500 leading-relaxed lg:text-lg">
 								Your attendance for{" "}
-								<span className="font-bold text-zinc-900">{data.attendee_name}</span>{" "}
+								<span className="font-bold text-zinc-900">
+									{data.attendee_name}
+								</span>{" "}
 								is confirmed. Your digital ticket is being sent to{" "}
 								<span className="font-medium text-zinc-900 underline decoration-brand-green/30 underline-offset-8">
 									{data.attendee_email}
@@ -126,24 +134,26 @@ export default function TicketRsvpContent({
 						) : isRsvpDisabled ? (
 							<p className="mx-auto max-w-md text-base text-zinc-500 leading-relaxed lg:text-lg">
 								RSVP is no longer required for this event. Your ticket will be
-								sent to your email once the organiser processes your attendance —
-								no action needed from you.
+								sent to your email once the organiser processes your attendance
+								— no action needed from you.
 							</p>
 						) : isDeclined ? (
 							<p className="mx-auto max-w-md text-base text-zinc-500 leading-relaxed lg:text-lg">
-								You have declined the invitation for {data.attendee_name}. If this was a
-								mistake, please reach out to the event organizers.
+								You have declined the invitation for {data.attendee_name}. If
+								this was a mistake, please reach out to the event organizers.
 							</p>
 						) : isExpired ? (
 							<p className="mx-auto max-w-md text-base text-zinc-500 leading-relaxed lg:text-lg">
-								The RSVP deadline has passed. Please contact the organizer if you still
-								wish to attend.
+								The RSVP deadline has passed. Please contact the organizer if
+								you still wish to attend.
 							</p>
 						) : (
 							<div className="space-y-10 lg:space-y-12">
 								<p className="mx-auto max-w-lg px-4 text-lg text-zinc-500 leading-relaxed lg:text-xl">
 									Your application for the{" "}
-									<span className="font-bold text-zinc-900">{data.event_title}</span>{" "}
+									<span className="font-bold text-zinc-900">
+										{data.event_title}
+									</span>{" "}
 									has been approved. Please confirm your attendance below.
 								</p>
 								<div className="mx-auto w-full max-w-md px-4 sm:px-0">
@@ -151,16 +161,28 @@ export default function TicketRsvpContent({
 										<table className="w-full text-sm">
 											<tbody className="divide-y divide-zinc-100">
 												<tr>
-													<td className="w-1/3 px-6 py-4 text-left font-black text-[10px] text-zinc-900 uppercase tracking-widest">Name</td>
-													<td className="px-6 py-4 text-right font-bold text-zinc-900">{data.attendee_name}</td>
+													<td className="w-1/3 px-6 py-4 text-left font-black text-[10px] text-zinc-900 uppercase tracking-widest">
+														Name
+													</td>
+													<td className="px-6 py-4 text-right font-bold text-zinc-900">
+														{data.attendee_name}
+													</td>
 												</tr>
 												<tr>
-													<td className="px-6 py-4 text-left font-black text-[10px] text-zinc-900 uppercase tracking-widest">Email</td>
-													<td className="px-6 py-4 text-right font-bold text-zinc-900">{data.attendee_email || "-"}</td>
+													<td className="px-6 py-4 text-left font-black text-[10px] text-zinc-900 uppercase tracking-widest">
+														Email
+													</td>
+													<td className="px-6 py-4 text-right font-bold text-zinc-900">
+														{data.attendee_email || "-"}
+													</td>
 												</tr>
 												<tr>
-													<td className="px-6 py-4 text-left font-black text-[10px] text-zinc-900 uppercase tracking-widest">Phone</td>
-													<td className="px-6 py-4 text-right font-bold text-zinc-900">{data.attendee_phone || "-"}</td>
+													<td className="px-6 py-4 text-left font-black text-[10px] text-zinc-900 uppercase tracking-widest">
+														Phone
+													</td>
+													<td className="px-6 py-4 text-right font-bold text-zinc-900">
+														{data.attendee_phone || "-"}
+													</td>
 												</tr>
 											</tbody>
 										</table>
@@ -185,17 +207,29 @@ export default function TicketRsvpContent({
 								size="lg"
 								className="h-12 w-full whitespace-normal rounded-none border-zinc-300 px-4 text-center font-extrabold text-xs text-zinc-900 uppercase leading-tight tracking-[0.08em] transition-all hover:bg-zinc-50 sm:h-14 sm:flex-1 sm:text-[11px] sm:tracking-[0.14em] lg:h-16 lg:text-[10px] lg:tracking-[0.2em]"
 								onClick={() => declineMutation.mutate()}
-								disabled={confirmMutation.isPending || declineMutation.isPending}
+								disabled={
+									confirmMutation.isPending || declineMutation.isPending
+								}
 							>
-								{declineMutation.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : "I cannot attend"}
+								{declineMutation.isPending ? (
+									<Loader2 className="mr-2 size-4 animate-spin" />
+								) : (
+									"I cannot attend"
+								)}
 							</Button>
 							<Button
 								size="lg"
 								className="h-12 w-full whitespace-normal rounded-none bg-brand-green px-4 text-center font-extrabold text-white text-xs uppercase leading-tight tracking-[0.08em] shadow-brand-green/20 shadow-xl transition-all hover:bg-brand-green-dark sm:h-14 sm:flex-1 sm:text-[11px] sm:tracking-[0.14em] sm:hover:scale-[1.03] lg:h-16 lg:text-[10px] lg:tracking-[0.2em]"
 								onClick={() => confirmMutation.mutate()}
-								disabled={confirmMutation.isPending || declineMutation.isPending}
+								disabled={
+									confirmMutation.isPending || declineMutation.isPending
+								}
 							>
-								{confirmMutation.isPending ? <Loader2 className="mr-2 size-5 animate-spin" /> : "Confirm My Attendance"}
+								{confirmMutation.isPending ? (
+									<Loader2 className="mr-2 size-5 animate-spin" />
+								) : (
+									"Confirm My Attendance"
+								)}
 							</Button>
 						</div>
 					)}

@@ -7,44 +7,46 @@ import { batchUpdatePlanObjects, updatePlan } from "@/lib/api/plan";
 import type { Plan, PlanObject } from "@/lib/api/plan/response";
 
 export function usePlanEditor(initialPlan: Plan) {
-	const [history, setHistory] = useState<Plan[]>([initialPlan]);
-	const [historyIndex, setHistoryIndex] = useState(0);
+	// history + index live in one state object so setPlan updates both
+	// atomically in a single functional setState — keeping them as two
+	// separate useState calls let two setPlan calls in the same tick (e.g.
+	// two Inspector fields committing back-to-back) read a stale historyIndex
+	// closure, desyncing the array length from the index and crashing on
+	// `history[historyIndex]` being undefined.
+	const [{ history, index: historyIndex }, setHistoryState] = useState<{
+		history: Plan[];
+		index: number;
+	}>({ history: [initialPlan], index: 0 });
 	const plan = history[historyIndex];
 
 	const [selectedObjectIds, setSelectedObjectIds] = useState<number[]>([]);
 	const queryClient = useQueryClient();
 	const pendingUpdates = useRef<Map<number, Partial<PlanObject>>>(new Map());
 
-	const setPlan = useCallback(
-		(newPlan: Plan | ((p: Plan) => Plan)) => {
-			setHistory((prevHistory) => {
-				const currentPlan = prevHistory[historyIndex];
-				const nextPlan =
-					typeof newPlan === "function" ? newPlan(currentPlan) : newPlan;
-				const newHistory = prevHistory.slice(0, historyIndex + 1);
-				newHistory.push(nextPlan);
-				return newHistory;
-			});
-			setHistoryIndex((prev) => prev + 1);
-		},
-		[historyIndex],
-	);
+	const setPlan = useCallback((newPlan: Plan | ((p: Plan) => Plan)) => {
+		setHistoryState((prev) => {
+			const currentPlan = prev.history[prev.index];
+			const nextPlan =
+				typeof newPlan === "function" ? newPlan(currentPlan) : newPlan;
+			const newHistory = prev.history.slice(0, prev.index + 1);
+			newHistory.push(nextPlan);
+			return { history: newHistory, index: prev.index + 1 };
+		});
+	}, []);
 
 	useEffect(() => {
-		setHistory((prev) => {
+		setHistoryState((prev) => {
 			// Only reset history if the plan ID actually changed
-			if (prev[0]?.id !== initialPlan.id) {
+			if (prev.history[0]?.id !== initialPlan.id) {
 				setSelectedObjectIds([]);
-				setHistoryIndex(0);
-				return [initialPlan];
+				return { history: [initialPlan], index: 0 };
 			}
 			// If it's the same plan, just update the current state with new data from server
 			// to avoid losing local un-saved state, we should ideally merge, but for now
 			// let's just update the base. To be safe, we will just replace the history.
 			// But we MUST NOT clear the selection.
-			return [initialPlan];
+			return { history: [initialPlan], index: 0 };
 		});
-		setHistoryIndex(0);
 	}, [initialPlan]);
 
 	const selectedObjects = useMemo(
@@ -164,15 +166,17 @@ export function usePlanEditor(initialPlan: Plan) {
 	);
 
 	const undo = () => {
-		if (historyIndex > 0) {
-			setHistoryIndex(historyIndex - 1);
-		}
+		setHistoryState((prev) =>
+			prev.index > 0 ? { ...prev, index: prev.index - 1 } : prev,
+		);
 	};
 
 	const redo = () => {
-		if (historyIndex < history.length - 1) {
-			setHistoryIndex(historyIndex + 1);
-		}
+		setHistoryState((prev) =>
+			prev.index < prev.history.length - 1
+				? { ...prev, index: prev.index + 1 }
+				: prev,
+		);
 	};
 
 	const canUndo = historyIndex > 0;

@@ -11,10 +11,13 @@ import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSet } from "@/components/ui/field";
+import { Label } from "@/components/ui/label";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEventById } from "@/lib/api/event";
 import { updatePendingTicket } from "@/lib/api/event/pending";
+import PaymentReceiptUpload from "../../exhibitor-kits/payment-receipt-upload";
 import { TicketTypeFieldSection } from "../../tickets/page-action/ticket-type-field-section";
+import { VehicleGroupField } from "../../tickets/page-action/vehicle-group-field";
 import { getPaymentStatusNumber, PAYMENT_STATUS } from "../constants";
 import type { PendingTicket } from "../pending-ticket-table-columns";
 
@@ -35,7 +38,6 @@ export default function PendingTicketEditModal({
 	const emailId = useId();
 	const phoneId = useId();
 	const paymentStatusId = useId();
-	const screenshotUrlId = useId();
 	const transactionIdId = useId();
 	const paymentMethodId = useId();
 	const roleId = useId();
@@ -69,7 +71,9 @@ export default function PendingTicketEditModal({
 					return {
 						labelKey: key,
 						labelName: currentLabelName,
-						value: existingLabel?.value || "",
+						// "-" is the display placeholder for empty values, not data
+						value:
+							existingLabel?.value === "-" ? "" : existingLabel?.value || "",
 					};
 				},
 			);
@@ -99,10 +103,12 @@ export default function PendingTicketEditModal({
 			attendee_phone: ticket.phone ?? "",
 			role: ticket.role ?? "",
 			ticket_type_id: ticket.ticketTypeId || null,
+			vehicle_registration_form_id:
+				ticket.vehicleRegistration?.registrationFormId ?? 0,
 			payment_status: getPaymentStatusNumber(ticket.paymentStatus),
 			payment_method: ticket.paymentMethod ?? "",
 			transaction_id: ticket.transactionId ?? "",
-			payment_screenshot_url: ticket.paymentScreenshotUrl ?? "",
+			payment_proof: undefined as File | undefined,
 		},
 		onSubmit: async ({ value }) => {
 			const customFieldsData: Record<string, string> = {};
@@ -121,8 +127,13 @@ export default function PendingTicketEditModal({
 					attendee_phone: value.attendee_phone || null,
 					role: value.role || undefined,
 					ticket_type_id: value.ticket_type_id || undefined,
+					vehicle_registration_form_id:
+						value.vehicle_registration_form_id !==
+						ticket.vehicleRegistration?.registrationFormId
+							? value.vehicle_registration_form_id || undefined
+							: undefined,
 					payment_status: value.payment_status,
-					payment_screenshot_url: value.payment_screenshot_url || undefined,
+					payment_proof: value.payment_proof || undefined,
 					transaction_id: value.transaction_id || undefined,
 					payment_method: value.payment_method || undefined,
 					custom_fields_data:
@@ -276,6 +287,18 @@ export default function PendingTicketEditModal({
 								/>
 							)}
 						</form.Field>
+						{ticket.vehicleRegistration && (
+							<form.Field name="vehicle_registration_form_id">
+								{(field) => (
+									<VehicleGroupField
+										eventId={eventId}
+										value={field.state.value}
+										onChange={field.handleChange}
+										disabled={updateMutation.isPending}
+									/>
+								)}
+							</form.Field>
+						)}
 					</FormGroupContainer>
 
 					<div className="flex flex-col gap-4">
@@ -352,18 +375,21 @@ export default function PendingTicketEditModal({
 									)}
 								</form.Field>
 
-								<form.Field name="payment_screenshot_url">
+								<form.Field name="payment_proof">
 									{(field) => (
-										<InputLabel
-											label="Payment Screenshot URL"
-											htmlFor={screenshotUrlId}
-											placeholder="https://example.com/screenshot.jpg"
-											value={field.state.value}
-											onChange={(value) => field.handleChange(value)}
-											onBlur={field.handleBlur}
-											disabled={updateMutation.isPending}
-											description="URL to the payment screenshot (optional)"
-										/>
+										<div className="space-y-2 md:col-span-2">
+											<Label>Payment Screenshot</Label>
+											<PaymentReceiptUpload
+												value={field.state.value ?? ticket.paymentScreenshotUrl}
+												onChange={(file) =>
+													field.handleChange(file ?? undefined)
+												}
+												disabled={updateMutation.isPending}
+											/>
+											<p className="text-muted-foreground text-xs">
+												Upload the payment screenshot (optional)
+											</p>
+										</div>
 									)}
 								</form.Field>
 							</div>

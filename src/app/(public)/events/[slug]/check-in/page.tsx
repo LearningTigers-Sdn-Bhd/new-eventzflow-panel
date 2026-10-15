@@ -62,10 +62,13 @@ function EventCheckInContent() {
 		searchError,
 		selectedAttendee,
 		isConfirming,
+		isReprinting,
+		isRescan,
 		handleSearch,
 		handleSelectAttendee,
 		handleConfirmCheckIn,
 		handleQRScan,
+		handleReprint,
 		handleReset,
 		handleResetToScan,
 		selectMethod,
@@ -305,6 +308,9 @@ function EventCheckInContent() {
 							onClose={
 								searchMethod === "scan" ? handleResetToScan : handleReset
 							}
+							onReprint={handleReprint}
+							isReprinting={isReprinting}
+							isRescan={isRescan}
 						/>
 					)}
 			</AnimatePresence>

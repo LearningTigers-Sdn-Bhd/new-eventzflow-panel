@@ -63,13 +63,23 @@ const columns: ColumnDef<RegistrationForm>[] = [
 		header: ({ column }) => <SortableHeader column={column} label="Status" />,
 		cell: ({ row }) => {
 			const status = row.getValue("status") as number;
-			return status === 0 ? (
-				<Badge className="rounded-none bg-green-600 hover:bg-green-600">
-					Active
-				</Badge>
-			) : (
+			if (status === 0) {
+				return (
+					<Badge className="rounded-none bg-green-600 hover:bg-green-600">
+						Active
+					</Badge>
+				);
+			}
+			if (status === 1) {
+				return (
+					<Badge className="rounded-none bg-amber-500 hover:bg-amber-500">
+						Waiting List
+					</Badge>
+				);
+			}
+			return (
 				<Badge variant="secondary" className="rounded-none">
-					Inactive
+					Closed
 				</Badge>
 			);
 		},

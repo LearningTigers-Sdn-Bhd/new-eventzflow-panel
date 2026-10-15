@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
 	CreditCard,
 	Eye,
+	Link as LinkIcon,
 	MoreHorizontal,
 	Package,
 	Pencil,
@@ -34,6 +35,7 @@ import {
 } from "@/lib/api/exhibitor-kit";
 import QrCodeDialog from "../../event-vendors/dialogs/qr-code-dialog";
 import EditEventVendorForm from "../../event-vendors/forms/edit-vendor/edit-form";
+import { InviteMemberDialog } from "../dialogs/invite-member-dialog";
 import { ManageKitsModal } from "../forms/manage-kits-modal";
 import { ManagePaymentForm } from "../forms/manage-payment-form";
 import { ManageTeamMembersForm } from "../forms/manage-team-members-form";
@@ -166,6 +168,22 @@ export function ExhibitorActionsMenu({
 		});
 	};
 
+	const handleInviteMemberClick = () => {
+		openDialog({
+			component: InviteMemberDialog,
+			props: {
+				kit,
+			},
+			config: {
+				title: "Invite Member",
+				description:
+					"Share this link so the exhibitor can add their own team members",
+				size: "lg",
+				className: "rounded-none",
+			},
+		});
+	};
+
 	const handleManagePaymentClick = () => {
 		openDialog({
 			component: ManagePaymentForm,
@@ -289,6 +307,13 @@ export function ExhibitorActionsMenu({
 				>
 					<Users className="mr-2 size-4" />
 					Manage Member
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					onClick={handleInviteMemberClick}
+					className="cursor-pointer rounded-none"
+				>
+					<LinkIcon className="mr-2 size-4" />
+					Invite Member
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem

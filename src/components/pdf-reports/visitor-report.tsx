@@ -1,11 +1,9 @@
 "use client";
 
-import { Document, Page, Text, View } from "@react-pdf/renderer";
+import { Document, Page, View } from "@react-pdf/renderer";
 import { AreaChart, DailyHourlyBreakdownSection, DonutChart } from "./charts";
 import {
 	BulletList,
-	GridCol,
-	GridRow,
 	ReportFooter,
 	ReportHeader,
 	Section,
@@ -22,15 +20,28 @@ interface VisitorAnalyticsReportProps {
 
 export function VisitorAnalyticsReport({ data }: VisitorAnalyticsReportProps) {
 	const { event, metadata, stats, timeSeries, hourlyBreakdown } = data;
+	// scannedVisitors may count every re-entry scan (multi-scan events), not unique
+	// visitors — rate/donut must use unique checked-in visitors or the rate can
+	// exceed 100%. unscannedVisitors is always a unique, toggle-independent count.
+	const uniqueScannedVisitors = Math.max(
+		stats.totalVisitors - stats.unscannedVisitors,
+		0,
+	);
+	const includesReScans = stats.scannedVisitors > uniqueScannedVisitors;
 	const scanRate = calculatePercentage(
-		stats.scannedVisitors,
+		uniqueScannedVisitors,
 		stats.totalVisitors,
 	);
 
 	const insights = [
 		`Total Registration: ${stats.totalVisitors.toLocaleString()} visitors have registered for the event.`,
-		`Checked In: ${stats.scannedVisitors.toLocaleString()} visitors have arrived at the venue.`,
+		`Checked In: ${uniqueScannedVisitors.toLocaleString()} visitors have arrived at the venue.`,
 		`Attendance Rate: ${scanRate}% of registered visitors have checked in.`,
+		...(includesReScans
+			? [
+					`Re-entries: ${stats.scannedVisitors.toLocaleString()} total scans recorded, including re-entries.`,
+				]
+			: []),
 	];
 
 	const registrationData =
@@ -71,8 +82,13 @@ export function VisitorAnalyticsReport({ data }: VisitorAnalyticsReportProps) {
 							value={stats.totalVisitors.toLocaleString()}
 						/>
 						<StatsCard
-							label="Checked In"
+							label={includesReScans ? "Total Scans" : "Checked In"}
 							value={stats.scannedVisitors.toLocaleString()}
+							subtext={
+								includesReScans
+									? `${uniqueScannedVisitors.toLocaleString()} unique visitors arrived`
+									: undefined
+							}
 						/>
 						<StatsCard
 							label="Pending Arrival"
@@ -86,7 +102,7 @@ export function VisitorAnalyticsReport({ data }: VisitorAnalyticsReportProps) {
 				<Section title="Attendance Ratio Throughout The Event">
 					<View style={{ alignItems: "center", paddingVertical: 12 }}>
 						<DonutChart
-							value1={stats.scannedVisitors}
+							value1={uniqueScannedVisitors}
 							value2={stats.unscannedVisitors}
 							label1="Arrived"
 							label2="Pending"

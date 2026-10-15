@@ -2,8 +2,6 @@
 
 import {
 	type ColumnDef,
-	type ColumnFiltersState,
-	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
@@ -14,152 +12,196 @@ import {
 } from "@tanstack/react-table";
 import { Briefcase } from "lucide-react";
 import * as React from "react";
+import {
+	DesktopView,
+	MobileView,
+	ResponsiveLayout,
+	TabletView,
+} from "@/components/admin-ui/layout/responsive-layout";
+import { BaseTable } from "@/components/admin-ui/table/base-table";
+import { BaseTableControl } from "@/components/admin-ui/table/control/base-table-control";
+import type { ControlConfig } from "@/components/admin-ui/table/control/type";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
-import { QuerySearchField } from "@/components/query-search-field";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
-
-import { useIsTablet } from "@/hooks/use-tablet";
+import { useDialog } from "@/hooks/use-dialog";
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
 import { BusinessMatchingItem } from "./business-matching-item";
+import SessionActivityDialog from "./session-activity-dialog";
 
-interface DataTableProps<TData, TValue> {
-	columns: ColumnDef<TData, TValue>[];
-	data: TData[];
-	actions?: React.ReactNode; // Add actions prop
+export type SessionFilter = "active" | "archived";
+
+interface DataTableProps {
+	columns: ColumnDef<BusinessMatchingEvent>[];
+	data: BusinessMatchingEvent[];
+	// Only passed when the viewer can see archived sessions.
+	sessionFilter?: SessionFilter;
+	onSessionFilterChange?: (filter: SessionFilter) => void;
 }
 
-export function DataTable<TData, TValue>({
+const EMPTY_STATE = {
+	title: "No sessions found",
+	desc: "Business matching sessions will appear here.",
+	icon: <Briefcase />,
+};
+
+export function DataTable({
 	columns,
 	data,
-	actions,
-}: DataTableProps<TData, TValue>) {
-	const isTablet = useIsTablet();
+	sessionFilter = "active",
+	onSessionFilterChange,
+}: DataTableProps) {
+	const { openDialog } = useDialog();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[],
-	);
-
+	const [selectedTag, setSelectedTag] = React.useState("all");
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
 
+	const allUniqueTags = React.useMemo(
+		() => Array.from(new Set(data.flatMap((s) => s.offering_tags ?? []))),
+		[data],
+	);
+
+	const filteredData = React.useMemo(
+		() =>
+			selectedTag === "all"
+				? data
+				: data.filter((s) => s.offering_tags?.includes(selectedTag)),
+		[data, selectedTag],
+	);
+
+	const openBookings = React.useCallback(
+		(session: BusinessMatchingEvent) => {
+			openDialog({
+				component: SessionActivityDialog,
+				props: { bmEventId: session.id, eventId: session.event_id },
+				config: {
+					title: `Bookings & Availability for ${session.title}`,
+					size: "full",
+				},
+			});
+		},
+		[openDialog],
+	);
+
 	const table = useReactTable({
-		data,
+		data: filteredData,
 		columns,
 		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
+		onColumnVisibilityChange: setColumnVisibility,
 		getCoreRowModel: getCoreRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		onColumnVisibilityChange: setColumnVisibility,
-		state: {
-			sorting,
-			columnFilters,
-			columnVisibility,
-		},
+		state: { sorting, columnVisibility },
 	});
+
+	const sessionFilterControl: ControlConfig[] = onSessionFilterChange
+		? [
+				{
+					label: "Sessions",
+					columnId: "sessionFilter",
+					type: "filter",
+					data: [
+						{ label: "Active", value: "active" },
+						{ label: "Archived", value: "archived" },
+					],
+					customFilter: {
+						value: sessionFilter,
+						onChange: (value) => onSessionFilterChange(value as SessionFilter),
+					},
+				},
+			]
+		: [];
+
+	const tagFilterControl: ControlConfig[] =
+		allUniqueTags.length > 0
+			? [
+					{
+						label: "Category",
+						columnId: "tag",
+						type: "filter",
+						data: [
+							{ label: "All", value: "all" },
+							...allUniqueTags.map((tag) => ({ label: tag, value: tag })),
+						],
+						customFilter: { value: selectedTag, onChange: setSelectedTag },
+					},
+				]
+			: [];
+
+	const rows = table.getRowModel().rows;
 
 	return (
 		<div className="w-full">
-			{/* Control Panel */}
-			<div className="mb-4 flex flex-col border border-dashed bg-transparent px-0 py-0 md:px-2 md:py-4 lg:bg-accent lg:px-4 lg:py-4">
-				<div className="flex items-center gap-2">
-					<QuerySearchField
-						table={table}
-						columns={["title"]}
-						placeholder="Filter events..."
-						searchCustomFields={false}
-					/>
-					{actions && <div className="ml-auto shrink-0">{actions}</div>}
-				</div>
-			</div>
+			<BaseTableControl
+				table={table}
+				searchConfig={{
+					searchConfig: {
+						placeholder: "Search sessions or location...",
+						enableCustomSearch: false,
+						columns: ["title", "location"],
+					},
+				}}
+				desktopConfig={{
+					controlConfigs: [...sessionFilterControl, ...tagFilterControl],
+				}}
+				mobileConfig={{
+					controlConfigs: [
+						...sessionFilterControl.map((c) => ({ ...c, topPriority: true })),
+						...tagFilterControl.map((c) => ({ ...c, topPriority: true })),
+						{ label: "Title", columnId: "title", type: "sort" },
+						{ label: "Bookings", columnId: "activity", type: "sort" },
+					],
+				}}
+			/>
 
-			{/* Data Table */}
-			{!isTablet ? (
-				<div className="rounded-none border border-dashed">
-					<Table>
-						<TableHeader>
-							{table.getHeaderGroups().map((headerGroup) => (
-								<TableRow key={headerGroup.id}>
-									{headerGroup.headers.map((header) => {
-										return (
-											<TableHead key={header.id}>
-												{header.isPlaceholder
-													? null
-													: flexRender(
-															header.column.columnDef.header,
-															header.getContext(),
-														)}
-											</TableHead>
-										);
-									})}
-								</TableRow>
-							))}
-						</TableHeader>
-						<TableBody>
-							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row) => (
-									<TableRow
-										key={row.id}
-										data-state={row.getIsSelected() && "selected"}
-									>
-										{row.getVisibleCells().map((cell) => (
-											<TableCell key={cell.id}>
-												{flexRender(
-													cell.column.columnDef.cell,
-													cell.getContext(),
-												)}
-											</TableCell>
-										))}
-									</TableRow>
-								))
-							) : (
-								<TableRow>
-									<TableCell
-										colSpan={columns.length}
-										className="h-24 text-center"
-									>
-										<EmptyState
-											title="No events found"
-											description="Business matching events will appear here."
-											icon={<Briefcase />}
-											height="h-auto"
-										/>
-									</TableCell>
-								</TableRow>
-							)}
-						</TableBody>
-					</Table>
-				</div>
-			) : (
-				<div className="mt-4 space-y-2">
-					{table.getRowModel().rows?.length ? (
-						table
-							.getRowModel()
-							.rows.map((row) => (
-								<BusinessMatchingItem
-									key={row.id}
-									event={row.original as BusinessMatchingEvent}
-								/>
+			<ResponsiveLayout>
+				<DesktopView>
+					<BaseTable
+						table={table}
+						emptyStateConfig={EMPTY_STATE}
+						clickableRowConfig={{
+							isEnabled: true,
+							onRowClick: openBookings,
+							excludeRowClickColumns: ["host", "actions"],
+						}}
+					/>
+				</DesktopView>
+				<MobileView>
+					<div className="flex flex-col gap-2">
+						{rows.length ? (
+							rows.map((row) => (
+								<BusinessMatchingItem key={row.id} event={row.original} />
 							))
-					) : (
-						<EmptyState
-							title="No events found"
-							description="Business matching events will appear here."
-							icon={<Briefcase />}
-							height="h-auto"
-						/>
-					)}
-				</div>
-			)}
+						) : (
+							<EmptyState
+								title={EMPTY_STATE.title}
+								description={EMPTY_STATE.desc}
+								icon={EMPTY_STATE.icon}
+								height="h-auto"
+							/>
+						)}
+					</div>
+				</MobileView>
+				<TabletView>
+					<div className="grid grid-cols-2 gap-4">
+						{rows.length ? (
+							rows.map((row) => (
+								<BusinessMatchingItem key={row.id} event={row.original} />
+							))
+						) : (
+							<div className="col-span-2">
+								<EmptyState
+									title={EMPTY_STATE.title}
+									description={EMPTY_STATE.desc}
+									icon={EMPTY_STATE.icon}
+									height="h-auto"
+								/>
+							</div>
+						)}
+					</div>
+				</TabletView>
+			</ResponsiveLayout>
 			<DataPagination table={table} />
 		</div>
 	);

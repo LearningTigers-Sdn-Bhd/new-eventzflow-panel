@@ -65,4 +65,4 @@ const HoverCardView = React.forwardRef<
 });
 HoverCardView.displayName = "HoverCardView";
 
-export { HoverCell, CellView, HoverCardView };
+export { CellView, HoverCardView, HoverCell };

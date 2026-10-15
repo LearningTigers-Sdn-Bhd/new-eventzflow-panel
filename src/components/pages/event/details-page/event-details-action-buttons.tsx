@@ -2,7 +2,7 @@
 
 import {
 	Activity,
-	Camera,
+	ChartBar,
 	ChevronDown,
 	ExternalLink,
 	Megaphone,
@@ -13,8 +13,10 @@ import {
 	Users,
 	Zap,
 } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -25,7 +27,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import type { Event } from "@/lib/api/event/response";
 import EventSettingsDialog from "../settings/edit-modal";
 import { AnnounceGuestDialog } from "./announce-guest-dialog";
@@ -40,6 +41,7 @@ export function EventDetailsActionButtons({
 	const router = useRouter();
 	const { user } = useAuth();
 	const { openDialog, closeDialog } = useDialog();
+	const { permissions } = useEventSidebarContext();
 	const {
 		canManageEvent,
 		canScanTickets,
@@ -49,10 +51,19 @@ export function EventDetailsActionButtons({
 		isOrgOwner,
 		isOrganizer,
 		isEventStaff,
-	} = useEventPermissions(event.id, event);
+	} = permissions;
 
 	const isTicketEvent = event.use_ticket !== false;
-	const canViewPublicCheckIn = isOrgOwner || isOrganizer || isEventStaff;
+	// NOTE: the old useEventPermissions hook special-cased role==="exhibitor"
+	// as isEventStaff:true even with zero event_assignments; the new backend
+	// computation (sidebar_permissions in events_controller.rb) does not.
+	// `permissions.isEventStaff` here is equivalent to the old hook's
+	// `!!userStaffAssignment` term for non-vendor users, so OR'ing in the
+	// exhibitor-role check reproduces the exact old behavior without an
+	// extra request. See CLAUDE.md task notes on the isEventStaff exhibitor
+	// discrepancy before changing this.
+	const canViewPublicCheckIn =
+		isOrgOwner || isOrganizer || isEventStaff || user?.role === "exhibitor";
 
 	const [announceOpen, setAnnounceOpen] = useState(false);
 
@@ -99,6 +110,18 @@ export function EventDetailsActionButtons({
 							>
 								<Ticket className="mr-2 h-4 w-4" />
 								<span>View All Tickets</span>
+							</Button>
+						)}
+						{canViewAnalytics && (
+							<Button
+								className="rounded-none border py-5"
+								variant="outline"
+								onClick={() =>
+									router.push(`/event/${event.id}/custom-reports` as Route)
+								}
+							>
+								<ChartBar className="mr-2 h-4 w-4" />
+								<span>Custom Reports</span>
 							</Button>
 						)}
 					</>

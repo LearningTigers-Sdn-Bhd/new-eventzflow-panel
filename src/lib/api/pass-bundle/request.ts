@@ -28,6 +28,7 @@ export const createPassBundleSchema = z.object({
 	payment_status: passBundlePaymentStatusSchema.optional(),
 	status: passBundleStatusSchema,
 	expires_at: z.string().nullable().optional(),
+	plan_object_id: z.number().int().nullable().optional(),
 });
 
 export const updatePassBundleSchema = createPassBundleSchema.partial().extend({

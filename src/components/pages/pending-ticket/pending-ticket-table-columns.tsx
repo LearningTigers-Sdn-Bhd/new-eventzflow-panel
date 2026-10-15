@@ -31,7 +31,10 @@ export type PendingTicket = {
 	status: "scanned" | "not_scanned";
 	customLabels: Array<{ name: string; value: string }>;
 	createdAt: string;
+	/** Non-null when the ticket is soft-archived (drives the Restore action). */
+	deletedAt?: string | null;
 	paymentStatus: PaymentStatusString;
+	waitingList?: boolean;
 	paymentScreenshotUrl?: string;
 	transactionId?: string;
 	paymentMethod?: string;
@@ -46,6 +49,17 @@ export type PendingTicket = {
 		rsvpConfirmedAt: string | null;
 		rsvpExpiresAt: string | null;
 	};
+	documents?: Array<{
+		key: string | null;
+		filename: string;
+		url: string;
+	}>;
+	vehicleRegistration?: {
+		plate: string;
+		registrationFormId: number;
+		registrationFormName: string | null;
+		registrationFormSlug: string | null;
+	} | null;
 };
 
 /**
@@ -93,7 +107,6 @@ function showPaymentInfoToast(ticket: PendingTicket) {
 
 export function generateColumns(
 	labelsData?: Record<string, string>,
-	hasApplicationWorkflow = true,
 ): ColumnDef<PendingTicket>[] {
 	const baseColumns: ColumnDef<PendingTicket>[] = [
 		{
@@ -179,7 +192,7 @@ export function generateColumns(
 
 				return (
 					<div className="flex flex-col gap-1.5">
-						<div className="flex items-center gap-2">
+						<div className="flex flex-col items-start gap-1">
 							<Badge
 								variant="secondary"
 								className={cn(
@@ -189,6 +202,14 @@ export function generateColumns(
 							>
 								{getPaymentStatusText(status)}
 							</Badge>
+							{ticket.waitingList && (
+								<Badge
+									variant="outline"
+									className="shrink-0 rounded-none border-amber-300 text-amber-700"
+								>
+									Waiting List
+								</Badge>
+							)}
 
 							{hasTransactionId && !hasScreenshot && (
 								<Button
@@ -275,7 +296,7 @@ export function generateColumns(
 		},
 	];
 
-	if (hasApplicationWorkflow) {
+	{
 		const applicationColumns: ColumnDef<PendingTicket>[] = [
 			{
 				id: "reviewStatus",

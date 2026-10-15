@@ -1,4 +1,4 @@
-import { extractErrorMessage } from "@/utils/error-handler";
+import { extractErrorMessage, isNotFoundError } from "@/utils/error-handler";
 import { restClient } from "@/utils/rest-api";
 import {
 	type CreatePaymentDetailRequest,
@@ -18,7 +18,7 @@ export async function getPaymentDetail(): Promise<PaymentDetailResponse | null> 
 		);
 		return paymentDetailResponseSchema.parse(response);
 	} catch (error) {
-		if (error instanceof Error && error.message.includes("404")) {
+		if (isNotFoundError(error)) {
 			return null;
 		}
 		const errorMessage = await extractErrorMessage(error);

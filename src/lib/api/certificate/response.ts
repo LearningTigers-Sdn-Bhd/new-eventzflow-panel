@@ -31,19 +31,35 @@ export type CertificateTemplateStatus = "draft" | "ready" | "archived";
 export type CertificateTemplate = {
 	id: number;
 	event_id: number;
+	name: string;
+	/** Empty means this is the default template for every other ticket type. */
+	ticket_type_ids: number[];
 	status: CertificateTemplateStatus;
 	orientation: "portrait" | "landscape";
 	canvas_width: number;
 	canvas_height: number;
 	fields: CertificateField[];
+	/** Auto-email the certificate when the attendee submits feedback. */
+	require_feedback: boolean;
+	/** Narrows the auto-send by one registration answer. `{}` = everyone. */
+	auto_send_filter: { key?: string; values?: string[] };
 	background_image_url: string | null;
 	created_at: string;
 	updated_at: string;
 };
 
+export type CertificateAudience =
+	| "all"
+	| "checked_in"
+	| "unsent"
+	| "feedback_submitted"
+	| "rfid_qualified"
+	| "sessions_done"
+	| "sessions_or_feedback";
+
 export type SendCertificatesResponse = {
 	message: string;
-	audience: "all" | "checked_in" | "unsent";
+	audience: CertificateAudience;
 	queued: number;
 	skipped_no_email: number;
 };
@@ -66,7 +82,16 @@ export type CertificateParticipant = {
 	attendee_name: string;
 	attendee_email: string | null;
 	ticket_type: string | null;
+	/** Name of the template this ticket's certificate is rendered from. */
+	certificate_template: string | null;
 	checked_in: boolean;
+	feedback_submitted: boolean;
+	// Met every mandatory RFID session and submitted the feedback form.
+	rfid_qualified: boolean;
+	// Met every mandatory RFID session (or was waived), feedback not required.
+	sessions_done: boolean;
+	/** Registration answers staff can filter by (category, agency...). */
+	custom_fields: Record<string, string>;
 	certificate_status: CertificateDeliveryStatus | null;
 	certificate_sent_at: string | null;
 	last_delivery_id: number | null;

@@ -5,6 +5,7 @@ import { use } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { DataTable } from "@/components/pages/surprise-mechanics/lucky-draw/draw-session-table";
 import { LuckyDrawPageButton } from "@/components/pages/surprise-mechanics/lucky-draw/manage-session/index-create-button";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
@@ -19,10 +20,15 @@ interface LuckyDrawPageProps {
 export default function LuckyDrawPage({ params }: LuckyDrawPageProps) {
 	const { event_id } = use(params);
 	const { user } = useAuth();
+	const { currentEvent } = useEventSidebarContext();
 
-	// Only show create button if user is not a vendor
-	const isVendor = user?.role === "vendor";
-	useSetEventActions(isVendor ? null : <LuckyDrawPageButton />);
+	// "vendor" role covers both Exhibitor and Merchant event-vendor types
+	// (see EventVendorService.determine_vendor_type on the backend) — only
+	// hide the create button for plain Merchants, not Exhibitors.
+	const isMerchantOnly =
+		user?.role === "vendor" &&
+		!(currentEvent?.use_ticket || currentEvent?.use_exhibitor_kit);
+	useSetEventActions(isMerchantOnly ? null : <LuckyDrawPageButton />);
 
 	const {
 		data: sessions,

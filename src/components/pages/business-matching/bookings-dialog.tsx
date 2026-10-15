@@ -1,9 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Calendar, Loader2 } from "lucide-react";
+import { Calendar, LayoutGrid, List, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ErrorState } from "@/components/data-state";
+import { Button } from "@/components/ui/button";
 import {
 	Empty,
 	EmptyDescription,
@@ -11,12 +12,12 @@ import {
 	EmptyTitle,
 } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	useBusinessMatchingBookings,
 	useForceRefreshBookings,
 } from "@/hooks/use-business-matching";
+import { cn } from "@/lib/utils";
 import { BookingCardItem } from "./booking-card-item";
 
 interface BookingsDialogProps {
@@ -36,6 +37,7 @@ export default function BookingsDialog({
 		refetch: _refetch,
 	} = useBusinessMatchingBookings(bmEventId, eventId);
 	const [searchQuery, setSearchQuery] = useState("");
+	const [viewMode, setViewMode] = useState<"detailed" | "compact">("detailed");
 	const _queryClient = useQueryClient();
 	const { mutate: forceRefreshBookings, isPending: isRefreshingBookings } =
 		useForceRefreshBookings(bmEventId, eventId);
@@ -85,7 +87,8 @@ export default function BookingsDialog({
 		);
 	}
 
-	const bookings = data.bookings;
+	// Cancelled bookings are dead entries — nothing left to action on them.
+	const bookings = data.bookings.filter((b) => b.status !== "Cancelled");
 
 	// Helper function to create a sortable Date object from booking details
 	const getSortableDate = (booking: (typeof bookings)[0]) => {
@@ -133,73 +136,137 @@ export default function BookingsDialog({
 			return dateA.getTime() - dateB.getTime();
 		});
 
+	const stats = [
+		{ label: "Total", value: bookings.length, className: "" },
+		{
+			label: "Pending",
+			value: bookings.filter((b) => b.status === "Pending").length,
+			className: "text-amber-700",
+		},
+		{
+			label: "Approved",
+			value: bookings.filter((b) => b.status === "Approved").length,
+			className: "text-green-700",
+		},
+		{
+			label: "Present",
+			value: bookings.filter((b) => b.attendance === "Present").length,
+			className: "text-emerald-700",
+		},
+	];
+
+	const renderBookings = (bookings: typeof filteredBookings) =>
+		viewMode === "compact" ? (
+			<div className="flex flex-col gap-1.5 p-1 pb-4">
+				{bookings.map((booking) => (
+					<BookingCardItem
+						key={booking.id}
+						booking={booking}
+						bmEventId={bmEventId}
+						eventId={eventId}
+						variant="row"
+					/>
+				))}
+			</div>
+		) : (
+			<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+				{bookings.map((booking) => (
+					<BookingCardItem
+						key={booking.id}
+						booking={booking}
+						bmEventId={bmEventId}
+						eventId={eventId}
+					/>
+				))}
+			</div>
+		);
+
 	return (
-		<div className="mx-auto flex h-[70vh] w-full max-w-4xl flex-col p-1">
-			<div className="mb-2 px-1">
+		<div className="flex h-full min-h-0 w-full flex-col overflow-hidden p-1">
+			<div className="mb-2 grid shrink-0 grid-cols-2 gap-2 px-1 sm:grid-cols-4">
+				{stats.map((stat) => (
+					<div
+						key={stat.label}
+						className="flex flex-col border bg-card px-3 py-2"
+					>
+						<span className="text-muted-foreground text-xs">{stat.label}</span>
+						<span className={cn("font-semibold text-xl", stat.className)}>
+							{stat.value}
+						</span>
+					</div>
+				))}
+			</div>
+			<div className="mb-2 flex shrink-0 items-center gap-2 border border-dashed bg-accent p-2">
 				<Input
 					placeholder="Search bookings..."
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
-					className="h-8 text-sm"
+					className="h-9 flex-1 rounded-none bg-background text-sm"
 				/>
+				<div className="flex shrink-0 items-center gap-0.5 border bg-background p-0.5">
+					<Button
+						type="button"
+						variant={viewMode === "detailed" ? "secondary" : "ghost"}
+						size="icon"
+						className="h-8 w-8 rounded-none"
+						onClick={() => setViewMode("detailed")}
+						title="Detailed view"
+					>
+						<LayoutGrid className="h-3.5 w-3.5" />
+					</Button>
+					<Button
+						type="button"
+						variant={viewMode === "compact" ? "secondary" : "ghost"}
+						size="icon"
+						className="h-8 w-8 rounded-none"
+						onClick={() => setViewMode("compact")}
+						title="Compact view"
+					>
+						<List className="h-3.5 w-3.5" />
+					</Button>
+				</div>
 			</div>
 			<Tabs
 				defaultValue={todayBookings.length > 0 ? "today" : "all"}
-				className="flex w-full flex-1 flex-col overflow-hidden"
+				className="flex min-h-0 w-full flex-1 flex-col gap-1.5 overflow-hidden"
 			>
-				<div className="mb-2 shrink-0 px-1">
-					<TabsList className="grid w-full grid-cols-2">
-						<TabsTrigger value="today">
+				<div className="shrink-0 px-1">
+					<TabsList className="grid w-full grid-cols-2 rounded-none">
+						<TabsTrigger value="today" className="rounded-none">
 							Today ({todayBookings.length})
 						</TabsTrigger>
-						<TabsTrigger value="all">
+						<TabsTrigger value="all" className="rounded-none">
 							All ({filteredBookings.length})
 						</TabsTrigger>
 					</TabsList>
 				</div>
 
-				<TabsContent value="today" className="mt-0 flex-1 overflow-hidden">
-					<ScrollArea className="h-full">
-						{todayBookings.length > 0 ? (
-							<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3">
-								{todayBookings.map((booking) => (
-									<BookingCardItem
-										key={booking.id}
-										booking={booking}
-										bmEventId={bmEventId}
-										eventId={eventId}
-									/>
-								))}
-							</div>
-						) : (
-							<div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
-								<Calendar className="mb-2 h-10 w-10 opacity-20" />
-								<p>No bookings found for today.</p>
-							</div>
-						)}
-					</ScrollArea>
+				<TabsContent
+					value="today"
+					className="mt-0 min-h-0 flex-1 overflow-y-auto px-1"
+				>
+					{todayBookings.length > 0 ? (
+						renderBookings(todayBookings)
+					) : (
+						<div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
+							<Calendar className="mb-2 h-10 w-10 opacity-20" />
+							<p>No bookings found for today.</p>
+						</div>
+					)}
 				</TabsContent>
 
-				<TabsContent value="all" className="mt-0 flex-1 overflow-hidden">
-					<ScrollArea className="h-full">
-						{filteredBookings.length > 0 ? (
-							<div className="grid grid-cols-1 gap-4 p-1 pb-4 md:grid-cols-2 lg:grid-cols-3">
-								{filteredBookings.map((booking) => (
-									<BookingCardItem
-										key={booking.id}
-										booking={booking}
-										bmEventId={bmEventId}
-										eventId={eventId}
-									/>
-								))}
-							</div>
-						) : (
-							<div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
-								<Calendar className="mb-2 h-10 w-10 opacity-20" />
-								<p>No bookings found.</p>
-							</div>
-						)}
-					</ScrollArea>
+				<TabsContent
+					value="all"
+					className="mt-0 min-h-0 flex-1 overflow-y-auto px-1"
+				>
+					{filteredBookings.length > 0 ? (
+						renderBookings(filteredBookings)
+					) : (
+						<div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
+							<Calendar className="mb-2 h-10 w-10 opacity-20" />
+							<p>No bookings found.</p>
+						</div>
+					)}
 				</TabsContent>
 			</Tabs>
 		</div>

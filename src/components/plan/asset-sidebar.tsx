@@ -1,17 +1,6 @@
 "use client";
 
-import {
-	Circle,
-	DoorOpen,
-	Grid3X3,
-	Layout,
-	Minus,
-	MousePointer2,
-	Square,
-	Type,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Circle, DoorOpen, Grid3X3, Layout, Minus, Square } from "lucide-react";
 
 interface AssetSidebarProps {
 	onAddObject: (type: string) => void;
@@ -54,22 +43,23 @@ export function AssetSidebar({ onAddObject }: AssetSidebarProps) {
 
 	return (
 		<div className="flex h-full flex-col bg-white dark:bg-slate-900">
-			<div className="space-y-8 p-4">
+			<div className="space-y-6 p-4">
 				{categories.map((category) => (
-					<div key={category.name} className="space-y-3">
-						<h3 className="px-1 font-black text-slate-400 text-xs uppercase tracking-widest dark:text-slate-500">
+					<div key={category.name} className="space-y-2">
+						<h3 className="px-1 font-medium text-muted-foreground text-xs uppercase tracking-wide">
 							{category.name}
 						</h3>
 						<div className="grid grid-cols-3 gap-2">
 							{category.items.map((item) => (
 								<button
 									key={item.type}
-									className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-transparent p-2 transition-all hover:border-slate-200 hover:bg-slate-50 active:scale-95 dark:hover:border-slate-800 dark:hover:bg-slate-800/50"
+									type="button"
+									className="flex flex-col items-center justify-center gap-2 rounded-none border border-dashed p-2 transition-colors hover:border-primary hover:bg-primary/5"
 									onClick={() => onAddObject(item.type)}
 								>
-									<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-white group-hover:shadow-sm dark:bg-slate-800 dark:group-hover:bg-slate-700">
+									<div className="flex h-11 w-11 items-center justify-center rounded-none border border-primary/20 bg-primary/5">
 										<item.icon
-											className="h-6 w-6 text-slate-600 dark:text-slate-400"
+											className="h-5 w-5 text-primary"
 											style={
 												item.rotate
 													? { transform: `rotate(${item.rotate}deg)` }
@@ -77,7 +67,7 @@ export function AssetSidebar({ onAddObject }: AssetSidebarProps) {
 											}
 										/>
 									</div>
-									<span className="text-center font-bold text-[10px] text-slate-500 leading-tight dark:text-slate-400">
+									<span className="text-center font-medium text-[10px] text-muted-foreground leading-tight">
 										{item.label}
 									</span>
 								</button>

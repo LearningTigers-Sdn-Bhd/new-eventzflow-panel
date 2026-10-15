@@ -222,7 +222,7 @@ export function DailyHourlyBreakdownSection({
 	const formatDayLabel = (dateStr: string, index: number) => {
 		try {
 			const date = new Date(dateStr);
-			if (isNaN(date.getTime())) return `Day ${index + 1}`;
+			if (Number.isNaN(date.getTime())) return `Day ${index + 1}`;
 			return date.toLocaleDateString("en-US", {
 				weekday: "long",
 				year: "numeric",

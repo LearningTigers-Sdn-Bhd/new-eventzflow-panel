@@ -1,0 +1,35 @@
+export {
+	archiveVehicle,
+	deleteVehicle,
+	getEventVehicleRegistrations,
+	moveVehicleGroup,
+	restoreVehicle,
+	syncVehicleBase,
+	updateVehicle,
+} from "./endpoints";
+export {
+	type GetEventVehicleRegistrationsRequest,
+	getEventVehicleRegistrationsSchema,
+	type MoveVehicleGroupRequest,
+	moveVehicleGroupSchema,
+	type SyncVehicleBaseRequest,
+	syncVehicleBaseSchema,
+	type UpdateVehicleRequest,
+	updateVehicleSchema,
+	type VehicleIdRequest,
+	vehicleIdSchema,
+} from "./request";
+export type {
+	ArchiveVehicleResponse,
+	BackendVehicleCrewMember,
+	BackendVehicleIssue,
+	BackendVehicleRegistration,
+	MoveVehicleGroupResponse,
+	RestoreVehicleResponse,
+	SyncVehicleBaseResponse,
+	UpdateVehicleResponse,
+	VehicleCrewMember,
+	VehicleIssue,
+	VehicleIssueCode,
+	VehicleRegistration,
+} from "./response";

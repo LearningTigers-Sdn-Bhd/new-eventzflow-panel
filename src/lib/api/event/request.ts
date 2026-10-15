@@ -22,6 +22,9 @@ export const createEventSchema = z.object({
 	// photo_booth_enabled: z.boolean().optional().default(false),
 	use_event_leads: z.boolean().optional().default(false),
 	use_certificate: z.boolean().optional().default(false),
+	use_rfid: z.boolean().optional().default(false),
+	use_people_counter: z.boolean().optional().default(false),
+	use_feedback: z.boolean().optional().default(false),
 	use_api_access: z.boolean().optional().default(false),
 	start_date: z.string(), // ISO date string
 	end_date: z.string(), // ISO date string
@@ -31,7 +34,11 @@ export const createEventSchema = z.object({
 	webhook_url: z.string().url().optional().or(z.literal("")),
 	business_matching_webhook_url: z.string().url().optional().or(z.literal("")),
 	public_registration_url: z.string().url().optional().or(z.literal("")),
+	registration_path_template: z.string().optional().or(z.literal("")),
 	labels_data: z.record(z.string(), z.any()).optional(),
+	exhibitor_labels_data: z.record(z.string(), z.any()).optional(),
+	allow_multiple_tickets_per_email: z.boolean().optional().default(false),
+	require_unique_membership_numbers: z.boolean().optional().default(true),
 	event_admin_id: z.number().optional(),
 });
 
@@ -61,12 +68,17 @@ export const updateEventSchema = z.object({
 	exhibitor_reservation_ttl_hours: z.number().int().nullable().optional(),
 	allow_contractor_printing_services: z.boolean().optional(),
 	use_business_matching: z.boolean().optional(),
+	business_matching_linked_exhibitor_enabled: z.boolean().optional(),
 	use_voucher: z.boolean().optional(),
 	use_sponsorship: z.boolean().optional(),
 	// photo_booth_enabled: z.boolean().optional(),
 	use_event_leads: z.boolean().optional(),
 	use_certificate: z.boolean().optional(),
+	use_rfid: z.boolean().optional(),
+	use_people_counter: z.boolean().optional(),
+	use_feedback: z.boolean().optional(),
 	use_api_access: z.boolean().optional(),
+	vehicles_enabled: z.boolean().optional(),
 	reminders_enabled: z.boolean().optional(),
 	reminder_7_day: z.boolean().optional(),
 	reminder_1_day: z.boolean().optional(),
@@ -81,10 +93,17 @@ export const updateEventSchema = z.object({
 	venue_name: z.string().optional(),
 	venue_address: z.string().optional(),
 	multiple_scans: z.boolean().optional(),
+	multiple_scan_mode: z
+		.enum(["unlimited", "per_location", "per_day"])
+		.optional(),
 	webhook_url: z.string().url().optional().or(z.literal("")),
 	business_matching_webhook_url: z.string().url().optional().or(z.literal("")),
 	public_registration_url: z.string().url().optional().or(z.literal("")),
+	registration_path_template: z.string().optional().or(z.literal("")),
 	labels_data: z.record(z.string(), z.any()).optional(),
+	exhibitor_labels_data: z.record(z.string(), z.any()).optional(),
+	allow_multiple_tickets_per_email: z.boolean().optional(),
+	require_unique_membership_numbers: z.boolean().optional(),
 	booth_types: z.array(z.string()).optional(),
 	event_email_setting_attributes: z
 		.object({
@@ -104,6 +123,31 @@ export const updateEventSchema = z.object({
 			payment_receipt_email: z
 				.string()
 				.email()
+				.optional()
+				.or(z.literal(""))
+				.or(z.null()),
+			emails_enabled: z.boolean().optional(),
+			disabled_categories: z.array(z.string()).optional(),
+			business_matching_ticket_type_ids: z.array(z.number()).optional(),
+			thank_you_include_feedback: z.boolean().optional(),
+			thank_you_delay_minutes: z.number().optional(),
+			business_matching_sender_name: z
+				.string()
+				.optional()
+				.or(z.literal(""))
+				.or(z.null()),
+			business_matching_host_label: z
+				.string()
+				.optional()
+				.or(z.literal(""))
+				.or(z.null()),
+			business_matching_host_invite_subject: z
+				.string()
+				.optional()
+				.or(z.literal(""))
+				.or(z.null()),
+			business_matching_host_invite_message: z
+				.string()
 				.optional()
 				.or(z.literal(""))
 				.or(z.null()),

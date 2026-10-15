@@ -13,6 +13,7 @@ import {
 	ItemHeader,
 	ItemTitle,
 } from "@/components/ui/item";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -26,6 +27,8 @@ interface EventItemProps {
 }
 
 export function EventItem({ event, onClick }: EventItemProps) {
+	const { user } = useAuth();
+	const isOrganizer = user?.role === "org_owner" || user?.role === "organizer";
 	const { copyToClipboard } = useCopyToClipboard({
 		successMessage: "Event ID copied to clipboard",
 	});
@@ -85,7 +88,7 @@ export function EventItem({ event, onClick }: EventItemProps) {
 					<h3 className="text-balance font-bold text-lg tracking-tight">
 						{event.title}
 					</h3>
-					{isMobile && (
+					{isOrganizer && isMobile && (
 						<Badge
 							className={cn(
 								"min-w-20 rounded-none font-bold capitalize",
@@ -100,7 +103,7 @@ export function EventItem({ event, onClick }: EventItemProps) {
 					)}
 				</ItemTitle>
 				<ItemDescription className="flex w-full justify-start gap-2">
-					{!isMobile && (
+					{isOrganizer && !isMobile && (
 						<Badge
 							className={cn(
 								"min-w-16 rounded-none font-bold capitalize",
@@ -113,19 +116,21 @@ export function EventItem({ event, onClick }: EventItemProps) {
 							{event.status}
 						</Badge>
 					)}
-					<div className="flex items-center gap-2">
-						<span className="bg-accent px-2 py-1 font-mono text-muted-foreground text-xs">
-							ID: {event.id}
-						</span>
-						<Button
-							variant="ghost"
-							size="icon"
-							className="ml-1 h-6 w-6 hover:border"
-							onClick={handleCopyId}
-						>
-							<Copy className="size-3" />
-						</Button>
-					</div>
+					{isOrganizer && (
+						<div className="flex items-center gap-2">
+							<span className="bg-accent px-2 py-1 font-mono text-muted-foreground text-xs">
+								ID: {event.id}
+							</span>
+							<Button
+								variant="ghost"
+								size="icon"
+								className="ml-1 h-6 w-6 hover:border"
+								onClick={handleCopyId}
+							>
+								<Copy className="size-3" />
+							</Button>
+						</div>
+					)}
 				</ItemDescription>
 			</ItemHeader>
 			<ItemContent className="flex flex-col">

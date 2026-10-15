@@ -1,3 +1,5 @@
+import { ZodError } from "zod";
+
 /**
  * Backend unified error response format
  * Based on Swagger documentation at /api-docs
@@ -6,7 +8,11 @@ export interface BackendErrorResponse {
 	success?: boolean;
 	message?: string;
 	error?: string;
-	errors?: Array<{ field: string; message: string }>;
+	// Backend services return this in three different shapes depending on the
+	// call site: a plain string (ServiceResult errors like "Booth capacity is
+	// sold out"), an array of strings (ActiveRecord's errors.full_messages),
+	// or an array of {field, message} (form-field-scoped validation errors).
+	errors?: string | string[] | Array<{ field: string; message: string }>;
 }
 
 /**
@@ -27,6 +33,12 @@ export interface BackendErrorResponse {
  * ```
  */
 export async function extractErrorMessage(error: unknown): Promise<string> {
+	// Client-side validation failure (thrown before any request went out) —
+	// surface the schema's own message instead of the raw stringified issues array.
+	if (error instanceof ZodError) {
+		return error.issues[0]?.message || "Invalid input. Please check the form.";
+	}
+
 	// Handle HTTP errors from ky
 	if (error && typeof error === "object" && "response" in error) {
 		try {
@@ -40,8 +52,13 @@ export async function extractErrorMessage(error: unknown): Promise<string> {
 			if (errorData.error) {
 				return errorData.error;
 			}
-			if (errorData.errors && errorData.errors.length > 0) {
-				return errorData.errors.map((e) => e.message).join(", ");
+			if (typeof errorData.errors === "string" && errorData.errors) {
+				return errorData.errors;
+			}
+			if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+				return errorData.errors
+					.map((e) => (typeof e === "string" ? e : e.message))
+					.join(", ");
 			}
 			if (errorData.message) {
 				return errorData.message;
@@ -52,6 +69,15 @@ export async function extractErrorMessage(error: unknown): Promise<string> {
 	}
 
 	return "An error occurred. Please try again.";
+}
+
+export function isNotFoundError(error: unknown): boolean {
+	if (!error || typeof error !== "object" || !("response" in error)) {
+		return false;
+	}
+
+	const response = (error as { response?: { status?: unknown } }).response;
+	return response?.status === 404;
 }
 
 /**

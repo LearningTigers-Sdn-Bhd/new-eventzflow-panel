@@ -26,7 +26,7 @@ interface EventStaffItemProps {
 }
 
 export function EventStaffItem({ member }: EventStaffItemProps) {
-	const { formatDate } = useFormatDate();
+	const { formatDate, formatTime } = useFormatDate();
 
 	const handleEmailClick = () => {
 		window.location.href = `mailto:${member.email}`;
@@ -46,7 +46,9 @@ export function EventStaffItem({ member }: EventStaffItemProps) {
 			? "Admin"
 			: member.eventRole === "business_host"
 				? "Business Host"
-				: "Team Member";
+				: member.eventRole === "business_matching_admin"
+					? "BM Admin"
+					: "Team Member";
 
 	return (
 		<Item variant="outline" className="w-full rounded-none">
@@ -65,6 +67,8 @@ export function EventStaffItem({ member }: EventStaffItemProps) {
 								"border-blue-500 text-blue-500",
 							member.eventRole === "business_host" &&
 								"border-orange-500 text-orange-500",
+							member.eventRole === "business_matching_admin" &&
+								"border-teal-500 text-teal-500",
 						)}
 					>
 						{member.eventRole === "event_admin" ? (
@@ -119,9 +123,12 @@ export function EventStaffItem({ member }: EventStaffItemProps) {
 					)}
 					<div className="flex w-full items-center gap-0.5">
 						<Calendar className="size-4" />
-						<span className="px-2.5 text-sm">
-							Assigned on {formatDate(member.createdAt)}
-						</span>
+						<div className="px-2.5 text-sm">
+							<div className="font-semibold text-foreground">
+								{formatTime(member.createdAt)}
+							</div>
+							<div>{formatDate(member.createdAt, "long")}</div>
+						</div>
 					</div>
 				</div>
 			</ItemContent>

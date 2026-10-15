@@ -1,15 +1,16 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Archive,
-	Eye,
+	MessageSquareHeart,
 	MoreHorizontal,
 	Pencil,
 	QrCode,
 	RotateCcw,
 	Send,
 	Trash2,
+	Undo2,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
@@ -26,15 +27,17 @@ import {
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
+import { getEventById } from "@/lib/api/event";
+import { revertTicketApplication } from "@/lib/api/event/pending";
 import {
 	archiveTicket,
 	forceDeleteTicket,
 	resendTicketConfirmationEmail,
+	resendTicketFeedbackEmail,
 	restoreTicket,
 } from "@/lib/api/ticket";
 import { cn } from "@/lib/utils";
 import TicketEditModal from "./action-modals/edit-event-ticket-form";
-import TicketViewModal from "./action-modals/event-ticket-view-modal";
 import TicketQRModal from "./action-modals/qr-modal";
 import UnscanModal from "./action-modals/unscan-modal";
 import type { BaseTicket } from "./event-ticket-table-columns";
@@ -66,20 +69,6 @@ export function useTicketActions({
 				title: "Edit Ticket",
 				description: "Edit the ticket information.",
 				size: "full",
-				showCloseButton: true,
-				className: "rounded-none",
-			},
-			props: { ticket },
-		});
-	};
-
-	const openViewModal = () => {
-		openDialog({
-			component: TicketViewModal,
-			config: {
-				title: "View Ticket",
-				description: "View the ticket information.",
-				size: "4xl",
 				showCloseButton: true,
 				className: "rounded-none",
 			},
@@ -170,6 +159,67 @@ export function useTicketActions({
 		},
 	});
 
+	const resendFeedbackEmailMutation = useMutation({
+		mutationFn: () => resendTicketFeedbackEmail(eventId, ticket.publicId),
+		onSuccess: () => {
+			toast.success("Feedback email has been queued for resend.");
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to resend feedback email");
+		},
+	});
+
+	const revertMutation = useMutation({
+		mutationFn: (confirmManualRefund?: boolean) =>
+			revertTicketApplication({
+				eventId,
+				ticketId: ticket.publicId,
+				confirmManualRefund,
+			}),
+		onSuccess: () => {
+			toast.success("Ticket reverted to pending");
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "tickets"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "pending-tickets"],
+			});
+			closeDialog();
+		},
+		onError: (error: Error) => {
+			if (error.message?.toLowerCase().includes("gateway")) {
+				openConfirm({
+					title: "Confirm Manual Refund",
+					message: `${error.message} Only continue if you have already refunded this payment outside the app.`,
+					confirmLabel: "I've Refunded, Revert Anyway",
+					cancelLabel: "Cancel",
+					type: "destructive",
+					icon: "alert",
+					size: "sm",
+					onConfirm: () => revertMutation.mutate(true),
+					onCancel: closeDialog,
+				});
+				return;
+			}
+			toast.error(error.message || "Failed to revert ticket");
+		},
+	});
+
+	const handleRevertClick = () => {
+		openConfirm({
+			title: "Revert to Pending",
+			message:
+				"This resets the ticket back to Pending Review, clearing its payment and RSVP status. Continue?",
+			confirmLabel: "Revert",
+			cancelLabel: "Cancel",
+			type: "warning",
+			icon: "alert",
+			size: "sm",
+			onConfirm: () => revertMutation.mutate(undefined),
+			onCancel: closeDialog,
+		});
+	};
+
 	const handleArchiveClick = () => {
 		openConfirm({
 			title: "Archive Ticket",
@@ -238,15 +288,37 @@ export function useTicketActions({
 		});
 	};
 
+	const handleResendFeedbackEmailClick = () => {
+		openConfirm({
+			title: "Resend Feedback Email",
+			message:
+				ticket.status === "scanned"
+					? "Resend the thank-you email with the feedback form link to this attendee?"
+					: "This attendee was never checked in. Send the thank-you email with the feedback form link anyway?",
+			confirmLabel: "Resend Email",
+			cancelLabel: "Cancel",
+			type: "warning",
+			icon: "alert",
+			size: "sm",
+			onConfirm: () => {
+				resendFeedbackEmailMutation.mutate();
+			},
+			onCancel: closeDialog,
+		});
+	};
+
 	return {
+		eventId,
 		openEditModal,
-		openViewModal,
 		openQRModal,
 		openUnscanModal,
 		handleArchiveClick,
 		handleDeleteClick,
 		handleRestoreClick,
 		handleResendConfirmationEmailClick,
+		handleResendFeedbackEmailClick,
+		handleRevertClick,
+		revertMutation,
 	};
 }
 
@@ -258,15 +330,35 @@ export function TicketActionsMenu({
 	const isArchived = !!deletedAt;
 
 	const {
+		eventId,
 		openEditModal,
-		openViewModal,
 		openQRModal,
 		openUnscanModal,
 		handleArchiveClick,
 		handleDeleteClick,
 		handleRestoreClick,
 		handleResendConfirmationEmailClick,
+		handleResendFeedbackEmailClick,
+		handleRevertClick,
+		revertMutation,
 	} = useTicketActions({ ticket });
+
+	// Shared key with the event pages, so every row reads one cached fetch.
+	const { data: event } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+		enabled: !!eventId,
+	});
+	const emailSetting = event?.event_email_setting;
+	// Mirrors the backend guard in TicketsController#resend_feedback_email;
+	// the backend also checks the form is active and has questions.
+	const showResendFeedbackEmail =
+		!isArchived &&
+		(user?.role === "org_owner" || user?.role === "organizer") &&
+		!!event?.ended &&
+		!!emailSetting?.thank_you_include_feedback &&
+		emailSetting.emails_enabled &&
+		!emailSetting.disabled_categories.includes("thank_you");
 
 	// Check if unscan button should be shown
 	// For org_owner or organizer and when ticket status is "scanned"
@@ -282,8 +374,18 @@ export function TicketActionsMenu({
 		user?.role === "org_owner" || user?.role === "organizer";
 	const showRestore =
 		isArchived && ["org_owner", "organizer"].includes(user?.role || "");
+	const showRevert =
+		!isArchived &&
+		ticket.status !== "scanned" &&
+		ticket.ticketApplication?.reviewStatus === "approved" &&
+		["org_owner", "organizer"].includes(user?.role || "");
 	const showMoreMenu =
-		showArchive || showDelete || showRestore || showResendConfirmationEmail;
+		showArchive ||
+		showDelete ||
+		showRestore ||
+		showResendConfirmationEmail ||
+		showResendFeedbackEmail ||
+		showRevert;
 
 	return (
 		<ButtonGroup>
@@ -295,15 +397,6 @@ export function TicketActionsMenu({
 				title="Edit Ticket"
 			>
 				<Pencil className="size-4" />
-			</Button>
-			<Button
-				size="icon-sm"
-				variant="outline"
-				className="h-8 w-8 rounded-none p-0 text-green-500 hover:bg-green-50 hover:text-green-600 [&_svg]:text-green-500 hover:[&_svg]:text-green-600"
-				onClick={openViewModal}
-				title="View Ticket"
-			>
-				<Eye className="size-4" />
 			</Button>
 			<Button
 				size="icon-sm"
@@ -369,6 +462,25 @@ export function TicketActionsMenu({
 							>
 								<Send className="mr-2 h-4 w-4" />
 								Resend Ticket Email
+							</DropdownMenuItem>
+						)}
+						{showResendFeedbackEmail && (
+							<DropdownMenuItem
+								className="rounded-none"
+								onClick={handleResendFeedbackEmailClick}
+							>
+								<MessageSquareHeart className="mr-2 h-4 w-4" />
+								Resend Feedback Email
+							</DropdownMenuItem>
+						)}
+						{showRevert && (
+							<DropdownMenuItem
+								className="rounded-none"
+								onClick={handleRevertClick}
+								disabled={revertMutation.isPending}
+							>
+								<Undo2 className="mr-2 h-4 w-4 text-amber-600" />
+								Revert to Pending
 							</DropdownMenuItem>
 						)}
 						{showDelete && (

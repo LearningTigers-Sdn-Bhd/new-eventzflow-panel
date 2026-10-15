@@ -127,7 +127,9 @@ export function MobileTableControl<TData>({
 		const control =
 			config.type === "sort"
 				? renderSortButton(config)
-				: renderFilterSelect(config);
+				: config.type === "custom"
+					? config.render?.()
+					: renderFilterSelect(config);
 
 		return (
 			<div
@@ -146,6 +148,7 @@ export function MobileTableControl<TData>({
 				columns={searchConfig.columns}
 				placeholder={searchConfig.placeholder}
 				searchCustomFields={searchConfig.enableCustomSearch}
+				controlled={searchConfig.controlled}
 			/>
 			{controlConfigs.length > 0 && (
 				<Collapsible>

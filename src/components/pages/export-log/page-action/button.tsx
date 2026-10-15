@@ -10,6 +10,13 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 type Preset = "all" | "today" | "last7" | "last30" | "custom";
 
@@ -37,19 +44,30 @@ function getPresetDates(preset: Preset): { from: string; to: string } {
 	return { from: "", to: "" };
 }
 
+type ExportType = "ticket-list" | "selfie-zip";
+
 interface ExportLogPageButtonProps {
-	onCreateExport: (from?: string, to?: string) => void;
+	onCreateExport: (params: {
+		type: ExportType;
+		from?: string;
+		to?: string;
+		ticketTypeId?: number;
+	}) => void;
 	isCreating: boolean;
+	ticketTypeOptions: { label: string; value: string }[];
 }
 
 export function ExportLogPageButton({
 	onCreateExport,
 	isCreating,
+	ticketTypeOptions,
 }: ExportLogPageButtonProps) {
 	const [open, setOpen] = React.useState(false);
+	const [exportType, setExportType] = React.useState<ExportType>("ticket-list");
 	const [preset, setPreset] = React.useState<Preset>("all");
 	const [from, setFrom] = React.useState("");
 	const [to, setTo] = React.useState("");
+	const [ticketTypeId, setTicketTypeId] = React.useState("all");
 
 	const handlePresetSelect = (selected: Preset) => {
 		setPreset(selected);
@@ -61,11 +79,18 @@ export function ExportLogPageButton({
 	};
 
 	const handleExport = () => {
-		onCreateExport(from || undefined, to || undefined);
+		onCreateExport({
+			type: exportType,
+			from: from || undefined,
+			to: to || undefined,
+			ticketTypeId: ticketTypeId === "all" ? undefined : Number(ticketTypeId),
+		});
 		setOpen(false);
+		setExportType("ticket-list");
 		setPreset("all");
 		setFrom("");
 		setTo("");
+		setTicketTypeId("all");
 	};
 
 	const presets: { value: Preset; label: string }[] = [
@@ -85,11 +110,32 @@ export function ExportLogPageButton({
 					className="rounded-none"
 				>
 					<FileDown className="size-4" />
-					{isCreating ? "Creating Export..." : "Export Tickets"}
+					{isCreating ? "Creating Export..." : "Export"}
 					<ChevronDown className="ml-1 size-3" />
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent className="w-52 rounded-none" align="end">
+			<DropdownMenuContent className="w-64 rounded-none" align="end">
+				<div className="space-y-2 p-2">
+					<label
+						htmlFor="export-type"
+						className="mb-1 block font-medium text-muted-foreground text-xs"
+					>
+						Export
+					</label>
+					<Select
+						value={exportType}
+						onValueChange={(value) => setExportType(value as ExportType)}
+					>
+						<SelectTrigger id="export-type" className="w-full rounded-none">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent className="rounded-none">
+							<SelectItem value="ticket-list">Ticket List (Excel)</SelectItem>
+							<SelectItem value="selfie-zip">Selfies (ZIP)</SelectItem>
+						</SelectContent>
+					</Select>
+				</div>
+				<DropdownMenuSeparator />
 				{presets.map((p) => (
 					<DropdownMenuItem
 						key={p.value}
@@ -110,7 +156,7 @@ export function ExportLogPageButton({
 						<DropdownMenuSeparator />
 						<div className="space-y-2 p-2">
 							<div>
-								<label className="mb-1 block text-xs font-medium text-muted-foreground">
+								<label className="mb-1 block font-medium text-muted-foreground text-xs">
 									From
 								</label>
 								<input
@@ -121,7 +167,7 @@ export function ExportLogPageButton({
 								/>
 							</div>
 							<div>
-								<label className="mb-1 block text-xs font-medium text-muted-foreground">
+								<label className="mb-1 block font-medium text-muted-foreground text-xs">
 									To
 								</label>
 								<input
@@ -134,6 +180,33 @@ export function ExportLogPageButton({
 						</div>
 					</>
 				)}
+				<DropdownMenuSeparator />
+				<div className="space-y-2 p-2">
+					<div>
+						<label
+							htmlFor="export-ticket-type"
+							className="mb-1 block font-medium text-muted-foreground text-xs"
+						>
+							Ticket Type
+						</label>
+						<Select value={ticketTypeId} onValueChange={setTicketTypeId}>
+							<SelectTrigger
+								id="export-ticket-type"
+								className="w-full rounded-none"
+							>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent className="rounded-none">
+								<SelectItem value="all">All types</SelectItem>
+								{ticketTypeOptions.map((option) => (
+									<SelectItem key={option.value} value={option.value}>
+										{option.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+				</div>
 				<DropdownMenuSeparator />
 				<div className="p-2">
 					<Button

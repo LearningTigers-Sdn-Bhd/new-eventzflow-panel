@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { DollarSign, QrCode, Ticket } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { TimeSeriesChart } from "@/components/admin-ui/analytic";
 import {
 	ExportPdfButton,
@@ -14,72 +14,74 @@ import {
 	getAnalyticsParamsFromSelection,
 	getDateFilterLabelFromSelection,
 } from "@/components/ui/event-date-filter";
-import { getEventAnalytics } from "@/lib/api/dashboard";
+import type { EventAnalytics } from "@/lib/api/dashboard/response";
 import { getHourlyBreakdownByDay } from "@/lib/api/event/analytics";
 import type { Event } from "@/lib/api/event/response";
 
 interface EventDetailsTicketStatsProps {
 	event: Event;
+	// Mirrors the page's "Include re-scans" toggle so the on-screen charts and the
+	// exported PDF count re-entry scans when it's on. The PDF report already labels
+	// this variant ("Total Scans" + "N unique tickets checked in") based on the data.
+	includeMultiScans?: boolean;
+	// Fetched once by the parent page (shared with the Key Metrics summary cards
+	// so both are scoped to the same date filter — no duplicate request).
+	ticketAnalytics?: EventAnalytics;
+	isLoading?: boolean;
+	dateSelection: EventDateSelection;
+	onDateSelectionChange: (value: EventDateSelection) => void;
 }
 
 export function EventDetailsTicketStats({
 	event,
+	includeMultiScans = false,
+	ticketAnalytics,
+	isLoading = false,
+	dateSelection,
+	onDateSelectionChange,
 }: EventDetailsTicketStatsProps) {
-	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
-		type: "all_time",
-	});
-
 	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
 
-	// Fetch ticket analytics with time-series data
-	const { data: ticketAnalytics, isLoading: ticketLoading } = useQuery({
+	// Fetch hourly breakdown by day for all_time, pre_event, or event_duration filter
+	// (works for single-day events too — just renders one day's bars)
+	const shouldFetchHourlyBreakdown =
+		dateSelection.type === "all_time" ||
+		dateSelection.type === "pre_event" ||
+		dateSelection.type === "event_duration";
+
+	const { data: hourlyRegistrations, isLoading: hourlyRegistrationsLoading } =
+		useQuery({
+			queryKey: [
+				"event",
+				event.id,
+				"hourly_breakdown",
+				"tickets",
+				dateSelection,
+			],
+			queryFn: () =>
+				getHourlyBreakdownByDay(event.id.toString(), "tickets", {
+					dateMode: analyticsParams.dateMode,
+					startDate: analyticsParams.startDate,
+					endDate: analyticsParams.endDate,
+				}),
+			enabled: shouldFetchHourlyBreakdown,
+		});
+
+	const { data: hourlyScans, isLoading: hourlyScansLoading } = useQuery({
 		queryKey: [
-			"event-analytics",
-			event.id.toString(),
-			"time-series",
+			"event",
+			event.id,
+			"hourly_breakdown",
+			"scans",
 			dateSelection,
+			includeMultiScans,
 		],
 		queryFn: () =>
-			getEventAnalytics(event.id.toString(), {
-				startDate: analyticsParams.startDate,
-				endDate: analyticsParams.endDate,
-				dateMode: analyticsParams.dateMode,
-				groupBy: analyticsParams.groupBy,
-			}),
-	});
-
-	// Determine if event spans multiple days (for hourly breakdown)
-	const isMultiDayEvent = useMemo(() => {
-		const start = new Date(event.start_date);
-		const end = new Date(event.end_date);
-		return start.toDateString() !== end.toDateString();
-	}, [event.start_date, event.end_date]);
-
-	// Fetch hourly breakdown by day for multi-day events with all_time, pre_event, or event_duration filter
-	const shouldFetchHourlyBreakdown =
-		isMultiDayEvent &&
-		(dateSelection.type === "all_time" ||
-			dateSelection.type === "pre_event" ||
-			dateSelection.type === "event_duration");
-
-	const { data: hourlyRegistrations } = useQuery({
-		queryKey: ["event", event.id, "hourly_breakdown", "tickets", dateSelection],
-		queryFn: () =>
-			getHourlyBreakdownByDay(event.id, "tickets", {
+			getHourlyBreakdownByDay(event.id.toString(), "scans", {
 				dateMode: analyticsParams.dateMode,
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
-			}),
-		enabled: shouldFetchHourlyBreakdown,
-	});
-
-	const { data: hourlyScans } = useQuery({
-		queryKey: ["event", event.id, "hourly_breakdown", "scans", dateSelection],
-		queryFn: () =>
-			getHourlyBreakdownByDay(event.id, "scans", {
-				dateMode: analyticsParams.dateMode,
-				startDate: analyticsParams.startDate,
-				endDate: analyticsParams.endDate,
+				includeMultiScans,
 			}),
 		enabled: shouldFetchHourlyBreakdown,
 	});
@@ -88,6 +90,12 @@ export function EventDetailsTicketStats({
 		() => getDateFilterLabelFromSelection(dateSelection, event.start_date),
 		[dateSelection, event.start_date],
 	);
+
+	// Hourly breakdown queries only run for certain filters — don't block
+	// export on them when they're not enabled (would never resolve).
+	const hourlyBreakdownLoading =
+		shouldFetchHourlyBreakdown &&
+		(hourlyRegistrationsLoading || hourlyScansLoading);
 
 	// Prepare PDF report data
 	const pdfReportData = useMemo(() => {
@@ -109,9 +117,13 @@ export function EventDetailsTicketStats({
 			},
 			{
 				totalTickets: ticketAnalytics?.totalTickets ?? 0,
+				paidTickets: ticketAnalytics?.paidTickets ?? 0,
+				pendingTickets: ticketAnalytics?.pendingTickets ?? 0,
+				totalVisitors: ticketAnalytics?.totalVisitors ?? 0,
 				scannedTickets: ticketAnalytics?.scannedTickets ?? 0,
 				unscannedTickets: ticketAnalytics?.unscannedTickets ?? 0,
 				totalRevenue: ticketAnalytics?.totalRevenue ?? 0,
+				pendingRevenue: ticketAnalytics?.pendingRevenue ?? 0,
 			},
 			{
 				registrations: ticketAnalytics?.registrationData,
@@ -139,13 +151,13 @@ export function EventDetailsTicketStats({
 						eventStartDate={event.start_date}
 						eventEndDate={event.end_date}
 						value={dateSelection}
-						onChange={setDateSelection}
+						onChange={onDateSelectionChange}
 					/>
 					<ExportPdfButton
 						data={pdfReportData}
 						size="sm"
 						variant="outline"
-						disabled={ticketLoading}
+						disabled={isLoading || hourlyBreakdownLoading}
 					/>
 				</div>
 			</div>
@@ -154,7 +166,7 @@ export function EventDetailsTicketStats({
 					title="Ticket Registrations"
 					description="Ticket registrations over time"
 					data={ticketAnalytics?.registrationData}
-					isLoading={ticketLoading}
+					isLoading={isLoading}
 					color="var(--chart-1)"
 					icon={<Ticket className="h-4 w-4" />}
 				/>
@@ -162,7 +174,7 @@ export function EventDetailsTicketStats({
 					title="Ticket Scans"
 					description="Ticket scans over time"
 					data={ticketAnalytics?.scanData}
-					isLoading={ticketLoading}
+					isLoading={isLoading}
 					color="var(--chart-2)"
 					icon={<QrCode className="h-4 w-4" />}
 				/>
@@ -170,7 +182,7 @@ export function EventDetailsTicketStats({
 					title="Revenue"
 					description="Sales revenue over time"
 					data={ticketAnalytics?.revenueData}
-					isLoading={ticketLoading}
+					isLoading={isLoading}
 					color="var(--chart-3)"
 					icon={<DollarSign className="h-4 w-4" />}
 				/>

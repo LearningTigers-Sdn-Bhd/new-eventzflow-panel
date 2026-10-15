@@ -220,7 +220,9 @@ export async function updateVendor(
 				full_name: validated.full_name,
 				email: validated.email,
 				phone: validated.phone,
-				...(validated.created_by_id !== undefined && { created_by_id: validated.created_by_id }),
+				...(validated.created_by_id !== undefined && {
+					created_by_id: validated.created_by_id,
+				}),
 			},
 		};
 

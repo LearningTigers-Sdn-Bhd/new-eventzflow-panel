@@ -182,16 +182,9 @@ function ContractorEventCard({
 						<ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5 sm:h-3.5 sm:w-3.5" />
 					</Button>
 				</div>
-				<div className="flex flex-wrap items-center gap-2">
-					<Badge
-						className={cn(
-							"shrink-0 rounded-none text-xs capitalize",
-							getEventStatusClass(event.status),
-						)}
-					>
-						{event.status}
-					</Badge>
-					<span className="text-muted-foreground text-xs">
+				<div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+					<Calendar className="size-4 shrink-0 text-muted-foreground/70" />
+					<span>
 						{formatDate(event.start_date)} - {formatDate(event.end_date)}
 					</span>
 				</div>

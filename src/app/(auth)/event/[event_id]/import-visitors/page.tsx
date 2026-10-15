@@ -1,23 +1,12 @@
 "use client";
 
-import {
-	AlertCircle,
-	CheckCircle2,
-	FileSpreadsheet,
-	Info,
-	Upload,
-} from "lucide-react";
+import { AlertCircle, Info } from "lucide-react";
 import { use, useMemo, useState } from "react";
 import { EmptyState } from "@/components/data-state";
-import { EventImportVisitorsForm } from "@/components/pages/import/event-import-visitors-form";
+import { ImportDataFlow } from "@/components/pages/import/import-data-flow";
 import { ImportedItem } from "@/components/pages/import/imported-item";
 import Banner from "@/components/ui/banner";
 import { Button } from "@/components/ui/button";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import {
 	Select,
 	SelectContent,
@@ -37,7 +26,6 @@ export default function ImportVisitorsPage({
 
 	const [currentPage, setCurrentPage] = useState(0);
 	const [itemsPerPage] = useState(10);
-	const [isGuideOpen, setIsGuideOpen] = useState(false);
 	const {
 		liveResult,
 		setLiveResult,
@@ -67,131 +55,6 @@ export default function ImportVisitorsPage({
 
 	return (
 		<div className="p-0">
-			{/* Import Guidelines - Collapsible */}
-			<Collapsible open={isGuideOpen} onOpenChange={setIsGuideOpen}>
-				<CollapsibleTrigger asChild>
-					<div className="flex cursor-pointer items-center justify-between border border-dashed bg-muted/30 p-4 hover:bg-muted/50">
-						<div className="flex items-center gap-3">
-							<div className="flex h-8 w-8 items-center justify-center rounded-md border bg-background">
-								<FileSpreadsheet className="h-4 w-4 text-primary" />
-							</div>
-							<div>
-								<h3 className="font-semibold text-sm">Import Guidelines</h3>
-								<p className="text-muted-foreground text-xs">
-									Click to {isGuideOpen ? "hide" : "view"} step-by-step
-									instructions for importing visitors
-								</p>
-							</div>
-						</div>
-						<Button variant="ghost" size="sm" className="rounded-none border">
-							{isGuideOpen ? "Hide" : "Show"} Guide
-						</Button>
-					</div>
-				</CollapsibleTrigger>
-				<CollapsibleContent>
-					<div className="space-y-4 border-x border-dashed bg-muted/20 p-4">
-						{/* Step 1: Download Template */}
-						<div className="flex gap-3">
-							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-xs">
-								1
-							</div>
-							<div>
-								<h4 className="font-medium text-sm">Download the Template</h4>
-								<p className="mt-1 text-muted-foreground text-xs">
-									Click the "Download Template" button to get an Excel file with
-									the correct column headers. The template includes pre-filled
-									event title and any custom fields configured for this event.
-								</p>
-							</div>
-						</div>
-
-						{/* Step 2: Fill in Data */}
-						<div className="flex gap-3">
-							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-xs">
-								2
-							</div>
-							<div>
-								<h4 className="font-medium text-sm">Fill in Visitor Data</h4>
-								<p className="mt-1 text-muted-foreground text-xs">
-									Add your visitor information to the template. Required and
-									optional columns:
-								</p>
-								<div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2">
-									<div className="rounded border bg-background p-2">
-										<p className="font-medium text-green-600 text-xs">
-											Required
-										</p>
-										<ul className="mt-1 space-y-0.5 text-muted-foreground text-xs">
-											<li className="flex items-center gap-1">
-												<CheckCircle2 className="h-3 w-3 text-green-600" />
-												Full Name
-											</li>
-											<li className="flex items-center gap-1">
-												<CheckCircle2 className="h-3 w-3 text-green-600" />
-												Event Title (must match exactly)
-											</li>
-										</ul>
-									</div>
-									<div className="rounded border bg-background p-2">
-										<p className="font-medium text-blue-600 text-xs">
-											Optional
-										</p>
-										<ul className="mt-1 space-y-0.5 text-muted-foreground text-xs">
-											<li>Email (recommended for duplicate detection)</li>
-											<li>Phone</li>
-											<li>Gender</li>
-											<li>Age</li>
-											<li>Custom fields (if configured)</li>
-										</ul>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						{/* Step 3: Upload */}
-						<div className="flex gap-3">
-							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-xs">
-								3
-							</div>
-							<div>
-								<h4 className="font-medium text-sm">Upload and Import</h4>
-								<p className="mt-1 text-muted-foreground text-xs">
-									Drag and drop your file or click to browse. Supported formats:
-									.xlsx, .xls, .csv (max 10MB). Click "Import Visitors" to
-									process the file.
-								</p>
-							</div>
-						</div>
-
-						{/* Tips */}
-						<div className="rounded border border-amber-500/30 bg-amber-500/5 p-3">
-							<h4 className="flex items-center gap-2 font-medium text-amber-700 text-sm dark:text-amber-400">
-								<AlertCircle className="h-4 w-4" />
-								Tips for Successful Import
-							</h4>
-							<ul className="mt-2 space-y-1 text-muted-foreground text-xs">
-								<li>
-									• Keep the header row exactly as provided in the template
-								</li>
-								<li>
-									• Event Title must match your event name exactly
-									(case-sensitive)
-								</li>
-								<li>• Provide email or phone for better duplicate detection</li>
-								<li>
-									• Matching visitors will be updated with new data (including
-									name)
-								</li>
-								<li>
-									• Check the "Import Results" section after upload to see
-									details
-								</li>
-							</ul>
-						</div>
-					</div>
-				</CollapsibleContent>
-			</Collapsible>
-
 			<Banner
 				title="Duplicate Detection"
 				description="Visitors are matched by: 1) Email (if provided), 2) Phone (if provided), 3) Name (as fallback). Two visitors with the same name but different emails are treated as different people."
@@ -200,19 +63,17 @@ export default function ImportVisitorsPage({
 				className="border-amber-500/20 bg-amber-500/5 [&_div:first-child]:border-amber-500/30 [&_div:first-child]:bg-amber-500/10"
 			/>
 
-			<div className="grid min-h-[65vh] grid-cols-1 gap-8 divide-x-0 divide-dashed border-t border-dashed pt-6 lg:grid-cols-2 lg:gap-0 lg:divide-x">
-				<div className="col-span-1 mb-8 flex flex-col border-y border-dashed">
-					<div className="flex items-center gap-2 border-b border-dashed p-2 md:p-4">
-						<Upload className="h-5 w-5 text-muted-foreground" />
-						<div>
-							<h3 className="font-semibold text-sm">Upload Visitors File</h3>
-							<p className="text-muted-foreground text-xs">
-								Upload your visitors data from an XLSX or CSV file.
-							</p>
-						</div>
-					</div>
-					<EventImportVisitorsForm eventId={eventId} onResult={setLiveResult} />
-				</div>
+			{/* Inline two-pane import flow: guidelines/steps left, preview right. */}
+			<div className="flex min-h-[65vh] flex-col border-t border-dashed">
+				<ImportDataFlow
+					importType="visitors"
+					lockedEventId={eventId}
+					onImported={setLiveResult}
+				/>
+			</div>
+
+			{/* Post-import results (from the last committed import). */}
+			<div className="grid grid-cols-1 gap-8 border-t border-dashed pt-6">
 				<div className="col-span-1 mb-8 flex flex-col border-y border-dashed">
 					<div className="flex items-center gap-2 border-b border-dashed p-2 md:p-4">
 						<Info className="h-5 w-5 text-muted-foreground" />

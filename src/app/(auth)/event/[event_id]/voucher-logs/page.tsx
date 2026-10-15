@@ -6,9 +6,9 @@ import { use } from "react";
 import { EmptyState } from "@/components/data-state";
 import { FeatureLockedState } from "@/components/feature-locked-state";
 import { DataTable } from "@/components/pages/voucher-redemption/table/voucher-log-table";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getEventById } from "@/lib/api/event";
 import { getRedemptionLogs } from "@/lib/api/voucher-redemption-log";
 
@@ -21,7 +21,7 @@ export default function VoucherLogsPage({
 	const eventId = Number(event_id);
 
 	// Check permissions - only org_owner, organizer, event_admin can view
-	const permissions = useEventPermissions(event_id);
+	const { permissions } = useEventSidebarContext();
 	const { data: event, isLoading: isLoadingEvent } = useQuery({
 		queryKey: ["event", event_id],
 		queryFn: () => getEventById(event_id),

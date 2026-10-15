@@ -1,9 +1,9 @@
 "use client";
 
-import { AlertCircle, Import, Info, Ticket, Upload, Users } from "lucide-react";
+import { AlertCircle, Import, Info, Ticket, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/data-state";
-import { ImportFullForm } from "@/components/pages/import/import-full-form";
+import { ImportDataFlow } from "@/components/pages/import/import-data-flow";
 import { ImportedItem } from "@/components/pages/import/imported-item";
 import Banner from "@/components/ui/banner";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { type FilterType, useImportResults } from "@/hooks/use-import-results";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import type { ImportType } from "@/lib/api/imports/types";
 
 const IMPORT_OPTIONS = [
@@ -34,8 +35,10 @@ const IMPORT_OPTIONS = [
 ];
 
 export default function ImportPage() {
+	// Persisted so an upload/preview (which remounts the page section) doesn't
+	// bounce the user back to the ticket/visitor selection screen.
 	const [selectedImportType, setSelectedImportType] =
-		useState<ImportType | null>(null);
+		usePersistedState<ImportType | null>("import:selected-type", null);
 	const [currentPage, setCurrentPage] = useState(0);
 	const [itemsPerPage] = useState(10);
 	const {
@@ -170,21 +173,17 @@ export default function ImportPage() {
 				/>
 			)}
 
-			<div className="grid min-h-[65vh] grid-cols-1 gap-8 divide-x-0 divide-dashed border-t border-dashed pt-6 lg:grid-cols-2 lg:gap-0 lg:divide-x">
-				<div className="col-span-1 mb-8 flex flex-col border-y border-dashed">
-					<div className="p-2 md:p-4">
-						<IconTitle
-							icon={Upload}
-							title={`Upload ${selectedOption?.label} File`}
-							description={`Upload your ${selectedOption?.label.toLowerCase()} data from a XLSX or CSV file.`}
-						/>
-					</div>
-					<ImportFullForm
-						key={selectedImportType}
-						importType={selectedImportType}
-						onResult={setLiveResult}
-					/>
-				</div>
+			{/* Inline two-pane import flow: guidelines/steps left, preview right. */}
+			<div className="flex min-h-[65vh] flex-col border-t border-dashed">
+				<ImportDataFlow
+					key={selectedImportType}
+					importType={selectedImportType}
+					onImported={setLiveResult}
+				/>
+			</div>
+
+			{/* Post-import results (from the last committed import). */}
+			<div className="grid grid-cols-1 gap-8 border-t border-dashed pt-6">
 				<div className="col-span-1 mb-8 flex flex-col border-y border-dashed">
 					<div className="border-b border-dashed p-2 md:p-4">
 						<IconTitle

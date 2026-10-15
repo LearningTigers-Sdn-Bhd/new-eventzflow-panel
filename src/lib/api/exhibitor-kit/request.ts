@@ -20,22 +20,17 @@ export const exhibitorTeamMemberSchema = z
 			});
 		}
 
+		// Email/phone are optional (fast on-site registration); format is only
+		// checked when a value is given, matching the backend's ExhibitorTeamMember
+		// validation.
 		if (
-			data.email.trim().length === 0 ||
+			data.email.trim().length > 0 &&
 			!z.email().safeParse(data.email).success
 		) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
 				path: ["email"],
 				message: "Valid email is required",
-			});
-		}
-
-		if (data.phone.trim().length === 0) {
-			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
-				path: ["phone"],
-				message: "Phone number is required",
 			});
 		}
 	});
@@ -95,6 +90,7 @@ export const paymentStatusEnum = z.enum([
 	"paid",
 	"waived",
 	"sponsored",
+	"deposit",
 ]);
 
 // Create exhibitor kit schema
@@ -163,6 +159,9 @@ export const updateExhibitorKitSchema = z.object({
 	payment_note: z.string().optional(),
 	indemnity_link: z.string().url().optional().or(z.literal("")),
 	custom_fields_data: z.record(z.string(), z.unknown()).optional(),
+	exhibitor_booth_price_id: z.number().optional(),
+	exhibitor_package_id: z.number().nullable().optional(),
+	voucher_code: z.string().optional(),
 	exhibitor_team_members_attributes: z
 		.array(exhibitorTeamMemberSchema)
 		.optional(),

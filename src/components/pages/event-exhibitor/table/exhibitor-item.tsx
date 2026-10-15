@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Item,
 	ItemActions,
@@ -25,9 +26,15 @@ import type { ExhibitorMember } from "./columns";
 
 interface ExhibitorItemProps {
 	exhibitor: ExhibitorMember;
+	selected?: boolean;
+	onSelectedChange?: (selected: boolean) => void;
 }
 
-export function ExhibitorItem({ exhibitor }: ExhibitorItemProps) {
+export function ExhibitorItem({
+	exhibitor,
+	selected,
+	onSelectedChange,
+}: ExhibitorItemProps) {
 	const { vendor, kit } = exhibitor;
 
 	const getPaymentStatusColor = (status: string) => {
@@ -45,6 +52,14 @@ export function ExhibitorItem({ exhibitor }: ExhibitorItemProps) {
 			<ItemContent className="flex flex-col gap-3">
 				<ItemTitle className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
+						{onSelectedChange && (
+							<Checkbox
+								checked={!!selected}
+								onCheckedChange={(value) => onSelectedChange(!!value)}
+								aria-label={`Select ${kit.company_name || vendor.vendor.full_name}`}
+								className="rounded-none"
+							/>
+						)}
 						{kit?.booth_number && (
 							<Badge variant="secondary" className="rounded-none font-mono">
 								{kit.booth_number}
@@ -137,13 +152,13 @@ export function ExhibitorItem({ exhibitor }: ExhibitorItemProps) {
 					<div className="flex items-center gap-2">
 						<Building2 className="size-4 shrink-0" />
 						<span className="text-sm">
-						Created on {formatDateTime(kit.created_at || vendor.created_at)}
+							Created on {formatDateTime(kit.created_at || vendor.created_at)}
 						</span>
 					</div>
 				</div>
 			</ItemContent>
 			<ItemActions>
-			<ExhibitorActionsMenu exhibitor={vendor} kit={kit} />
+				<ExhibitorActionsMenu exhibitor={vendor} kit={kit} />
 			</ItemActions>
 		</Item>
 	);

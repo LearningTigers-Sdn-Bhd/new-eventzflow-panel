@@ -4,12 +4,19 @@ import {
 	getEmailDeliveriesSchema,
 	type ResendEmailDeliveryRequest,
 	resendEmailDeliverySchema,
+	type UpdateEmailLogSettingsRequest,
+	updateEmailLogSettingsSchema,
 } from "./request";
 import type {
 	BackendEmailDelivery,
 	BackendEmailDeliveryListResponse,
 	BackendEmailDeliveryShowResponse,
+	BackendEmailDeliverySummaryResponse,
+	BackendEmailLogSettingsResponse,
 	EmailDelivery,
+	EmailDeliveryPage,
+	EmailDeliverySummary,
+	EmailLogSettings,
 } from "./response";
 
 const mapDelivery = (delivery: BackendEmailDelivery): EmailDelivery => ({
@@ -45,7 +52,7 @@ const mapDelivery = (delivery: BackendEmailDelivery): EmailDelivery => ({
 
 export async function getEmailDeliveries(
 	data: GetEmailDeliveriesRequest = {},
-): Promise<EmailDelivery[]> {
+): Promise<EmailDeliveryPage> {
 	const validated = getEmailDeliveriesSchema.parse(data);
 	const searchParams = new URLSearchParams();
 
@@ -53,6 +60,7 @@ export async function getEmailDeliveries(
 		searchParams.set("event_id", String(validated.eventId));
 	if (validated.status) searchParams.set("status", validated.status);
 	if (validated.recipient) searchParams.set("recipient", validated.recipient);
+	if (validated.search) searchParams.set("search", validated.search);
 	if (validated.subject) searchParams.set("subject", validated.subject);
 	if (validated.providerMessageId) {
 		searchParams.set("provider_message_id", validated.providerMessageId);
@@ -69,7 +77,61 @@ export async function getEmailDeliveries(
 		`v1/email_deliveries${query ? `?${query}` : ""}`,
 	);
 
-	return response.data.map(mapDelivery);
+	return {
+		items: response.data.map(mapDelivery),
+		pagination: {
+			currentPage: response.pagination.current_page,
+			totalPages: response.pagination.total_pages,
+			totalCount: response.pagination.total_count,
+			perPage: response.pagination.per_page,
+		},
+	};
+}
+
+export async function getEmailDeliverySummary(
+	eventId?: number,
+): Promise<EmailDeliverySummary> {
+	const query = eventId ? `?event_id=${eventId}` : "";
+	const response = await restClient.get<BackendEmailDeliverySummaryResponse>(
+		`v1/email_deliveries/summary${query}`,
+	);
+	return response.data;
+}
+
+const mapSettings = (
+	data: BackendEmailLogSettingsResponse["data"],
+): EmailLogSettings => ({
+	retentionDays: data.retention_days,
+	protectedRetentionDays: data.protected_retention_days,
+	rowsToPurge: data.rows_to_purge,
+});
+
+// With `preview`, the backend reports rowsToPurge for those values without
+// saving them.
+export async function getEmailLogSettings(
+	preview?: UpdateEmailLogSettingsRequest,
+): Promise<EmailLogSettings> {
+	const query = preview
+		? `?retention_days=${preview.retentionDays}&protected_retention_days=${preview.protectedRetentionDays}`
+		: "";
+	const response = await restClient.get<BackendEmailLogSettingsResponse>(
+		`v1/email_deliveries/settings${query}`,
+	);
+	return mapSettings(response.data);
+}
+
+export async function updateEmailLogSettings(
+	data: UpdateEmailLogSettingsRequest,
+): Promise<EmailLogSettings> {
+	const validated = updateEmailLogSettingsSchema.parse(data);
+	const response = await restClient.patch<BackendEmailLogSettingsResponse>(
+		"v1/email_deliveries/settings",
+		{
+			retention_days: validated.retentionDays,
+			protected_retention_days: validated.protectedRetentionDays,
+		},
+	);
+	return mapSettings(response.data);
 }
 
 export async function getEmailDelivery(id: number): Promise<EmailDelivery> {

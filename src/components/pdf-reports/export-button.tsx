@@ -9,7 +9,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { AnalyticsReportData } from "./types";
-import { type ExportStatus, useExportPdf } from "./use-export-pdf";
+import { useExportPdf } from "./use-export-pdf";
 
 interface ExportPdfButtonProps {
 	data: AnalyticsReportData | null;

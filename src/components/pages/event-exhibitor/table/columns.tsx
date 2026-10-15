@@ -1,9 +1,10 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowDown, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -42,32 +43,33 @@ function formatCreatedAt(dateString?: string | null): {
 
 const baseColumns: ColumnDef<ExhibitorMember>[] = [
 	{
-		id: "expand",
-		size: 50,
-		header: () => null,
-		cell: ({ row, table }) => {
-			const isExpanded =
-				(table.options.meta as any)?.expandedRows?.[row.id] || false;
-			return (
-				<Button
-					variant="ghost"
-					size="icon"
+		id: "select",
+		size: 40,
+		enableSorting: false,
+		enableHiding: false,
+		header: ({ table }) => (
+			<div className="flex justify-center">
+				<Checkbox
+					checked={
+						table.getIsAllPageRowsSelected() ||
+						(table.getIsSomePageRowsSelected() && "indeterminate")
+					}
+					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+					aria-label="Select all kits on this page"
 					className="rounded-none"
-					onClick={() => {
-						const meta = table.options.meta as any;
-						if (meta?.toggleRow) {
-							meta.toggleRow(row.id);
-						}
-					}}
-				>
-					{isExpanded ? (
-						<ChevronDown className="size-4" />
-					) : (
-						<ChevronRight className="size-4" />
-					)}
-				</Button>
-			);
-		},
+				/>
+			</div>
+		),
+		cell: ({ row }) => (
+			<div className="flex justify-center">
+				<Checkbox
+					checked={row.getIsSelected()}
+					onCheckedChange={(value) => row.toggleSelected(!!value)}
+					aria-label={`Select ${row.original.kit.company_name || "kit"}`}
+					className="rounded-none"
+				/>
+			</div>
+		),
 	},
 	{
 		accessorKey: "kit.booth_number",
@@ -99,8 +101,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		},
 	},
 	{
-		accessorFn: (row) =>
-			row.kit.company_name || row.vendor.vendor.full_name,
+		accessorFn: (row) => row.kit.company_name || row.vendor.vendor.full_name,
 		id: "company_name",
 		size: 200,
 		header: ({ column }) => {
@@ -146,7 +147,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		accessorKey: "kit.booth_type",
 		id: "booth_type",
 		size: 140,
-		filterFn: (row, id, value) => {
+		filterFn: (row, _id, value) => {
 			return row.original.kit.booth_type === value;
 		},
 		header: ({ column }) => {
@@ -217,6 +218,28 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			);
 		},
 	},
+	{
+		accessorFn: (row) => row.kit.exhibitor_booth_price_label ?? "",
+		id: "booth_pricing",
+		enableHiding: false,
+		filterFn: (row, id, value) => !value || row.getValue(id) === value,
+		header: () => null,
+		cell: () => null,
+	},
+	{
+		accessorFn: (row) => row.kit.exhibitor_booth_price_zone ?? "",
+		id: "zone",
+		enableHiding: false,
+		filterFn: (row, id, value) => {
+			if (!value) return true;
+			if (value === "__unassigned__") {
+				return !row.original.kit.exhibitor_booth_price_zone;
+			}
+			return row.getValue(id) === value;
+		},
+		header: () => null,
+		cell: () => null,
+	},
 
 	{
 		accessorKey: "kit.pic_full_name",
@@ -240,7 +263,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		accessorKey: "kit.payment_status",
 		id: "payment_status",
 		size: 140,
-		filterFn: (row, id, value) => {
+		filterFn: (row, _id, value) => {
 			return row.original.kit.payment_status === value;
 		},
 		header: ({ column }) => {
@@ -298,6 +321,12 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 						>
 							Sponsored
 						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue("deposit")}
+						>
+							Deposit
+						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			);
@@ -310,7 +339,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 				return (
 					<Badge
 						variant="outline"
-						className="rounded-none border-gray-500 font-bold capitalize text-gray-500"
+						className="rounded-none border-gray-500 font-bold text-gray-500 capitalize"
 					>
 						Cancelled
 					</Badge>
@@ -321,6 +350,7 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 				paid: "border-green-500 text-green-500",
 				waived: "border-gray-500 text-gray-500",
 				sponsored: "border-blue-500 text-blue-500",
+				deposit: "border-amber-500 text-amber-500",
 			};
 			return (
 				<Badge
@@ -366,8 +396,8 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			};
 
 			const maxVisible = 3;
-			const visibleMembers = members.slice(0, maxVisible);
-			const remainingCount = totalCount - maxVisible;
+			const _visibleMembers = members.slice(0, maxVisible);
+			const _remainingCount = totalCount - maxVisible;
 
 			return (
 				<Popover>
@@ -469,7 +499,9 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const { timePart, datePart } = formatCreatedAt(row.original.kit.created_at);
+			const { timePart, datePart } = formatCreatedAt(
+				row.original.kit.created_at,
+			);
 
 			return (
 				<div className="flex flex-col">

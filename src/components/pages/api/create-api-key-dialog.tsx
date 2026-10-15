@@ -16,11 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useUserPermissions } from "@/hooks/auth/use-user-permissions";
-import {
-	type ApiKeyScope,
-	createApiKey,
-	getApiKeys,
-} from "@/lib/api/api-keys";
+import { type ApiKeyScope, createApiKey, getApiKeys } from "@/lib/api/api-keys";
 
 interface CreateApiKeyDialogProps {
 	onClose: () => void;

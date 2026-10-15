@@ -65,18 +65,14 @@ export const emailDeliveriesColumns: ColumnDef<EmailDelivery>[] = [
 		accessorKey: "mailerName",
 		header: "Mailer",
 		cell: ({ row }) => (
-			<span className="text-sm">
-				{row.original.mailerName}.{row.original.mailerAction}
-			</span>
-		),
-	},
-	{
-		accessorKey: "providerMessageId",
-		header: "Provider ID",
-		cell: ({ row }) => (
-			<span className="text-muted-foreground text-xs">
-				{row.original.providerMessageId || "-"}
-			</span>
+			<div className="text-sm">
+				<p>
+					{row.original.mailerName}.{row.original.mailerAction}
+				</p>
+				<p className="break-all text-muted-foreground text-xs">
+					{row.original.providerMessageId || "-"}
+				</p>
+			</div>
 		),
 	},
 	{

@@ -35,7 +35,8 @@ export default function PublicLayout({
 		pathname.startsWith("/forget-password") ||
 		pathname.startsWith("/event") ||
 		pathname.startsWith("/vendor-signup") ||
-		pathname.startsWith("/payment");
+		pathname.startsWith("/payment") ||
+		pathname.startsWith("/exhibitor-kit");
 
 	// Redirect authenticated users away from auth pages
 	if (user && pathname.startsWith("/auth")) {
@@ -84,12 +85,16 @@ export default function PublicLayout({
 				{!isNavHidden && <FloatingNav />}
 				<main className="h-full w-full">{children}</main>
 				{isLandingPage && <Footer />}
-				{process.env.NODE_ENV === "production" && (
-					<Script
-						src="https://plugin.nytsys.com/api/site/663be6f4-0a22-4d55-af28-2ff3becb064c/nytsys.min.js"
-						strategy="afterInteractive"
-					/>
-				)}
+				{/* Third-party analytics plugin. Disabled by default for government /
+				    high-security deployments — set NEXT_PUBLIC_ENABLE_NYTSYS=true to
+				    re-enable. Loading external JS here is blocked by CSP otherwise. */}
+				{process.env.NODE_ENV === "production" &&
+					process.env.NEXT_PUBLIC_ENABLE_NYTSYS === "true" && (
+						<Script
+							src="https://plugin.nytsys.com/api/site/663be6f4-0a22-4d55-af28-2ff3becb064c/nytsys.min.js"
+							strategy="afterInteractive"
+						/>
+					)}
 			</div>
 		</>
 	);

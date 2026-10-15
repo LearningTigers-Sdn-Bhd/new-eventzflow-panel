@@ -44,12 +44,19 @@ export default function PaymentReceiptUpload({
 		multiple: false,
 	});
 
+	// `onChange` deliberately excluded from deps: callers often pass an inline
+	// arrow (new identity every render), which would re-fire this effect on
+	// every render once a file is selected — an infinite loop. Only the
+	// selected file itself should trigger the callback.
+	const onChangeRef = useRef(onChange);
+	onChangeRef.current = onChange;
+
 	useEffect(() => {
 		const firstFile = files[0]?.file;
 		if (firstFile instanceof File) {
-			onChange?.(firstFile);
+			onChangeRef.current?.(firstFile);
 		}
-	}, [files, onChange]);
+	}, [files]);
 
 	// Sync value prop with internal state
 	useEffect(() => {

@@ -15,6 +15,8 @@ export const userSchema = z.object({
 	]),
 	phone: z.string().nullable().optional(),
 	email_verified: z.boolean(),
+	is_pure_business_matching_admin: z.boolean().optional(),
+	business_matching_admin_event_ids: z.array(z.string()).optional(),
 });
 
 // Auth response schema
@@ -70,6 +72,17 @@ export const updatePasswordResponseSchema = z.object({
 	}),
 });
 
+// Check account response schema
+export const checkAccountResponseSchema = z.object({
+	success: z.boolean(),
+	message: z.string(),
+	data: z.object({
+		exists: z.boolean(),
+		identifier_type: z.enum(["email", "phone"]),
+		masked_identifier: z.string().optional(),
+	}),
+});
+
 // Export TypeScript types derived from schemas
 export type User = z.infer<typeof userSchema>;
 export type AuthResponse = z.infer<typeof authResponseSchema>;
@@ -82,3 +95,4 @@ export type ResetPasswordResponse = z.infer<typeof resetPasswordResponseSchema>;
 export type UpdatePasswordResponse = z.infer<
 	typeof updatePasswordResponseSchema
 >;
+export type CheckAccountResponse = z.infer<typeof checkAccountResponseSchema>;

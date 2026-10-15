@@ -1,4 +1,9 @@
 // Pure TypeScript types for API responses
+import type {
+	BackendTicketApplication,
+	ReviewStatus,
+	RsvpStatus,
+} from "@/lib/api/event/pending/response";
 
 // Frontend types (transformed from backend)
 export type Ticket = {
@@ -31,6 +36,21 @@ export type Ticket = {
 		value: string;
 	}>;
 	custom_fields_data?: Record<string, string> | null;
+	documents?: Array<{
+		key: string | null;
+		filename: string;
+		url: string;
+	}>;
+	vehicleRegistration?: {
+		plate: string;
+		registrationFormId: number;
+		registrationFormName: string | null;
+		registrationFormSlug: string | null;
+	} | null;
+	ticketApplication?: {
+		reviewStatus: ReviewStatus;
+		rsvpStatus: RsvpStatus;
+	};
 };
 
 export type ScannedTicket = {
@@ -71,6 +91,24 @@ export type CheckInResponse = {
 
 export type CreateTicketResponse = Ticket;
 export type UpdateTicketResponse = Ticket;
+
+// Bulk update ticket type response
+export type BulkUpdateTicketTypeResponse = {
+	updated: string[];
+	errors: Array<{ public_id: string; errors: string[] }>;
+};
+
+// Bulk archive response
+export type BulkArchiveResponse = {
+	archived: string[];
+	errors: Array<{ public_id: string; errors: string[] }>;
+};
+
+// Bulk delete response
+export type BulkDeleteResponse = {
+	deleted: string[];
+	errors: Array<{ public_id: string; errors: string[] }>;
+};
 
 // Import tickets response
 export type ImportTicketsResponse = {
@@ -126,6 +164,18 @@ export type BackendTicket = {
 		name: string;
 		price: number;
 	};
+	registration_documents_data?: Array<{
+		key: string | null;
+		filename: string;
+		url: string;
+	}>;
+	vehicle_registration_data?: {
+		plate: string;
+		registration_form_id: number;
+		registration_form_name: string | null;
+		registration_form_slug: string | null;
+	} | null;
+	ticket_application?: BackendTicketApplication | null;
 };
 
 // Backend response types (transformed from other endpoints like scanned tickets)
@@ -199,6 +249,20 @@ export interface OfflineData {
 	events: OfflineEvent[];
 	tickets: OfflineTicket[];
 }
+
+// Pagination metadata for the tickets index, read off response headers
+// (X-Total-Count etc.) rather than the JSON body — see getEventTicketsPaged.
+export type TicketsPagination = {
+	currentPage: number;
+	totalPages: number;
+	totalCount: number;
+	perPage: number;
+};
+
+export type PagedTicketsResult = {
+	data: Ticket[];
+	pagination: TicketsPagination;
+};
 
 // Backend response type (what the API actually returns)
 export interface BackendOfflineData {

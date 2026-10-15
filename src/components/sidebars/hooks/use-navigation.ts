@@ -13,15 +13,18 @@ import {
 export function useNavigation(
 	userRole?: UserRole,
 	permissions?: UserPermissions,
+	isPureBusinessMatchingAdmin?: boolean,
 ) {
 	const filteredNav = useMemo(
-		() => getFilteredNavigation(userRole, permissions),
-		[userRole, permissions],
+		() =>
+			getFilteredNavigation(userRole, permissions, isPureBusinessMatchingAdmin),
+		[userRole, permissions, isPureBusinessMatchingAdmin],
 	);
 
 	const mobileNav = useMemo(
-		() => getMobileNavigation(userRole, permissions),
-		[userRole, permissions],
+		() =>
+			getMobileNavigation(userRole, permissions, isPureBusinessMatchingAdmin),
+		[userRole, permissions, isPureBusinessMatchingAdmin],
 	);
 
 	return { filteredNav, mobileNav };

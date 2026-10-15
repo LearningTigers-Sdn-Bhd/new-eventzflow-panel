@@ -7,6 +7,7 @@ import {
 	Info,
 	Loader2,
 	Plus,
+	RefreshCw,
 	Trash2,
 	Users,
 } from "lucide-react";
@@ -18,7 +19,10 @@ import { FieldGroup, FieldSeparator, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import type { EventVendor } from "@/lib/api/event-vendor";
 import { getEventVendors } from "@/lib/api/event-vendor";
-import { updateExhibitorKit } from "@/lib/api/exhibitor-kit";
+import {
+	resyncExhibitorKitTeamMembers,
+	updateExhibitorKit,
+} from "@/lib/api/exhibitor-kit";
 import type { ExhibitorTeamMember } from "@/lib/api/exhibitor-kit/response";
 import { getExhibitorTeamMemberLimit } from "@/lib/api/exhibitor-team-member-limit";
 
@@ -98,10 +102,9 @@ export function getInvalidActiveMemberIndexes(members: RawTeamMemberInput[]) {
 
 		if (normalized._destroy) return indexes;
 
-		const isComplete =
-			normalized.full_name.trim().length > 0 &&
-			normalized.email.trim().length > 0 &&
-			normalized.phone.trim().length > 0;
+		// Email/phone are optional (fast on-site registration); name is the only
+		// required field, matching the backend's ExhibitorTeamMember validation.
+		const isComplete = normalized.full_name.trim().length > 0;
 
 		if (!isComplete) indexes.push(index);
 
@@ -261,16 +264,67 @@ export function ManageTeamMembersForm({
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to update team members");
+			// The save may have partially landed server-side even though this
+			// request errored (e.g. the member row committed before a later step
+			// failed) — resync from the server instead of leaving local state
+			// pointing at members that no longer look "new" to the backend, which
+			// would otherwise re-create them as duplicates on the next retry.
+			queryClient.invalidateQueries({ queryKey: vendorsQueryKey });
+		},
+	});
+
+	// Company name only gets copied onto a member's ticket at the moment the
+	// ticket is created/synced — if the kit's company name is corrected
+	// afterward, already-issued tickets keep the stale value until this runs.
+	const resyncMutation = useMutation({
+		mutationFn: () => {
+			if (!kit?.id) throw new Error("No exhibitor kit found");
+
+			return resyncExhibitorKitTeamMembers(eventId, kit.id);
+		},
+		onSuccess: ({ updated, unchanged, skipped, failed }) => {
+			if (failed.length > 0) {
+				const detail = failed
+					.map((f) => `${f.full_name}${f.reason ? ` (${f.reason})` : ""}`)
+					.join(", ");
+				toast.error(
+					`Resynced ${updated.length} ticket(s), but ${failed.length} failed: ${detail}`,
+				);
+				return;
+			}
+
+			if (updated.length > 0) {
+				const skippedNote = skipped.length
+					? ` ${skipped.length} skipped (no company name or no ticket yet).`
+					: "";
+				toast.success(
+					`Resynced company name on ${updated.length} member ticket${
+						updated.length === 1 ? "" : "s"
+					}.${skippedNote}`,
+				);
+				return;
+			}
+
+			if (unchanged.length > 0) {
+				toast.success(
+					"All member tickets already match the current company name.",
+				);
+				return;
+			}
+
+			const reason =
+				skipped.find((s) => s.reason)?.reason ??
+				"no team members with a linked ticket";
+			toast.info(`Nothing to resync — ${reason}.`);
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to resync team members");
 		},
 	});
 
 	const handleAddMember = () => {
-		if (
-			!newMemberName.trim() ||
-			!newMemberEmail.trim() ||
-			!newMemberPhone.trim()
-		) {
-			toast.error("Please enter name, email, and phone number");
+		if (!newMemberName.trim()) {
+			toast.error("Please enter a name");
 			return;
 		}
 		setHasLocalChanges(true);
@@ -324,9 +378,7 @@ export function ManageTeamMembersForm({
 
 		if (invalidIndexes.length > 0) {
 			const rows = invalidIndexes.map((index) => index + 1).join(", ");
-			toast.error(
-				`Please complete full name, email, and phone for row(s): ${rows}`,
-			);
+			toast.error(`Please enter a name for row(s): ${rows}`);
 			return;
 		}
 
@@ -569,10 +621,30 @@ export function ManageTeamMembersForm({
 
 						{/* Team Members List */}
 						<div className="space-y-2">
-							<p className="flex items-center gap-2 font-medium text-sm">
-								<Users className="size-4" />
-								Team Members ({visibleMembers.length})
-							</p>
+							<div className="flex items-center justify-between gap-2">
+								<p className="flex items-center gap-2 font-medium text-sm">
+									<Users className="size-4" />
+									Team Members ({visibleMembers.length})
+								</p>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() => resyncMutation.mutate()}
+									disabled={
+										resyncMutation.isPending ||
+										updateKitMutation.isPending ||
+										visibleMembers.length === 0
+									}
+									className="rounded-none"
+									title="Re-apply the current company name to every team member's ticket"
+								>
+									<RefreshCw
+										className={`mr-2 size-4 ${resyncMutation.isPending ? "animate-spin" : ""}`}
+									/>
+									{resyncMutation.isPending ? "Resyncing..." : "Resync Members"}
+								</Button>
+							</div>
 
 							{visibleMembers.length === 0 ? (
 								<div className="rounded-none border border-dashed py-8 text-center text-muted-foreground">
@@ -608,7 +680,7 @@ export function ManageTeamMembersForm({
 										<div className="space-y-2">
 											<div className="flex items-center justify-between">
 												<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-													Additional Team Members (Paid)
+													Additional Team Members — Extra Fee
 												</p>
 												<span className="font-medium text-amber-600 text-xs dark:text-amber-400">
 													{excessCount} × RM {fee.toFixed(2)} = RM{" "}

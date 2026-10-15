@@ -59,9 +59,9 @@ export function LogoField({ field, isPending = false }: LogoFieldProps) {
 		<Field
 			data-invalid={isInvalid}
 			orientation="vertical"
-			className="flex flex-col items-center justify-start gap-2"
+			className="flex flex-col items-center justify-start gap-2 [&_.border-dashed]:rounded-none"
 		>
-			<div className="relative aspect-square w-full max-w-[200px]">
+			<div className="relative aspect-square w-full max-w-[140px]">
 				<LogoUpload
 					value={
 						field.state.value === null || field.state.value === undefined
@@ -128,6 +128,7 @@ export function TitleField({
 			<FieldLabel htmlFor={field.name}>Session Title</FieldLabel>
 			{isInvalid && <FieldError errors={field.state.meta.errors} />}
 			<Input
+				className="rounded-none"
 				placeholder={placeholder}
 				value={field.state.value}
 				onBlur={field.handleBlur}
@@ -187,7 +188,7 @@ export function DrawDateField({
 					<Button
 						variant="outline"
 						className={cn(
-							"w-full justify-start text-left font-normal",
+							"w-full justify-start rounded-none text-left font-normal",
 							!field.state.value && "text-muted-foreground",
 						)}
 						disabled={isPending}

@@ -23,6 +23,7 @@ export interface BackendRegistrationForm {
 	custom_labels_data: CustomLabelEntry[];
 	status: number | "active" | "inactive";
 	position: number | null;
+	vehicle?: boolean;
 	registration_form_rsvp_setting?: {
 		id: number;
 		registration_form_id: number;
@@ -59,6 +60,7 @@ export interface RegistrationForm {
 	customLabelsData: CustomLabelEntry[];
 	status: number;
 	position: number | null;
+	vehicle: boolean;
 	rsvpSetting: {
 		id: number;
 		registrationFormId: number;

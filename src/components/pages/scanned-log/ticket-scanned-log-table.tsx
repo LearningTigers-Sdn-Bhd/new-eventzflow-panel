@@ -2,11 +2,9 @@
 
 import {
 	type ColumnDef,
-	type ColumnFiltersState,
 	getCoreRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
 	getSortedRowModel,
+	type PaginationState,
 	type SortingState,
 	useReactTable,
 	type VisibilityState,
@@ -22,53 +20,105 @@ import {
 import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
-import type { ScannedLog } from "./ticket-scanned-log-columns";
+import type { ScannedLog } from "@/lib/api/event/scan-log/response";
 import { ScannedLogItem } from "./ticket-scanned-log-item";
 import { DataControl } from "./ticket-scanned-log-table-control";
+
+interface ServerPagination {
+	pageIndex: number;
+	pageSize: number;
+	pageCount: number;
+	totalCount: number;
+	onPageChange: (pageIndex: number) => void;
+}
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
+	search: string;
+	onSearchChange: (value: string) => void;
+	source: string;
+	onSourceChange: (value: string) => void;
+	ticketTypeId: string;
+	onTicketTypeIdChange: (value: string) => void;
+	ticketTypeOptions: { label: string; value: string }[];
+	onRowClick?: (row: TData) => void;
+	// Server-side pagination state (pagy). When provided, the table runs in
+	// manual-pagination mode so the shared DataPagination control can drive it.
+	pagination?: ServerPagination;
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
+	search,
+	onSearchChange,
+	source,
+	onSourceChange,
+	ticketTypeId,
+	onTicketTypeIdChange,
+	ticketTypeOptions,
+	onRowClick,
+	pagination,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[],
-	);
-
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
+
+	// Manual pagination: search, the source filter, and paging are all
+	// server-driven (page.tsx), so `data` here is already exactly one page. We
+	// mirror the pagy state into the table via `manualPagination` + `pageCount`
+	// (never getPaginationRowModel, which would slice the page again to
+	// TanStack's default size of 10). Sorting stays local: it only reorders the
+	// rows already on this page.
+	const paginationState: PaginationState = {
+		pageIndex: pagination?.pageIndex ?? 0,
+		pageSize: pagination?.pageSize ?? data.length,
+	};
 
 	const table = useReactTable({
 		data,
 		columns,
 		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
+		manualPagination: true,
+		pageCount: pagination?.pageCount ?? -1,
+		onPaginationChange: (updater) => {
+			if (!pagination) return;
+			const next =
+				typeof updater === "function" ? updater(paginationState) : updater;
+			pagination.onPageChange(next.pageIndex);
+		},
 		state: {
 			sorting,
-			columnFilters,
 			columnVisibility,
+			pagination: paginationState,
 		},
 	});
 
 	return (
 		<div className="w-full">
-			<DataControl table={table} />
+			<DataControl
+				table={table}
+				search={search}
+				onSearchChange={onSearchChange}
+				source={source}
+				onSourceChange={onSourceChange}
+				ticketTypeId={ticketTypeId}
+				onTicketTypeIdChange={onTicketTypeIdChange}
+				ticketTypeOptions={ticketTypeOptions}
+			/>
 
 			<div className="min-h-[calc(100vh-320px)]">
 				<ResponsiveLayout>
 					<DesktopView>
 						<BaseTable
 							table={table}
+							clickableRowConfig={
+								onRowClick ? { isEnabled: true, onRowClick } : undefined
+							}
 							emptyStateConfig={{
 								title: "No scanned logs found",
 								desc: "No scan logs available for this event yet",
@@ -120,7 +170,9 @@ export function DataTable<TData, TValue>({
 				</ResponsiveLayout>
 			</div>
 
-			<DataPagination table={table} />
+			{pagination && (
+				<DataPagination table={table} totalRows={pagination.totalCount} />
+			)}
 		</div>
 	);
 }

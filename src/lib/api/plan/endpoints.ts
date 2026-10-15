@@ -10,6 +10,7 @@ import type {
 	AutoDistributeResponse,
 	Plan,
 	PlanObject,
+	SyncTableNumbersResponse,
 	TableAssignment,
 } from "./response";
 
@@ -153,6 +154,17 @@ export async function autoDistribute(
 	return restClient.post<AutoDistributeResponse>(
 		`v1/plans/${planId}/auto_distribute`,
 		{},
+	);
+}
+
+// Sync from a ticket custom field (defaults to `table_number` server-side)
+export async function syncTableNumbers(
+	planId: string,
+	fieldKey?: string,
+): Promise<SyncTableNumbersResponse> {
+	return restClient.post<SyncTableNumbersResponse>(
+		`v1/plans/${planId}/sync_table_numbers`,
+		fieldKey ? { field_key: fieldKey } : {},
 	);
 }
 

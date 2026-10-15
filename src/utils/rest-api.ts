@@ -51,10 +51,15 @@ export const queryClient = new QueryClient({
 	},
 	queryCache: new QueryCache({
 		onError: (error: Error, query) => {
+			if (query.meta?.suppressErrorToast) return;
 			// Suppress global error toasts for business matching queries
 			// as they are handled locally with specific UI states or ignored to prevent spam
 			const queryKey = query.queryKey;
-			const suppressedKeys = ["business-matching", "event-details"];
+			const suppressedKeys = [
+				"business-matching",
+				"event-details",
+				"public-feedback-form",
+			];
 			if (
 				Array.isArray(queryKey) &&
 				queryKey.some(
@@ -89,7 +94,11 @@ export const kyClient = ky.create({
 	credentials: "include", // Always include cookies (for HttpOnly refresh token)
 	retry: {
 		limit: 3,
-		methods: ["get", "post", "put", "delete", "patch"],
+		// "post" is intentionally excluded: retrying a non-idempotent create
+		// (e.g. booking creation) can silently duplicate-submit if the original
+		// request actually succeeded server-side but the response was lost
+		// (e.g. a proxy gateway timeout).
+		methods: ["get", "put", "delete", "patch"],
 		statusCodes: [408, 429, 500, 502, 503, 504],
 	},
 	hooks: {
@@ -104,7 +113,9 @@ export const kyClient = ky.create({
 							body?.message ??
 							(Array.isArray(body?.errors)
 								? body.errors.join(", ")
-								: undefined);
+								: typeof body?.errors === "string"
+									? body.errors
+									: undefined);
 						if (message) error.message = message;
 					} catch {
 						// Response body isn't JSON — keep ky's default message
@@ -319,6 +330,20 @@ export const restClient = {
 	},
 
 	/**
+	 * Make a GET request, returning both the parsed body and response headers.
+	 * Use when the endpoint reports metadata (e.g. pagination totals) via
+	 * headers instead of the JSON body — see `X-Total-Count` on the tickets index.
+	 */
+	getWithHeaders: async <T>(
+		url: string,
+		token?: string,
+	): Promise<{ data: T; headers: Headers }> => {
+		const headers = token ? { Authorization: `Bearer ${token}` } : {};
+		const response = await kyClient.get(url, { headers });
+		return { data: await response.json<T>(), headers: response.headers };
+	},
+
+	/**
 	 * Make a GET request that returns a blob (for file downloads)
 	 * @param url - The endpoint URL
 	 * @param token - Optional token to override the default auth token
@@ -367,6 +392,26 @@ export const restClient = {
 		logger.debug("  - Token:", token);
 		logger.debug("  - Headers:", headers);
 		logger.debug("  - Data:", data);
+		return kyClient.post(url, { json: data, headers }).json<T>();
+	},
+
+	/**
+	 * Make a POST request with extra headers merged in (e.g. Idempotency-Key)
+	 * @param url - The endpoint URL
+	 * @param data - Request body data
+	 * @param extraHeaders - Additional headers to send with the request
+	 * @param token - Optional token to override the default auth token
+	 * @returns Promise resolving to the response data
+	 */
+	postWithHeaders: <T>(
+		url: string,
+		data: unknown,
+		extraHeaders: Record<string, string>,
+		token?: string,
+	): Promise<T> => {
+		const headers = token
+			? { ...extraHeaders, Authorization: `Bearer ${token}` }
+			: extraHeaders;
 		return kyClient.post(url, { json: data, headers }).json<T>();
 	},
 
@@ -599,6 +644,32 @@ export const publicRestClient = {
 		logger.debug("  - URL:", url);
 		logger.debug("  - Data:", data);
 		return kyPublicClient.post(url, { json: data }).json<T>();
+	},
+
+	/**
+	 * Make a PUT request without authentication
+	 * @param url - The endpoint URL
+	 * @param data - Optional request body data
+	 * @returns Promise resolving to the response data
+	 */
+	put: <T>(url: string, data?: unknown): Promise<T> => {
+		logger.debug("🔍 Public HTTP Client Debug (PUT):");
+		logger.debug("  - URL:", url);
+		logger.debug("  - Data:", data);
+		return kyPublicClient.put(url, { json: data }).json<T>();
+	},
+
+	/**
+	 * Make a PATCH request without authentication
+	 * @param url - The endpoint URL
+	 * @param data - Optional request body data
+	 * @returns Promise resolving to the response data
+	 */
+	patch: <T>(url: string, data?: unknown): Promise<T> => {
+		logger.debug("🔍 Public HTTP Client Debug (PATCH):");
+		logger.debug("  - URL:", url);
+		logger.debug("  - Data:", data);
+		return kyPublicClient.patch(url, { json: data }).json<T>();
 	},
 
 	/**

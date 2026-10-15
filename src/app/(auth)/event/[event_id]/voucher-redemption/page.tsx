@@ -7,9 +7,9 @@ import { ErrorState, LoadingState } from "@/components/data-state";
 import { FeatureLockedState } from "@/components/feature-locked-state";
 import { RedemptionLogsTable } from "@/components/pages/voucher-redemption/redemption-logs-table";
 import { VoucherRedemptionModal } from "@/components/pages/voucher-redemption/redemption-modal";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { useDialog } from "@/hooks/use-dialog";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventById } from "@/lib/api/event";
 import { getRedemptionLogs } from "@/lib/api/voucher-redemption-log";
@@ -21,7 +21,7 @@ export default function VoucherRedemptionPage({
 }) {
 	const { event_id } = use(params);
 	const eventId = Number(event_id);
-	const permissions = useEventPermissions(event_id);
+	const { permissions } = useEventSidebarContext();
 
 	const { openDialog } = useDialog();
 	const { data: event, isLoading: isLoadingEvent } = useQuery({

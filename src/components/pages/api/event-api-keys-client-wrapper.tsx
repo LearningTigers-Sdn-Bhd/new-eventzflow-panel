@@ -64,6 +64,7 @@ export default function EventApiKeysClientWrapper({
 				title: "Create API Key",
 				description: "Generate a new API key scoped to this event.",
 				size: "lg",
+				className: "rounded-none",
 			},
 		});
 	};

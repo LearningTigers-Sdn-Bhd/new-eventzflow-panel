@@ -3,11 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Eye, Link2, Pencil, QrCode, RotateCcw, Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useDialog } from "@/hooks/use-dialog";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
 import { getEventById } from "@/lib/api/event";
 import type { Visitor } from "@/lib/api/visitor";
 import { DeleteVisitorDialog } from "./action-modals/delete-visitor-dialog";
@@ -26,7 +26,8 @@ export function VisitorActionsMenu({ visitor }: VisitorActionsMenuProps) {
 	const { user } = useAuth();
 	const params = useParams();
 	const eventId = params.event_id as string;
-	const { isEventAdmin } = useEventPermissions(eventId);
+	const { permissions } = useEventSidebarContext();
+	const { isEventAdmin } = permissions;
 
 	const { data: eventData } = useQuery({
 		queryKey: ["event", eventId],

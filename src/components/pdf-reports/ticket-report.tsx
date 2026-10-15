@@ -1,17 +1,16 @@
 "use client";
 
-import { Document, Page, Text, View } from "@react-pdf/renderer";
+import { Document, Page, View } from "@react-pdf/renderer";
 import { AreaChart, DailyHourlyBreakdownSection, DonutChart } from "./charts";
 import {
 	BulletList,
-	GridCol,
-	GridRow,
 	ReportFooter,
 	ReportHeader,
 	Section,
 	StatsCard,
 	StatsGrid,
 	SummaryBox,
+	Table,
 } from "./components";
 import { colors, styles } from "./styles";
 import {
@@ -25,16 +24,34 @@ interface TicketAnalyticsReportProps {
 }
 
 export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
-	const { event, metadata, stats, timeSeries, hourlyBreakdown } = data;
-	const scanRate = calculatePercentage(
-		stats.scannedTickets,
-		stats.totalTickets,
+	const {
+		event,
+		metadata,
+		stats,
+		timeSeries,
+		hourlyBreakdown,
+		customFieldBreakdown,
+	} = data;
+	// scannedTickets may count every re-entry scan (multi-scan events), not unique
+	// tickets — rate/donut must use unique checked-in tickets or the rate can exceed
+	// 100%. unscannedTickets is always a unique, toggle-independent count.
+	const uniqueScannedTickets = Math.max(
+		stats.paidTickets - stats.unscannedTickets,
+		0,
 	);
+	const includesReScans = stats.scannedTickets > uniqueScannedTickets;
+	const scanRate = calculatePercentage(uniqueScannedTickets, stats.paidTickets);
+	const checkInSummary = `${uniqueScannedTickets.toLocaleString()} of ${stats.paidTickets.toLocaleString()} paid tickets checked in`;
 
 	const insights = [
 		`Total Issuance: ${stats.totalTickets.toLocaleString()} tickets have been issued or sold.`,
-		`Total Revenue: The event has generated ${formatReportCurrency(stats.totalRevenue)} in ticket sales.`,
-		`Utilization: ${scanRate}% of issued tickets have been scanned at entry.`,
+		`Collected Revenue: The event has collected ${formatReportCurrency(stats.totalRevenue)} in ticket sales.`,
+		`Utilization: ${scanRate}% of paid tickets have been scanned at entry.`,
+		...(includesReScans
+			? [
+					`Re-entries: ${stats.scannedTickets.toLocaleString()} total scans recorded, including re-entries.`,
+				]
+			: []),
 	];
 
 	const registrationData =
@@ -71,33 +88,61 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 				</SummaryBox>
 
 				<Section title="Sales Overview">
-					<StatsGrid>
+					<StatsGrid style={{ marginBottom: 0, borderBottomWidth: 0 }}>
 						<StatsCard
-							label="Total Revenue"
+							label="Collected Revenue"
 							value={formatReportCurrency(stats.totalRevenue)}
+						/>
+						<StatsCard
+							label="Pending Revenue"
+							value={formatReportCurrency(stats.pendingRevenue)}
 						/>
 						<StatsCard
 							label="Total Tickets"
 							value={stats.totalTickets.toLocaleString()}
 						/>
 						<StatsCard
-							label="Redeemed"
+							label="Paid Tickets"
+							value={stats.paidTickets.toLocaleString()}
+							isLast
+						/>
+					</StatsGrid>
+					<StatsGrid>
+						<StatsCard
+							label="Pending Tickets"
+							value={stats.pendingTickets.toLocaleString()}
+						/>
+						<StatsCard
+							label="Total Visitors"
+							value={stats.totalVisitors.toLocaleString()}
+						/>
+						<StatsCard
+							label={includesReScans ? "Total Scans" : "Scanned Tickets"}
 							value={stats.scannedTickets.toLocaleString()}
-							subtext={`${scanRate}% Utilization`}
+						/>
+						<StatsCard
+							label="Unscanned Tickets"
+							value={stats.unscannedTickets.toLocaleString()}
 							isLast
 						/>
 					</StatsGrid>
 				</Section>
 
 				<Section title="Utilization Ratio">
-					<View style={{ alignItems: "center", paddingVertical: 12 }}>
+					<View
+						style={{ alignItems: "center", paddingVertical: 4 }}
+						wrap={false}
+					>
 						<DonutChart
-							value1={stats.scannedTickets}
+							value1={uniqueScannedTickets}
 							value2={stats.unscannedTickets}
 							label1="Scanned"
-							label2="Pending"
+							label2="Unscanned"
 							color1={colors.brandGreen}
 							color2="#d1d5db"
+							centerValue={`${scanRate}%`}
+							centerLabel="Check-in Rate"
+							summary={checkInSummary}
 						/>
 					</View>
 				</Section>
@@ -158,6 +203,19 @@ export function TicketAnalyticsReport({ data }: TicketAnalyticsReportProps) {
 							/>
 						</Section>
 					)}
+
+				{customFieldBreakdown && customFieldBreakdown.rows.length > 0 && (
+					<Section title={`${customFieldBreakdown.fieldLabel} Breakdown`}>
+						<Table
+							headers={[customFieldBreakdown.fieldLabel, "Count"]}
+							rows={customFieldBreakdown.rows.map((row) => [
+								row.value,
+								row.count,
+							])}
+							columnWidths={["80%", "20%"]}
+						/>
+					</Section>
+				)}
 
 				<ReportFooter />
 			</Page>

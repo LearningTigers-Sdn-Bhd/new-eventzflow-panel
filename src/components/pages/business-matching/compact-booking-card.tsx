@@ -8,7 +8,7 @@ function CompactCard({
 	return (
 		<div
 			className={cn(
-				"flex h-full flex-col overflow-hidden rounded-lg border bg-card text-card-foreground shadow-none",
+				"flex h-full flex-col overflow-hidden rounded-none border bg-card text-card-foreground shadow-none",
 				className,
 			)}
 			{...props}
@@ -69,8 +69,8 @@ function CompactCardFooter({
 
 export {
 	CompactCard,
-	CompactCardHeader,
-	CompactCardFooter,
-	CompactCardTitle,
 	CompactCardContent,
+	CompactCardFooter,
+	CompactCardHeader,
+	CompactCardTitle,
 };

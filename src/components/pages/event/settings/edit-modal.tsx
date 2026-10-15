@@ -6,6 +6,7 @@ import BrandingForm from "./branding-form";
 import CustomLabelForm from "./edit-custom-label-form";
 import InfoForm from "./edit-info-form";
 import EmailSettingsForm from "./email-settings-form";
+import EventFeaturesForm from "./event-features-form";
 import type { SettingsTab } from "./navigation";
 import SettingsNavigation from "./navigation";
 import PaymentGatewayForm from "./payment-gateway-form";
@@ -38,6 +39,9 @@ export default function EventSettingsDialog({
 				{activeTab === "event-information" && (
 					<InfoForm eventId={eventId} onClose={onClose} />
 				)}
+				{activeTab === "event-features" && (
+					<EventFeaturesForm eventId={eventId} onClose={onClose} />
+				)}
 				{activeTab === "email-settings" && (
 					<EmailSettingsForm eventId={eventId} onClose={onClose} />
 				)}
@@ -46,6 +50,15 @@ export default function EventSettingsDialog({
 				)}
 				{activeTab === "custom-labels" && (
 					<CustomLabelForm eventId={eventId} onClose={onClose} />
+				)}
+				{activeTab === "exhibitor-labels" && (
+					<CustomLabelForm
+						eventId={eventId}
+						onClose={onClose}
+						field="exhibitor_labels_data"
+						title="Exhibitor Fields"
+						description="Add custom fields for exhibitor bookings — shown on the manual Add Exhibitor form, Manage Kits, and the bulk import template. Example: Product Description, Booth Contact Person."
+					/>
 				)}
 				{activeTab === "welcome-screen" && (
 					<WelcomeScreenForm eventId={eventId} onClose={onClose} />

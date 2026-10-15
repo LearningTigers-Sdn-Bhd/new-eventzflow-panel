@@ -64,11 +64,12 @@ export default function PublicExhibitorKitsPage() {
 
 	// Extract exhibitor kits from all vendors across all events
 	const allKitsWithEventAndVendor = (vendorQueries.data || []).flatMap(
-		(vendor) => vendor.exhibitor_kits.map((kit) => ({
-			...kit,
-			vendor: vendor,
-			event: vendor.event,
-		})),
+		(vendor) =>
+			vendor.exhibitor_kits.map((kit) => ({
+				...kit,
+				vendor: vendor,
+				event: vendor.event,
+			})),
 	);
 
 	return (

@@ -1,4 +1,5 @@
 import type { BackendEvent } from "@/lib/api/event/response";
+import { formatTicketCustomFieldEntries } from "@/lib/utils/custom-fields-display";
 import { extractErrorMessage } from "@/utils/error-handler";
 import { restClient } from "@/utils/rest-api";
 import {
@@ -11,10 +12,14 @@ import type {
 	BackendImportTicketsResponse,
 	BackendTicket,
 	BackendTicketTransformed,
+	BulkArchiveResponse,
+	BulkDeleteResponse,
+	BulkUpdateTicketTypeResponse,
 	CheckInResponse,
 	CreateTicketResponse,
 	ImportTicketsResponse,
 	OfflineData,
+	PagedTicketsResult,
 	ScannedTicket,
 	Ticket,
 	UpdateTicketResponse,
@@ -65,10 +70,7 @@ export async function checkInTicket(
  * Resets checked_in, check_in_at, scanned_by_id, and status
  */
 export async function unscanTicket(ticketId: string): Promise<void> {
-	console.log("🔄 Unscanning ticket with ID:", ticketId);
-
 	const url = `v1/tickets/${ticketId}/unscan`;
-	console.log("🌐 Calling PATCH:", url);
 
 	try {
 		await restClient.patch(url, {});
@@ -148,12 +150,9 @@ export async function getMyScannedTickets(
 		// Transform backend response to frontend format
 		return sortedTickets.map((ticket) => {
 			// Transform custom_fields_data to customLabels array
-			const customLabels: Array<{ name: string; value: string }> = [];
-			if (ticket.custom_fields_data) {
-				for (const [key, value] of Object.entries(ticket.custom_fields_data)) {
-					customLabels.push({ name: key, value: String(value) });
-				}
-			}
+			const customLabels = formatTicketCustomFieldEntries(
+				ticket.custom_fields_data,
+			);
 
 			return {
 				id: ticket.public_id, // Use public_id for display (e.g., "ABC123")
@@ -211,6 +210,9 @@ function transformBackendTicket(
 	let transactionId: string | undefined;
 	let paymentScreenshotUrl: string | undefined;
 	let passBundle: Ticket["passBundle"] = null;
+	let documents: Ticket["documents"];
+	let vehicleRegistration: Ticket["vehicleRegistration"] = null;
+	let ticketApplication: Ticket["ticketApplication"];
 
 	if ("attendee_name" in ticket) {
 		// BackendTicket format
@@ -227,11 +229,28 @@ function transformBackendTicket(
 		transactionId = bt.transaction_id;
 		paymentScreenshotUrl = bt.payment_screenshot_url;
 		passBundle = bt.pass_bundle ?? null;
+		documents = bt.registration_documents_data;
+		vehicleRegistration = bt.vehicle_registration_data
+			? {
+					plate: bt.vehicle_registration_data.plate,
+					registrationFormId: bt.vehicle_registration_data.registration_form_id,
+					registrationFormName:
+						bt.vehicle_registration_data.registration_form_name,
+					registrationFormSlug:
+						bt.vehicle_registration_data.registration_form_slug,
+				}
+			: null;
 
 		if (bt.custom_fields_data) {
-			for (const [key, val] of Object.entries(bt.custom_fields_data)) {
-				customLabels.push({ name: String(key), value: String(val) });
-			}
+			customLabels.push(
+				...formatTicketCustomFieldEntries(bt.custom_fields_data),
+			);
+		}
+		if (bt.ticket_application) {
+			ticketApplication = {
+				reviewStatus: bt.ticket_application.review_status,
+				rsvpStatus: bt.ticket_application.rsvp_status,
+			};
 		}
 	} else {
 		// BackendTicketTransformed format
@@ -276,6 +295,9 @@ function transformBackendTicket(
 			"custom_fields_data" in ticket
 				? (ticket as BackendTicket).custom_fields_data
 				: undefined,
+		documents,
+		vehicleRegistration,
+		ticketApplication,
 	};
 }
 
@@ -334,6 +356,78 @@ export async function getEventTickets(
 }
 
 /**
+ * Get one server-paginated page of tickets for the Manage Tickets table.
+ * Unlike getEventTickets (which loads every ticket at once — fine for the
+ * seating-plan pickers, too slow at thousands of tickets), search/status/type
+ * filtering and sorting all happen server-side so only one page ever
+ * transfers. Always paid tickets only, matching getEventTickets' behavior.
+ */
+export async function getEventTicketsPaged(
+	eventId: string,
+	options: {
+		page: number;
+		perPage: number;
+		q?: string;
+		status?: "scanned" | "not_scanned";
+		ticketTypeName?: string;
+		archived?: boolean;
+		full?: boolean;
+		sortBy?: "name" | "email" | "status" | "createdAt" | `custom_${string}`;
+		sortDir?: "asc" | "desc";
+	},
+): Promise<PagedTicketsResult> {
+	const params = new URLSearchParams();
+	params.set("page", String(options.page));
+	params.set("per_page", String(options.perPage));
+	params.set("payment_status", "paid");
+	if (options.full) {
+		params.set("full", "true");
+	} else if (options.archived) {
+		params.set("archived", "true");
+	}
+	if (options.q) params.set("q", options.q);
+	if (options.status) params.set("status", options.status);
+	if (options.ticketTypeName)
+		params.set("ticket_type_name", options.ticketTypeName);
+	if (options.sortBy) params.set("sort_by", options.sortBy);
+	if (options.sortDir) params.set("sort_dir", options.sortDir);
+
+	const [event, { data: response, headers }] = await Promise.all([
+		restClient.get<BackendEvent>(`v1/events/${eventId}`),
+		restClient.getWithHeaders<BackendTicket[]>(
+			`v1/events/${eventId}/tickets?${params.toString()}`,
+		),
+	]);
+
+	return {
+		data: response.map((ticket) =>
+			transformBackendTicket(ticket, event.title, eventId),
+		),
+		pagination: {
+			currentPage: Number(headers.get("X-Page")) || options.page,
+			totalPages: Number(headers.get("X-Total-Pages")) || 0,
+			totalCount: Number(headers.get("X-Total-Count")) || 0,
+			perPage: Number(headers.get("X-Per-Page")) || options.perPage,
+		},
+	};
+}
+
+/**
+ * Get a single ticket by its public id, fully hydrated (ticket type, custom
+ * fields, vehicle registration) for the Edit Ticket modal.
+ */
+export async function getTicketById(
+	eventId: string,
+	ticketId: string,
+): Promise<Ticket> {
+	const [event, response] = await Promise.all([
+		restClient.get<BackendEvent>(`v1/events/${eventId}`),
+		restClient.get<BackendTicket>(`v1/events/${eventId}/tickets/${ticketId}`),
+	]);
+	return transformBackendTicket(response, event.title, eventId);
+}
+
+/**
  * Create a new ticket
  */
 export async function createTicket(data: {
@@ -345,17 +439,73 @@ export async function createTicket(data: {
 	custom_fields_data?: Record<string, string>;
 	role?: string;
 	payment_status?: number;
+	quantity?: number;
 }): Promise<CreateTicketResponse> {
 	const validated = createTicketSchema.parse(data);
-	const { eventId, ...ticketData } = validated;
+	const { eventId, quantity, ...ticketData } = validated;
 
 	const response = await restClient.post<BackendTicket>(
 		`v1/events/${eventId}/tickets`,
-		{ ticket: ticketData },
+		{ ticket: ticketData, quantity },
 	);
 
 	// Transform backend response to frontend format
 	return transformBackendTicket(response, "Unknown Event", eventId);
+}
+
+/**
+ * Bulk-change the ticket type for a batch of tickets.
+ */
+export async function bulkUpdateTicketType(
+	eventId: string,
+	ticketTypeId: number,
+	ticketIds: string[],
+): Promise<BulkUpdateTicketTypeResponse> {
+	try {
+		return await restClient.patch<BulkUpdateTicketTypeResponse>(
+			`v1/events/${eventId}/tickets/bulk_update_ticket_type`,
+			{ ticket_type_id: ticketTypeId, ticket_ids: ticketIds },
+		);
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Bulk-archive (soft delete) a batch of tickets. org_owner/organizer only.
+ */
+export async function bulkArchiveTickets(
+	eventId: string,
+	ticketIds: string[],
+): Promise<BulkArchiveResponse> {
+	try {
+		return await restClient.patch<BulkArchiveResponse>(
+			`v1/events/${eventId}/tickets/bulk_archive`,
+			{ ticket_ids: ticketIds },
+		);
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Bulk-delete (permanent) a batch of tickets. org_owner only.
+ */
+export async function bulkDeleteTickets(
+	eventId: string,
+	ticketIds: string[],
+): Promise<BulkDeleteResponse> {
+	try {
+		return await restClient.delete<BulkDeleteResponse>(
+			`v1/events/${eventId}/tickets/bulk_delete`,
+			{ ticket_ids: ticketIds },
+		);
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
 }
 
 /**
@@ -369,7 +519,9 @@ export async function updateTicket(data: {
 	attendee_phone?: string | null;
 	ticket_type_id: number;
 	role?: string;
+	payment_status?: number;
 	custom_fields_data?: Record<string, string>;
+	vehicle_registration_form_id?: number;
 }): Promise<UpdateTicketResponse> {
 	const validated = updateTicketSchema.parse(data);
 	const { eventId, ticketId, ...ticketData } = validated;
@@ -623,6 +775,24 @@ export async function restoreTicket(
 /**
  * Resend ticket confirmation email (org_owner only)
  */
+export async function resendTicketFeedbackEmail(
+	eventId: string,
+	publicId: string,
+): Promise<void> {
+	try {
+		await restClient.post<void>(
+			`v1/events/${eventId}/tickets/${publicId}/resend_feedback_email`,
+			{},
+		);
+	} catch (error: unknown) {
+		const message =
+			error instanceof Error
+				? error.message
+				: "Failed to resend feedback email";
+		throw new Error(message);
+	}
+}
+
 export async function resendTicketConfirmationEmail(
 	eventId: string,
 	publicId: string,

@@ -11,9 +11,11 @@ import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSet } from "@/components/ui/field";
+import { Label } from "@/components/ui/label";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEventById } from "@/lib/api/event";
 import { createPendingTicket } from "@/lib/api/event/pending";
+import PaymentReceiptUpload from "../../exhibitor-kits/payment-receipt-upload";
 import { TicketTypeFieldSection } from "../../tickets/page-action/ticket-type-field-section";
 import { PAYMENT_STATUS } from "../constants";
 
@@ -28,10 +30,10 @@ export default function PendingTicketForm() {
 	const emailId = useId();
 	const phoneId = useId();
 	const paymentStatusId = useId();
-	const screenshotUrlId = useId();
 	const transactionIdId = useId();
 	const paymentMethodId = useId();
 	const roleId = useId();
+	const quantityId = useId();
 
 	// Custom fields state (dynamic based on event data)
 	const [customFields, setCustomFields] = useState<
@@ -74,6 +76,9 @@ export default function PendingTicketForm() {
 		},
 	});
 
+	const allowMultiplePerEmail =
+		eventData?.allow_multiple_tickets_per_email ?? false;
+
 	const form = useForm({
 		defaultValues: {
 			attendee_name: "",
@@ -84,7 +89,8 @@ export default function PendingTicketForm() {
 			payment_status: PAYMENT_STATUS.PENDING,
 			payment_method: "",
 			transaction_id: "",
-			payment_screenshot_url: "",
+			payment_proof: undefined as File | undefined,
+			quantity: "1",
 		},
 		onSubmit: async ({ value }) => {
 			if (!value.ticket_type_id) {
@@ -99,6 +105,10 @@ export default function PendingTicketForm() {
 				}
 			});
 
+			const quantity = allowMultiplePerEmail
+				? Math.max(1, Number.parseInt(value.quantity, 10) || 1)
+				: undefined;
+
 			await createMutation.mutateAsync({
 				eventId,
 				attendee_name: value.attendee_name,
@@ -107,13 +117,14 @@ export default function PendingTicketForm() {
 				ticket_type_id: value.ticket_type_id,
 				role: value.role || undefined,
 				payment_status: value.payment_status,
-				payment_screenshot_url: value.payment_screenshot_url || undefined,
+				payment_proof: value.payment_proof || undefined,
 				transaction_id: value.transaction_id || undefined,
 				payment_method: value.payment_method || undefined,
 				custom_fields_data:
 					Object.keys(customFieldsData).length > 0
 						? customFieldsData
 						: undefined,
+				quantity,
 			});
 		},
 	});
@@ -226,19 +237,66 @@ export default function PendingTicketForm() {
 								)}
 							</form.Field>
 
-							<form.Field name="role">
-								{(field) => (
-									<InputLabel
-										label="Role"
-										htmlFor={roleId}
-										placeholder="e.g., VIP, Speaker, Staff"
-										value={field.state.value}
-										onChange={(value) => field.handleChange(value)}
-										onBlur={field.handleBlur}
-										disabled={createMutation.isPending}
-									/>
+							<div
+								className={
+									allowMultiplePerEmail ? "grid grid-cols-2 gap-4" : undefined
+								}
+							>
+								<form.Field name="role">
+									{(field) => (
+										<InputLabel
+											label="Role"
+											htmlFor={roleId}
+											placeholder="e.g., VIP, Speaker, Staff"
+											value={field.state.value}
+											onChange={(value) => field.handleChange(value)}
+											onBlur={field.handleBlur}
+											disabled={createMutation.isPending}
+										/>
+									)}
+								</form.Field>
+
+								{allowMultiplePerEmail && (
+									<form.Field
+										name="quantity"
+										validators={{
+											onChange: ({ value }) => {
+												const parsed = Number.parseInt(value, 10);
+												if (!Number.isFinite(parsed) || parsed < 1) {
+													return "Quantity must be at least 1";
+												}
+												if (parsed > 50) {
+													return "Quantity cannot exceed 50";
+												}
+												return undefined;
+											},
+										}}
+									>
+										{(field) => {
+											const isInvalid =
+												field.state.meta.isTouched && !field.state.meta.isValid;
+											return (
+												<InputLabel
+													label="Quantity"
+													htmlFor={quantityId}
+													inputType="number"
+													value={field.state.value}
+													onChange={(value) => field.handleChange(value)}
+													onBlur={field.handleBlur}
+													min={1}
+													max={50}
+													errors={field.state.meta.errors.map((error) => ({
+														message: String(error),
+													}))}
+													isInvalid={isInvalid}
+													description="Creates this many identical pending tickets under one purchase"
+													disabled={createMutation.isPending}
+												/>
+											);
+										}}
+									</form.Field>
 								)}
-							</form.Field>
+							</div>
 						</div>
 						<form.Field
 							name="ticket_type_id"
@@ -335,18 +393,21 @@ export default function PendingTicketForm() {
 									)}
 								</form.Field>
 
-								<form.Field name="payment_screenshot_url">
+								<form.Field name="payment_proof">
 									{(field) => (
-										<InputLabel
-											label="Payment Screenshot URL"
-											htmlFor={screenshotUrlId}
-											placeholder="https://example.com/screenshot.jpg"
-											value={field.state.value}
-											onChange={(value) => field.handleChange(value)}
-											onBlur={field.handleBlur}
-											disabled={createMutation.isPending}
-											description="URL to the payment screenshot (optional)"
-										/>
+										<div className="space-y-2 md:col-span-2">
+											<Label>Payment Screenshot</Label>
+											<PaymentReceiptUpload
+												value={field.state.value}
+												onChange={(file) =>
+													field.handleChange(file ?? undefined)
+												}
+												disabled={createMutation.isPending}
+											/>
+											<p className="text-muted-foreground text-xs">
+												Upload the payment screenshot (optional)
+											</p>
+										</div>
 									)}
 								</form.Field>
 							</div>

@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/a11y/useSemanticElements: skipping this rule for this file */
 "use client";
 
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, type LucideIcon } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 // --- Context ---
@@ -79,13 +78,24 @@ interface MultiSelectTriggerProps
 	extends React.ComponentPropsWithoutRef<typeof Button> {
 	asChild?: boolean;
 	iconClassName?: string;
+	icon?: LucideIcon;
 }
 
 const MultiSelectTrigger = React.forwardRef<
 	HTMLButtonElement,
 	MultiSelectTriggerProps
->(({ className, children, asChild = false, iconClassName, ...props }, ref) => {
-	return (
+>(
+	(
+		{
+			className,
+			children,
+			asChild = false,
+			iconClassName,
+			icon: Icon = ChevronsUpDown,
+			...props
+		},
+		ref,
+	) => (
 		<PopoverTrigger asChild>
 			<Button
 				ref={ref}
@@ -98,13 +108,13 @@ const MultiSelectTrigger = React.forwardRef<
 				{...props}
 			>
 				{children}
-				<ChevronsUpDown
+				<Icon
 					className={cn("ml-2 h-4 w-4 shrink-0 opacity-50", iconClassName)}
 				/>
 			</Button>
 		</PopoverTrigger>
-	);
-});
+	),
+);
 MultiSelectTrigger.displayName = "MultiSelectTrigger";
 
 // Value Display
@@ -181,13 +191,21 @@ const MultiSelectContent = React.forwardRef<
 	return (
 		<PopoverContent
 			ref={ref}
-			className={cn("w-[200px] p-0", className)}
+			className={cn("w-[220px] overflow-hidden p-0", className)}
 			align="start"
 			{...props}
 		>
-			<ScrollArea className="max-h-60">
+			{/* When this popover is opened from inside a Dialog, the dialog's
+			scroll lock only whitelists scroll containers present in its own
+			subtree at mount time — this list is portaled separately, so its
+			wheel events get swallowed unless we stop them from bubbling up
+			to that lock. */}
+			<div
+				className="max-h-60 overflow-y-auto"
+				onWheel={(e) => e.stopPropagation()}
+			>
 				<div className="space-y-1 p-2">{children}</div>
-			</ScrollArea>
+			</div>
 		</PopoverContent>
 	);
 });
@@ -265,10 +283,10 @@ MultiSelectItem.displayName = "MultiSelectItem";
 
 export {
 	MultiSelect,
-	MultiSelectTrigger,
-	MultiSelectValue,
 	MultiSelectContent,
 	MultiSelectItem,
+	MultiSelectTrigger,
+	MultiSelectValue,
 	useMultiSelect,
 };
 

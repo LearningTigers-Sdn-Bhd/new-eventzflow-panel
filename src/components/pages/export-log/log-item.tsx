@@ -1,6 +1,12 @@
 "use client";
 
-import { Calendar, Clock, Download, File } from "lucide-react";
+import {
+	Calendar,
+	Clock,
+	Download,
+	File,
+	Image as ImageIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,8 +40,11 @@ export function ExportLogItem({ exportLog }: ExportLogItemProps) {
 	const getTypeLabel = () => {
 		if (exportLog.type === "ticket-list") return "Ticket List";
 		if (exportLog.type === "scan_history") return "Scan History";
+		if (exportLog.type === "selfie-zip") return "Selfies (ZIP)";
 		return exportLog.type;
 	};
+
+	const Icon = exportLog.type === "selfie-zip" ? ImageIcon : File;
 
 	return (
 		<Item variant="outline" className="h-full w-full">
@@ -46,15 +55,19 @@ export function ExportLogItem({ exportLog }: ExportLogItemProps) {
 							"flex items-center rounded-md border p-2",
 							exportLog.type === "scan_history"
 								? "border-blue-800 bg-blue-200 text-blue-800 hover:bg-blue-100"
-								: "border-green-800 bg-green-200 text-green-800 hover:bg-green-200",
+								: exportLog.type === "selfie-zip"
+									? "border-purple-800 bg-purple-200 text-purple-800 hover:bg-purple-200"
+									: "border-green-800 bg-green-200 text-green-800 hover:bg-green-200",
 						)}
 					>
-						<File
+						<Icon
 							className={cn(
 								"size-4",
 								exportLog.type === "scan_history"
 									? "text-blue-800"
-									: "text-green-800",
+									: exportLog.type === "selfie-zip"
+										? "text-purple-800"
+										: "text-green-800",
 							)}
 						/>
 					</div>
@@ -63,7 +76,9 @@ export function ExportLogItem({ exportLog }: ExportLogItemProps) {
 							"truncate text-balance font-bold text-xl",
 							exportLog.type === "scan_history"
 								? "text-blue-500"
-								: "text-green-500",
+								: exportLog.type === "selfie-zip"
+									? "text-purple-500"
+									: "text-green-500",
 						)}
 					>
 						{getTypeLabel()}

@@ -12,11 +12,14 @@
 
 import {
 	Award,
+	Blocks,
 	Briefcase,
 	Building2,
+	Car,
 	ChartBar,
 	ClipboardList,
 	CreditCard,
+	FileChartColumn,
 	FileText,
 	Gift,
 	Grid,
@@ -28,11 +31,15 @@ import {
 	type LucideIcon,
 	MapPin,
 	MessageSquareHeart,
+	MessageSquareQuote,
+	MessageSquareText,
 	Package,
 	PackageOpen,
 	Printer,
+	Radio,
 	ScanQrCode,
 	Speech,
+	SquareActivity,
 	Ticket,
 	TrendingUp,
 	User,
@@ -45,21 +52,21 @@ import { BiInfoSquare } from "react-icons/bi";
 import { FaGifts } from "react-icons/fa6";
 import { HiTicket } from "react-icons/hi2";
 import { TbClockDollar } from "react-icons/tb";
-import type { useEventPermissions } from "@/hooks/use-event-permissions";
-import type { Event } from "@/lib/api/event/response";
+import type {
+	EventSidebarEvent,
+	EventPermissions as Permissions,
+} from "@/lib/api/event/response";
 
 // ============================================================================
 // TYPES
 // ============================================================================
-
-type Permissions = ReturnType<typeof useEventPermissions>;
 
 export type EventMenuItem = {
 	route: string;
 	label: string;
 	description: string;
 	icon: IconType | LucideIcon;
-	visible?: (permissions: Permissions, event?: Event) => boolean;
+	visible?: (permissions: Permissions, event?: EventSidebarEvent) => boolean;
 	isActive?: (pathname: string, route: string) => boolean;
 };
 
@@ -67,7 +74,7 @@ export type EventMenuGroup = {
 	id: string;
 	label: string;
 	icon: IconType | LucideIcon;
-	visible?: (permissions: Permissions, event?: Event) => boolean;
+	visible?: (permissions: Permissions, event?: EventSidebarEvent) => boolean;
 	tabs: EventMenuItem[];
 };
 
@@ -82,8 +89,10 @@ export type EventMenuConfig = {
 
 const visible = {
 	// Event type checks
-	ticketEvent: (_p: Permissions, e?: Event) => e?.use_ticket !== false,
-	mallEvent: (_p: Permissions, e?: Event) => e?.use_ticket === false,
+	ticketEvent: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_ticket !== false,
+	mallEvent: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_ticket === false,
 
 	// Permission checks
 	orgOwner: (p: Permissions) => p.canManageEventStaff ?? false,
@@ -106,33 +115,51 @@ const visible = {
 		!(p.isEventVendor ?? false) && !(p.isExhibitionContractor ?? false),
 
 	// Feature flags
-	hasExhibitorKit: (_p: Permissions, e?: Event) =>
+	hasExhibitorKit: (_p: Permissions, e?: EventSidebarEvent) =>
 		e?.use_exhibitor_kit === true,
-	hasSeatTicketing: (_p: Permissions, e?: Event) =>
+	hasSeatTicketing: (_p: Permissions, e?: EventSidebarEvent) =>
 		e?.use_seat_ticketing === true,
-	hasVouchers: (_p: Permissions, e?: Event) => e?.use_voucher === true,
-	hasCertificate: (_p: Permissions, e?: Event) => e?.use_certificate === true,
-	hasVendors: (_p: Permissions, e?: Event) => e?.use_exhibitor_kit !== true,
+	hasVouchers: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_voucher === true,
+	hasCertificate: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_certificate === true,
+	hasFeedback: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_feedback === true,
+	hasRfid: (_p: Permissions, e?: EventSidebarEvent) => e?.use_rfid === true,
+	hasPeopleCounter: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_people_counter === true,
+	hasVehicles: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.vehicles_enabled === true,
+	hasVendors: (_p: Permissions, e?: EventSidebarEvent) =>
+		e?.use_exhibitor_kit !== true,
 
 	// Special access
 	luckyDrawAccess: (p: Permissions) =>
-		p.isOrgOwner || p.isEventAdmin || p.isOrganizer || p.isEventStaff,
+		p.isOrgOwner ||
+		p.isEventAdmin ||
+		p.isOrganizer ||
+		p.isEventStaff ||
+		p.isEventVendor,
 	prizeRouletteAccess: (p: Permissions) =>
 		p.isOrgOwner || p.isEventAdmin || p.isEventVendor,
-	exhibitorContractorAccess: (p: Permissions, e?: Event) =>
+	exhibitorContractorAccess: (p: Permissions, e?: EventSidebarEvent) =>
 		(visible.orgOwner(p) || p.isExhibitionContractor) &&
 		visible.hasExhibitorKit(p, e),
-	vendorExhibitorKitAccess: (p: Permissions, e?: Event) =>
+	vendorExhibitorKitAccess: (p: Permissions, e?: EventSidebarEvent) =>
 		visible.vendor(p) && visible.hasExhibitorKit(p, e),
-	contractorOnly: (p: Permissions, e?: Event) =>
+	contractorOnly: (p: Permissions, e?: EventSidebarEvent) =>
 		p.isExhibitionContractor && visible.hasExhibitorKit(p, e),
 	// Org staff or contractor can access event items/printing services
-	orgStaffOrContractor: (p: Permissions, e?: Event) =>
+	orgStaffOrContractor: (p: Permissions, e?: EventSidebarEvent) =>
 		(visible.orgOwner(p) || p.isExhibitionContractor) &&
 		visible.hasExhibitorKit(p, e),
-	businessMatchingAccess: (p: Permissions, e?: Event) =>
+	businessMatchingAccess: (p: Permissions, e?: EventSidebarEvent) =>
 		e?.use_business_matching === true &&
-		(p.isEventAdmin || p.isOrganizer || p.isEventStaff || p.isOrgOwner),
+		(p.isEventAdmin ||
+			p.isOrganizer ||
+			p.isEventStaff ||
+			p.isOrgOwner ||
+			p.isBusinessHost),
 	// Organizer or org_owner only (for import visitors in mall events)
 	organizerOrOwner: (p: Permissions) => p.isOrgOwner || p.isOrganizer,
 	// photoBoothAccess: (p: Permissions, e?: Event) =>
@@ -144,7 +171,7 @@ const visible = {
 // MENU CONFIGURATION
 // ============================================================================
 
-export const eventMenuConfig: EventMenuConfig = {
+const rawEventMenuConfig: EventMenuConfig = {
 	/** Tabs that are always visible to all users */
 	standalone: [
 		{
@@ -188,6 +215,13 @@ export const eventMenuConfig: EventMenuConfig = {
 			icon: Briefcase,
 			visible: visible.businessMatchingAccess,
 		},
+		{
+			route: "host-profile",
+			label: "Host Profile",
+			description: "Manage your business matching details and capabilities.",
+			icon: User,
+			visible: (p) => p.isBusinessHost,
+		},
 		// {
 		// 	route: "photo-booth",
 		// 	label: "Photo Booth",
@@ -208,7 +242,8 @@ export const eventMenuConfig: EventMenuConfig = {
 			description:
 				"Approve blessings for the live wishes wall, or keep unsuitable messages out of the venue display.",
 			icon: MessageSquareHeart,
-			visible: (_p: Permissions, e?: Event) => e?.use_wedding === true,
+			visible: (_p: Permissions, e?: EventSidebarEvent) =>
+				e?.use_wedding === true,
 		},
 		{
 			route: "location",
@@ -288,12 +323,6 @@ export const eventMenuConfig: EventMenuConfig = {
 					icon: TbClockDollar,
 				},
 				{
-					route: "scanned-logs",
-					label: "Scanned Logs",
-					description: "View QR code scan logs and entry records.",
-					icon: ScanQrCode,
-				},
-				{
 					route: "ticket-types",
 					label: "Ticket Types",
 					description: "Manage ticket types for this event.",
@@ -304,6 +333,14 @@ export const eventMenuConfig: EventMenuConfig = {
 					label: "Registration Forms",
 					description: "Manage registration forms and ticket mapping.",
 					icon: ClipboardList,
+				},
+				{
+					route: "vehicles",
+					label: "Vehicles",
+					description:
+						"View registered vehicles, their crew, and fix mismatches.",
+					icon: Car,
+					visible: (p, e) => visible.hasVehicles(p, e),
 				},
 				{
 					route: "bundle-passes",
@@ -487,6 +524,31 @@ export const eventMenuConfig: EventMenuConfig = {
 		},
 
 		// ------------------------------------------------------------------------
+		// FEEDBACK GROUP - Form builder and attendee responses
+		// ------------------------------------------------------------------------
+		{
+			id: "feedback",
+			label: "Feedback",
+			icon: MessageSquareText,
+			visible: (p, e) => visible.eventAdminOnly(p) && visible.hasFeedback(p, e),
+			tabs: [
+				{
+					route: "feedback/form-builder",
+					label: "Form Builder",
+					description: "Build the post-event feedback form.",
+					icon: Blocks,
+					isActive: (pathname) => pathname.endsWith("/feedback/form-builder"),
+				},
+				{
+					route: "feedback/responses",
+					label: "Responses",
+					description: "Review attendee feedback.",
+					icon: MessageSquareQuote,
+				},
+			],
+		},
+
+		// ------------------------------------------------------------------------
 		// MY EXHIBITOR KIT GROUP - Vendor exhibitor kit management
 		// ------------------------------------------------------------------------
 		{
@@ -535,11 +597,29 @@ export const eventMenuConfig: EventMenuConfig = {
 						visible.ticketEvent(p, e) && visible.canAccessTickets(p),
 				},
 				{
+					route: "custom-reports",
+					label: "Custom Reports",
+					description:
+						"Build your own breakdowns by ticket type or custom registration field.",
+					icon: FileChartColumn,
+					visible: (p, e) =>
+						visible.ticketEvent(p, e) && visible.canAccessTickets(p),
+				},
+				{
 					route: "analytics/visitor",
 					label: "Visitor Analytics",
 					description: "View visitor registrations and check-in analytics.",
 					icon: ChartBar,
 					visible: (p, e) => visible.mallEvent(p, e) && visible.eventAdmin(p),
+				},
+				{
+					route: "analytics/exhibitor",
+					label: "Exhibitor Analytics",
+					description:
+						"View exhibitor booth bookings, payment status, and pricing sales.",
+					icon: ChartBar,
+					visible: (p, e) =>
+						visible.hasExhibitorKit(p, e) && visible.eventAdmin(p),
 				},
 				{
 					route: "mall-live-feed",
@@ -568,6 +648,41 @@ export const eventMenuConfig: EventMenuConfig = {
 					visible: visible.eventAdmin,
 				},
 				{
+					route: "scanned-logs",
+					label: "Scanned Logs",
+					description: "View QR code scan logs and entry records.",
+					icon: ScanQrCode,
+					visible: (p) => visible.eventAdmin(p) || visible.canAccessTickets(p),
+				},
+				{
+					route: "rfid",
+					label: "RFID",
+					description:
+						"RFID headcount, stations, bindings, visits, and corrections.",
+					icon: Radio,
+					visible: (p, e) =>
+						visible.hasRfid(p, e) &&
+						visible.ticketEvent(p, e) &&
+						visible.eventAdmin(p),
+				},
+				{
+					route: "people-counter",
+					label: "People Counter",
+					description:
+						"Live people counts per hall and level. Org owners also set up the counter connection and halls.",
+					icon: Users,
+					visible: (p, e) =>
+						visible.hasPeopleCounter(p, e) &&
+						(visible.eventAdmin(p) || visible.organizerOrOwner(p)),
+				},
+				{
+					route: "event-activity",
+					label: "Activity Log",
+					description: "View recent actions on this event.",
+					icon: SquareActivity,
+					visible: (p) => p.isOrgOwner || p.isEventAdmin || p.isEventTeamMember,
+				},
+				{
 					route: "lead-logs",
 					label: "Lead Logs",
 					description: "View all event lead logs for this event.",
@@ -585,6 +700,101 @@ export const eventMenuConfig: EventMenuConfig = {
 		},
 	],
 } as const;
+
+// ============================================================================
+// BUSINESS HOST LOCKDOWN
+// ============================================================================
+// A user invited purely as a business host (no other staff/admin/vendor
+// standing on this event) should only ever see "Business Matching" and
+// "Host Profile" — not whatever any individual tab's own `visible` check
+// happens to allow. Patching every existing (and future) predicate
+// individually is exactly how gaps like the Tickets group leaking through
+// to business hosts happened, so this wraps the whole config once instead.
+const BUSINESS_HOST_ALLOWED_ROUTES = new Set([
+	"business-matching",
+	"host-profile",
+]);
+
+const isPureBusinessHost = (p: Permissions) =>
+	(p.isBusinessHost ?? false) &&
+	!(p.isOrgOwner ?? false) &&
+	!(p.isOrganizer ?? false) &&
+	!(p.isEventAdmin ?? false) &&
+	!(p.isEventTeamMember ?? false) &&
+	!(p.isEventVendor ?? false) &&
+	!(p.isExhibitionContractor ?? false);
+
+function restrictForBusinessHosts(config: EventMenuConfig): EventMenuConfig {
+	const guardItem = (item: EventMenuItem): EventMenuItem => ({
+		...item,
+		visible: (p: Permissions, e?: EventSidebarEvent) =>
+			isPureBusinessHost(p)
+				? BUSINESS_HOST_ALLOWED_ROUTES.has(item.route)
+				: (item.visible?.(p, e) ?? true),
+	});
+
+	return {
+		standalone: config.standalone.map(guardItem),
+		groups: config.groups.map((group) => ({
+			...group,
+			// Business hosts never see a group unless it holds one of their
+			// allowed routes (e.g. Activity Log lives in the Logs group) —
+			// guardItem above still hides every other tab in that group.
+			visible: (p: Permissions, e?: EventSidebarEvent) =>
+				isPureBusinessHost(p)
+					? group.tabs.some((t) => BUSINESS_HOST_ALLOWED_ROUTES.has(t.route))
+					: (group.visible?.(p, e) ?? true),
+			tabs: group.tabs.map(guardItem),
+		})),
+	};
+}
+
+// ============================================================================
+// BUSINESS MATCHING ADMIN LOCKDOWN
+// ============================================================================
+// A user assigned as business_matching_admin (and nothing else) manages
+// Business Matching for this event only — no other modules.
+const BUSINESS_MATCHING_ADMIN_ALLOWED_ROUTES = new Set(["business-matching"]);
+
+const isPureBusinessMatchingAdmin = (p: Permissions) =>
+	(p.isBusinessMatchingAdmin ?? false) &&
+	!(p.isOrgOwner ?? false) &&
+	!(p.isOrganizer ?? false) &&
+	!(p.isEventAdmin ?? false) &&
+	!(p.isEventTeamMember ?? false) &&
+	!(p.isEventVendor ?? false) &&
+	!(p.isExhibitionContractor ?? false);
+
+function restrictForBusinessMatchingAdmins(
+	config: EventMenuConfig,
+): EventMenuConfig {
+	const guardItem = (item: EventMenuItem): EventMenuItem => ({
+		...item,
+		visible: (p: Permissions, e?: EventSidebarEvent) =>
+			isPureBusinessMatchingAdmin(p)
+				? BUSINESS_MATCHING_ADMIN_ALLOWED_ROUTES.has(item.route)
+				: (item.visible?.(p, e) ?? true),
+	});
+
+	return {
+		standalone: config.standalone.map(guardItem),
+		groups: config.groups.map((group) => ({
+			...group,
+			visible: (p: Permissions, e?: EventSidebarEvent) =>
+				isPureBusinessMatchingAdmin(p)
+					? group.tabs.some((t) =>
+							BUSINESS_MATCHING_ADMIN_ALLOWED_ROUTES.has(t.route),
+						)
+					: (group.visible?.(p, e) ?? true),
+			tabs: group.tabs.map(guardItem),
+		})),
+	};
+}
+
+export const eventMenuConfig: EventMenuConfig =
+	restrictForBusinessMatchingAdmins(
+		restrictForBusinessHosts(rawEventMenuConfig),
+	);
 
 // ============================================================================
 // ROUTE LOOKUP MAP - For layout.tsx to find menu item config by route

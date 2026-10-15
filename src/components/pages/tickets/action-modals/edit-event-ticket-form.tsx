@@ -8,20 +8,38 @@ import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { FormGroupContainer } from "@/components/admin-ui/form/form-group-container";
 import { InputLabel } from "@/components/admin-ui/form/input-label";
+import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSet } from "@/components/ui/field";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEventById } from "@/lib/api/event";
 import { updateTicket } from "@/lib/api/ticket";
+import { PAYMENT_STATUS } from "../../pending-ticket/constants";
 import type { BaseTicket } from "../event-ticket-table-columns";
 import { TicketTypeFieldSection } from "../page-action/ticket-type-field-section";
+import { VehicleGroupField } from "../page-action/vehicle-group-field";
+
+// Server-written audit keys — never editable here, backend strips them from
+// any update payload anyway (see Ticket::RESERVED_CUSTOM_FIELD_KEYS).
+const RESERVED_CUSTOM_FIELD_KEYS = new Set(["_indemnity", "_terms_agreement"]);
+
+function prettifyKey(key: string): string {
+	return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 interface EditTicketFormProps {
 	ticket: BaseTicket;
+	// Opened from outside Manage Tickets (e.g. the Vehicles page) for a ticket
+	// that may not be paid — hide the Paid-defaulted status so saving can't
+	// mark it paid.
+	hidePaymentStatus?: boolean;
 }
 
-export default function EditTicketForm({ ticket }: EditTicketFormProps) {
+export default function EditTicketForm({
+	ticket,
+	hidePaymentStatus = false,
+}: EditTicketFormProps) {
 	const { closeDialog } = useDialog();
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -32,6 +50,8 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 	const emailId = useId();
 	const phoneId = useId();
 	const roleId = useId();
+	const paymentStatusId = useId();
+	const isCheckedIn = ticket.status === "scanned";
 
 	// Custom fields state (kept separate since they're dynamic based on event data)
 	const [customFields, setCustomFields] = useState<
@@ -44,29 +64,38 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 		queryFn: () => getEventById(eventId),
 	});
 
-	// Initialize custom fields from event labels_data and populate with ticket data
+	// Initialize custom fields from the union of event labels_data and any
+	// keys present directly on the ticket (e.g. registration-form fields never
+	// registered into the event's schema). Matches the View modal's merge —
+	// without it, fields not in labels_data are invisible here and get wiped
+	// on save, since custom_fields_data is a plain-replace jsonb column.
 	useEffect(() => {
-		if (
-			eventData?.labels_data &&
-			Object.keys(eventData.labels_data).length > 0
-		) {
-			const fields = Object.entries(eventData.labels_data).map(
-				([key, labelNameValue]) => {
-					const currentLabelName = labelNameValue as string;
-					// Match by key, not display name
-					const existingLabel = ticket.customLabels?.find(
-						(label) => label.name === key,
-					);
+		const labelsData = eventData?.labels_data ?? {};
+		const mergedKeys = new Map<string, string>(
+			Object.entries(labelsData) as [string, string][],
+		);
+		ticket.customLabels?.forEach(({ name }) => {
+			if (!mergedKeys.has(name)) {
+				mergedKeys.set(name, prettifyKey(name));
+			}
+		});
 
-					return {
-						labelKey: key,
-						labelName: currentLabelName,
-						value: existingLabel?.value || "",
-					};
-				},
-			);
-			setCustomFields(fields);
-		}
+		const fields = Array.from(mergedKeys.entries())
+			.filter(([key]) => !RESERVED_CUSTOM_FIELD_KEYS.has(key))
+			.map(([key, labelName]) => {
+				// Match by key, not display name
+				const existingLabel = ticket.customLabels?.find(
+					(label) => label.name === key,
+				);
+
+				return {
+					labelKey: key,
+					labelName,
+					// "-" is the display placeholder for empty values, not data
+					value: existingLabel?.value === "-" ? "" : existingLabel?.value || "",
+				};
+			});
+		setCustomFields(fields);
 	}, [eventData, ticket.customLabels]);
 
 	// Update ticket mutation
@@ -91,7 +120,13 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 			attendee_email: ticket.email ?? "",
 			attendee_phone: ticket.phone || "",
 			ticket_type_id: ticket.ticketTypeId || null,
+			vehicle_registration_form_id:
+				ticket.vehicleRegistration?.registrationFormId ?? 0,
 			role: ticket.role || "",
+			// This form only ever opens for tickets already in Manage Tickets,
+			// which only lists paid tickets — so "Paid" is always the true
+			// starting value here.
+			payment_status: PAYMENT_STATUS.PAID as number,
 		},
 		onSubmit: async ({ value }) => {
 			if (!value.ticket_type_id) {
@@ -112,7 +147,13 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 				attendee_email: value.attendee_email.trim() || null,
 				attendee_phone: value.attendee_phone || null,
 				ticket_type_id: value.ticket_type_id,
+				vehicle_registration_form_id:
+					value.vehicle_registration_form_id !==
+					ticket.vehicleRegistration?.registrationFormId
+						? value.vehicle_registration_form_id || undefined
+						: undefined,
 				role: value.role || undefined,
+				payment_status: hidePaymentStatus ? undefined : value.payment_status,
 				custom_fields_data:
 					customFields.length > 0 ? customFieldsData : undefined,
 			});
@@ -242,6 +283,45 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 									/>
 								)}
 							</form.Field>
+
+							{!hidePaymentStatus && (
+								<form.Field name="payment_status">
+									{(field) => (
+										<SelectLabel
+											label="Payment Status"
+											htmlFor={paymentStatusId}
+											value={field.state.value.toString()}
+											onChange={(value) =>
+												field.handleChange(Number.parseInt(value, 10))
+											}
+											disabled={updateTicketMutation.isPending || isCheckedIn}
+											description={
+												isCheckedIn
+													? "Ticket already checked in — payment status is locked."
+													: "Reverting to Pending clears this ticket's paid status."
+											}
+											options={[
+												{
+													value: PAYMENT_STATUS.PENDING.toString(),
+													label: "Pending",
+												},
+												{
+													value: PAYMENT_STATUS.PAID.toString(),
+													label: "Paid",
+												},
+												{
+													value: PAYMENT_STATUS.FAILED.toString(),
+													label: "Failed",
+												},
+												{
+													value: PAYMENT_STATUS.REFUNDED_PAYMENT.toString(),
+													label: "Refunded Payment",
+												},
+											]}
+										/>
+									)}
+								</form.Field>
+							)}
 						</div>
 						<form.Field
 							name="ticket_type_id"
@@ -262,6 +342,18 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 								/>
 							)}
 						</form.Field>
+						{ticket.vehicleRegistration && (
+							<form.Field name="vehicle_registration_form_id">
+								{(field) => (
+									<VehicleGroupField
+										eventId={eventId}
+										value={field.state.value}
+										onChange={field.handleChange}
+										disabled={updateTicketMutation.isPending}
+									/>
+								)}
+							</form.Field>
+						)}
 					</FormGroupContainer>
 					<FormGroupContainer
 						title={{

@@ -1,23 +1,27 @@
+import { formatTicketCustomFieldEntries } from "@/lib/utils/custom-fields-display";
 import { restClient } from "@/utils/rest-api";
 import {
+	type AcceptWaitingListRequest,
 	type ApproveTicketApplicationRequest,
-	approveTicketApplicationSchema,
 	type ApproveTicketRsvpRequest,
+	acceptWaitingListSchema,
+	approveTicketApplicationSchema,
 	approveTicketRsvpSchema,
 	type CreatePendingTicketRequest,
 	createPendingTicketSchema,
-	type GetPendingTicketsRequest,
-	getPendingTicketsSchema,
 	type RejectTicketApplicationRequest,
 	type ResendTicketRsvpRequest,
+	type RevertTicketApplicationRequest,
 	rejectTicketApplicationSchema,
 	resendTicketRsvpSchema,
+	revertTicketApplicationSchema,
 	type UpdatePendingTicketRequest,
 	updatePendingTicketSchema,
 } from "./request";
 import type {
 	BackendPendingTicket,
 	CreatePendingTicketResponse,
+	PagedPendingTicketsResult,
 	PendingTicket,
 	UpdatePendingTicketResponse,
 } from "./response";
@@ -30,16 +34,9 @@ function getErrorMessage(error: unknown, fallback: string): string {
 function transformPendingTicket(
 	backendTicket: BackendPendingTicket,
 ): PendingTicket {
-	const customLabels: Array<{ name: string; value: string }> = [];
-
-	// Transform custom_fields_data to customLabels array
-	if (backendTicket.custom_fields_data) {
-		for (const [key, value] of Object.entries(
-			backendTicket.custom_fields_data,
-		)) {
-			customLabels.push({ name: key, value: String(value) });
-		}
-	}
+	const customLabels = formatTicketCustomFieldEntries(
+		backendTicket.custom_fields_data,
+	);
 
 	// Convert payment_status to string if it's a number (backend enum)
 	let paymentStatus: PendingTicket["paymentStatus"];
@@ -70,7 +67,9 @@ function transformPendingTicket(
 		status: backendTicket.status === "scanned" ? "scanned" : "not_scanned",
 		customLabels,
 		createdAt: backendTicket.created_at,
+		deletedAt: backendTicket.deleted_at ?? null,
 		paymentStatus,
+		waitingList: backendTicket.waiting_list,
 		paymentScreenshotUrl: backendTicket.payment_screenshot_url || undefined,
 		transactionId: backendTicket.transaction_id || undefined,
 		paymentMethod: backendTicket.payment_method || undefined,
@@ -87,48 +86,118 @@ function transformPendingTicket(
 					rsvpExpiresAt: application.rsvp_expires_at,
 				}
 			: undefined,
+		documents: backendTicket.registration_documents_data,
+		vehicleRegistration: backendTicket.vehicle_registration_data
+			? {
+					plate: backendTicket.vehicle_registration_data.plate,
+					registrationFormId:
+						backendTicket.vehicle_registration_data.registration_form_id,
+					registrationFormName:
+						backendTicket.vehicle_registration_data.registration_form_name,
+					registrationFormSlug:
+						backendTicket.vehicle_registration_data.registration_form_slug,
+				}
+			: null,
 	};
 }
 
+// Non-paid payment states shown on the Pending Tickets tab. Sent as the
+// default payment_status[] filter (tickets#index supports an array for an
+// IN clause) so only this slice of the event's tickets ever comes over the
+// wire, instead of every ticket (paid included) followed by an in-memory
+// filter — the same class of unbounded fetch that used to make Manage
+// Tickets slow on large events.
+const PENDING_PAYMENT_STATUSES = ["pending", "failed", "refunded_payment"];
+
+export interface GetPendingTicketsPagedOptions {
+	page: number;
+	perPage: number;
+	/** List only soft-archived pending tickets (maps to archived=true). */
+	archived?: boolean;
+	/** Include archived alongside active pending tickets (maps to full=true). */
+	full?: boolean;
+	q?: string;
+	/** Narrows to one of PENDING_PAYMENT_STATUSES; omitted = all three. */
+	paymentStatus?: "pending" | "failed" | "refunded_payment";
+	reviewStatus?: "pending_review" | "approved" | "rejected";
+	rsvpStatus?: "not_sent" | "sent" | "confirmed" | "declined" | "expired";
+	ticketTypeName?: string;
+	sortBy?: "name" | "email" | "status" | "createdAt";
+	sortDir?: "asc" | "desc";
+}
+
 /**
- * Get all pending tickets for an event (payment_status = pending or approval_pending)
+ * One server-paginated page of pending tickets (payment_status = pending,
+ * failed, or refunded_payment) for the Pending Tickets table. Search,
+ * status/review/rsvp/type filtering, sorting, and paging all happen
+ * server-side — see PagedPendingTicketsResult and tickets_controller.rb#index.
  */
-export async function getPendingTickets(
-	data: GetPendingTicketsRequest,
-): Promise<PendingTicket[]> {
-	try {
-		const validated = getPendingTicketsSchema.parse(data);
-
-		// Fetch all tickets for the event
-		const response = await restClient.get<BackendPendingTicket[]>(
-			`v1/events/${validated.eventId}/tickets`,
-		);
-
-		// Filter tickets:
-		// Pending Tickets should only show non-paid payment states.
-		const pendingTickets = response.filter((ticket) => {
-			// Handle both number and string payment status
-			if (typeof ticket.payment_status === "number") {
-				// Include pending (0), failed (2), refunded_payment (3)
-				return (
-					ticket.payment_status === 0 ||
-					ticket.payment_status === 2 ||
-					ticket.payment_status === 3
-				);
-			}
-			// Handle string payment status
-			return (
-				ticket.payment_status === "pending" ||
-				ticket.payment_status === "failed" ||
-				ticket.payment_status === "refunded_payment"
-			);
-		});
-
-		return pendingTickets.map(transformPendingTicket);
-	} catch (error: unknown) {
-		console.error("Error fetching pending tickets:", error);
-		throw new Error(getErrorMessage(error, "Failed to fetch pending tickets"));
+export async function getPendingTicketsPaged(
+	eventId: string,
+	options: GetPendingTicketsPagedOptions,
+): Promise<PagedPendingTicketsResult> {
+	const params = new URLSearchParams();
+	params.set("page", String(options.page));
+	params.set("per_page", String(options.perPage));
+	// archived/full mirror Manage Tickets: tickets#index applies only_deleted /
+	// with_deleted before the payment_status[] IN filter, so the two compose.
+	if (options.archived) params.set("archived", "true");
+	else if (options.full) params.set("full", "true");
+	for (const status of options.paymentStatus
+		? [options.paymentStatus]
+		: PENDING_PAYMENT_STATUSES) {
+		params.append("payment_status[]", status);
 	}
+	if (options.q) params.set("q", options.q);
+	if (options.reviewStatus) params.set("review_status", options.reviewStatus);
+	if (options.rsvpStatus) params.set("rsvp_status", options.rsvpStatus);
+	if (options.ticketTypeName)
+		params.set("ticket_type_name", options.ticketTypeName);
+	if (options.sortBy) params.set("sort_by", options.sortBy);
+	if (options.sortDir) params.set("sort_dir", options.sortDir);
+
+	const { data: response, headers } = await restClient.getWithHeaders<
+		BackendPendingTicket[]
+	>(`v1/events/${eventId}/tickets?${params.toString()}`);
+
+	return {
+		data: response.map(transformPendingTicket),
+		pagination: {
+			currentPage: Number(headers.get("X-Page")) || options.page,
+			totalPages: Number(headers.get("X-Total-Pages")) || 0,
+			totalCount: Number(headers.get("X-Total-Count")) || 0,
+			perPage: Number(headers.get("X-Per-Page")) || options.perPage,
+		},
+	};
+}
+
+// Builds multipart/form-data for the `ticket[...]` params, needed only when
+// payment_proof is a real File (can't ride along in a JSON body).
+function buildTicketFormData(
+	ticketData: Record<string, unknown>,
+	extra?: Record<string, unknown>,
+): FormData {
+	const formData = new FormData();
+	for (const [key, value] of Object.entries(ticketData)) {
+		if (value === undefined || value === null) continue;
+		if (value instanceof File) {
+			formData.append(`ticket[${key}]`, value);
+		} else if (key === "custom_fields_data" && typeof value === "object") {
+			for (const [fieldKey, fieldValue] of Object.entries(
+				value as Record<string, string>,
+			)) {
+				formData.append(`ticket[custom_fields_data][${fieldKey}]`, fieldValue);
+			}
+		} else {
+			formData.append(`ticket[${key}]`, String(value));
+		}
+	}
+	for (const [key, value] of Object.entries(extra ?? {})) {
+		if (value !== undefined && value !== null) {
+			formData.append(key, String(value));
+		}
+	}
+	return formData;
 }
 
 /**
@@ -139,12 +208,17 @@ export async function createPendingTicket(
 ): Promise<CreatePendingTicketResponse> {
 	try {
 		const validated = createPendingTicketSchema.parse(data);
-		const { eventId, ...ticketData } = validated;
+		const { eventId, quantity, ...ticketData } = validated;
 
-		const response = await restClient.post<BackendPendingTicket>(
-			`v1/events/${eventId}/tickets`,
-			{ ticket: ticketData },
-		);
+		const response = ticketData.payment_proof
+			? await restClient.postFormData<BackendPendingTicket>(
+					`v1/events/${eventId}/tickets`,
+					buildTicketFormData(ticketData, { quantity }),
+				)
+			: await restClient.post<BackendPendingTicket>(
+					`v1/events/${eventId}/tickets`,
+					{ ticket: ticketData, quantity },
+				);
 
 		return transformPendingTicket(response);
 	} catch (error: unknown) {
@@ -163,10 +237,15 @@ export async function updatePendingTicket(
 		const validated = updatePendingTicketSchema.parse(data);
 		const { eventId, ticketId, ...updateData } = validated;
 
-		const response = await restClient.put<BackendPendingTicket>(
-			`v1/events/${eventId}/tickets/${ticketId}`,
-			{ ticket: updateData },
-		);
+		const response = updateData.payment_proof
+			? await restClient.putFormData<BackendPendingTicket>(
+					`v1/events/${eventId}/tickets/${ticketId}`,
+					buildTicketFormData(updateData),
+				)
+			: await restClient.put<BackendPendingTicket>(
+					`v1/events/${eventId}/tickets/${ticketId}`,
+					{ ticket: updateData },
+				);
 
 		return transformPendingTicket(response);
 	} catch (error: unknown) {
@@ -212,6 +291,27 @@ export async function approveTicketRsvp(
 	const validated = approveTicketRsvpSchema.parse(data);
 	const response = await restClient.patch<BackendPendingTicket>(
 		`v1/events/${validated.eventId}/tickets/${validated.ticketId}/application/approve_rsvp`,
+	);
+	return transformPendingTicket(response);
+}
+
+export async function revertTicketApplication(
+	data: RevertTicketApplicationRequest,
+): Promise<PendingTicket> {
+	const validated = revertTicketApplicationSchema.parse(data);
+	const response = await restClient.patch<BackendPendingTicket>(
+		`v1/events/${validated.eventId}/tickets/${validated.ticketId}/application/revert`,
+		{ confirm_manual_refund: validated.confirmManualRefund ?? false },
+	);
+	return transformPendingTicket(response);
+}
+
+export async function acceptWaitingList(
+	data: AcceptWaitingListRequest,
+): Promise<PendingTicket> {
+	const validated = acceptWaitingListSchema.parse(data);
+	const response = await restClient.patch<BackendPendingTicket>(
+		`v1/events/${validated.eventId}/tickets/${validated.ticketId}/accept_waiting_list`,
 	);
 	return transformPendingTicket(response);
 }

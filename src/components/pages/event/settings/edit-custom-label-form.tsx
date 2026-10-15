@@ -25,11 +25,19 @@ interface CustomLabel {
 interface CustomLabelFormProps {
 	eventId: number;
 	onClose?: () => void;
+	/** Which labels bucket on the event this form edits. Defaults to the
+	 * ticket/visitor labels_data field for backward compatibility. */
+	field?: "labels_data" | "exhibitor_labels_data";
+	title?: string;
+	description?: string;
 }
 
 export default function CustomLabelForm({
 	eventId,
 	onClose,
+	field = "labels_data",
+	title = "Custom Labels",
+	description = "Add custom fields for ticket registration. Example: Phone Number, T-shirt Size, Dietary Preferences, Emergency Contact, etc.",
 }: CustomLabelFormProps) {
 	const [labels, setLabels] = useState<CustomLabel[]>([
 		{ id: crypto.randomUUID(), value: "" },
@@ -45,11 +53,13 @@ export default function CustomLabelForm({
 		queryFn: () => getEventById(eventId.toString()),
 	});
 
+	const existingLabels = event?.[field];
+
 	// Update event mutation
 	const updateEventMutation = useMutation({
 		mutationFn: async (labelsData: Record<string, string>) => {
 			return await updateEvent(eventId.toString(), {
-				labels_data: labelsData,
+				[field]: labelsData,
 			});
 		},
 		onSuccess: () => {
@@ -71,16 +81,16 @@ export default function CustomLabelForm({
 
 	// Load existing labels when event data is fetched
 	useEffect(() => {
-		if (event?.labels_data && Object.keys(event.labels_data).length > 0) {
-			const existingLabels = Object.entries(event.labels_data).map(
+		if (existingLabels && Object.keys(existingLabels).length > 0) {
+			const loaded = Object.entries(existingLabels).map(
 				([_key, value]: [string, string | unknown]) => ({
 					id: crypto.randomUUID(),
 					value: typeof value === "string" ? value : "",
 				}),
 			);
-			setLabels(existingLabels);
+			setLabels(loaded);
 		}
-	}, [event]);
+	}, [existingLabels]);
 
 	const handleAddLabel = () => {
 		setLabels([...labels, { id: crypto.randomUUID(), value: "" }]);
@@ -126,20 +136,20 @@ export default function CustomLabelForm({
 			{} as Record<string, string>,
 		);
 
-		// Update event with labels_data
+		// Update event with labels data
 		await updateEventMutation.mutateAsync(labelsData);
 	};
 
 	const handleReset = () => {
 		// Reset to existing labels from backend or empty
-		if (event?.labels_data && Object.keys(event.labels_data).length > 0) {
-			const existingLabels = Object.entries(event.labels_data).map(
+		if (existingLabels && Object.keys(existingLabels).length > 0) {
+			const loaded = Object.entries(existingLabels).map(
 				([_key, value]: [string, string | unknown]) => ({
 					id: crypto.randomUUID(),
 					value: typeof value === "string" ? value : "",
 				}),
 			);
-			setLabels(existingLabels);
+			setLabels(loaded);
 		} else {
 			setLabels([{ id: crypto.randomUUID(), value: "" }]);
 		}
@@ -168,13 +178,8 @@ export default function CustomLabelForm({
 			<FieldSet className="flex min-h-0 flex-1 flex-col gap-1">
 				<div className="flex flex-col items-start justify-between gap-2 pb-2 md:flex-row">
 					<div className="flex-1">
-						<FieldLegend className="font-bold text-xl!">
-							Custom Labels
-						</FieldLegend>
-						<FieldDescription>
-							Add custom fields for ticket registration. Example: Phone Number,
-							T-shirt Size, Dietary Preferences, Emergency Contact, etc.
-						</FieldDescription>
+						<FieldLegend className="font-bold text-xl!">{title}</FieldLegend>
+						<FieldDescription>{description}</FieldDescription>
 					</div>
 					<Button
 						type="button"

@@ -12,6 +12,8 @@ import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -164,12 +166,49 @@ export function DesktopTableControl<TData>({
 								key={column.id}
 								className="rounded-none capitalize"
 								checked={column.getIsVisible()}
-								onCheckedChange={(value) => column.toggleVisibility(!!value)}
+								onSelect={(event) => event.preventDefault()}
+								onCheckedChange={(value) => {
+									column.toggleVisibility(!!value);
+									// Move newly-checked columns to the end so display order
+									// follows selection order, not the column-def order —
+									// but keep sticky-right columns (e.g. Actions) pinned last.
+									if (value) {
+										const stickyRightIds = table
+											.getAllLeafColumns()
+											.filter((c) => c.columnDef.meta?.sticky === "right")
+											.map((c) => c.id);
+										const currentOrder = table.getState().columnOrder.length
+											? table.getState().columnOrder
+											: table.getAllLeafColumns().map((c) => c.id);
+										const rest = currentOrder.filter(
+											(id) => id !== column.id && !stickyRightIds.includes(id),
+										);
+										table.setColumnOrder([
+											...rest,
+											column.id,
+											...stickyRightIds.filter((id) => id !== column.id),
+										]);
+									}
+								}}
 							>
 								{label}
 							</DropdownMenuCheckboxItem>
 						);
 					})}
+					{config.onReset && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								className="rounded-none"
+								onSelect={(event) => {
+									event.preventDefault();
+									config.onReset?.();
+								}}
+							>
+								Reset to default
+							</DropdownMenuItem>
+						</>
+					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
 		);
@@ -184,29 +223,32 @@ export function DesktopTableControl<TData>({
 			return renderVisibilityDropdown(config);
 		}
 
+		if (config.type === "custom") {
+			return config.render?.();
+		}
+
 		return renderFilterSelect(config);
 	};
 
 	return (
-		<div className="hidden items-center gap-2 lg:flex">
-			<QuerySearchField
-				table={table}
-				columns={searchConfig.columns}
-				placeholder={searchConfig.placeholder}
-				searchCustomFields={searchConfig.enableCustomSearch}
-			/>
-			{controlConfigs.map((config, index) => {
-				const isLast = index === controlConfigs.length - 1;
-				const isVisibility = config.type === "visibility";
-				return (
-					<div
-						key={`${config.columnId}-${index}`}
-						className={isLast && isVisibility ? "ml-auto" : ""}
-					>
-						{renderControl(config)}
-					</div>
-				);
-			})}
+		<div className="hidden flex-wrap items-center gap-2 lg:flex">
+			<div className="min-w-64 flex-1">
+				<QuerySearchField
+					table={table}
+					columns={searchConfig.columns}
+					placeholder={searchConfig.placeholder}
+					searchCustomFields={searchConfig.enableCustomSearch}
+					controlled={searchConfig.controlled}
+				/>
+			</div>
+			{/* Filters cluster to the right (ml-auto on the group) so the search
+			    box owns the left edge and the columns toggle isn't stranded on
+			    its own — the group wraps as one unit when space runs out. */}
+			<div className="ml-auto flex flex-wrap items-center gap-2">
+				{controlConfigs.map((config, index) => (
+					<div key={`${config.columnId}-${index}`}>{renderControl(config)}</div>
+				))}
+			</div>
 		</div>
 	);
 }

@@ -1,7 +1,10 @@
 export {
 	getEmailDeliveries,
 	getEmailDelivery,
+	getEmailDeliverySummary,
+	getEmailLogSettings,
 	resendEmailDelivery,
+	updateEmailLogSettings,
 } from "./endpoints";
 export {
 	emailDeliveryStatusSchema,
@@ -9,5 +12,13 @@ export {
 	getEmailDeliveriesSchema,
 	type ResendEmailDeliveryRequest,
 	resendEmailDeliverySchema,
+	type UpdateEmailLogSettingsRequest,
+	updateEmailLogSettingsSchema,
 } from "./request";
-export type { BackendEmailDelivery, EmailDelivery } from "./response";
+export type {
+	BackendEmailDelivery,
+	EmailDelivery,
+	EmailDeliveryPage,
+	EmailDeliverySummary,
+	EmailLogSettings,
+} from "./response";

@@ -18,6 +18,10 @@ export function canConfigureExhibitorKit(role?: EventSettingsRole) {
 	return role === "org_owner";
 }
 
+export function canConfigureEmailToggles(role?: EventSettingsRole) {
+	return role === "org_owner";
+}
+
 export function getSafeInitialSettingsTab(
 	initialTab: SettingsTab,
 ): SettingsTab {

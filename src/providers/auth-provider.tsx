@@ -9,8 +9,27 @@ import {
 	useRef,
 	useState,
 } from "react";
+import {
+	OFFLINE_SYNC_ENABLED,
+	STORAGE_CONFIG,
+} from "@/components/pages/scan/constants";
 import { logout as authLogout, refreshToken } from "@/lib/api/auth";
 import { type User, useUserSessionStore } from "@/stores/new-auth-store";
+
+// Offline attendee PII cache is disabled by default (security). When disabled,
+// purge any leftover cached PII on app load. Keys come from STORAGE_CONFIG so a
+// key rename can't silently break the purge.
+const OFFLINE_CACHE_KEYS = [
+	STORAGE_CONFIG.OFFLINE_TICKETS_KEY,
+	STORAGE_CONFIG.OFFLINE_EVENTS_KEY,
+	STORAGE_CONFIG.OFFLINE_LAST_SYNCED_KEY,
+];
+function purgeOfflineCacheIfDisabled() {
+	if (OFFLINE_SYNC_ENABLED || typeof window === "undefined") return;
+	for (const key of OFFLINE_CACHE_KEYS) {
+		window.localStorage.removeItem(key);
+	}
+}
 
 interface AuthContextType {
 	isAuthenticated: boolean;
@@ -86,6 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 	// Handle auth initialization and silent refresh
 	const initAuth = useCallback(async () => {
+		purgeOfflineCacheIfDisabled();
 		// Wait for hydration before checking auth
 		if (!isHydrated || isInitialized) return;
 

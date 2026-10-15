@@ -78,6 +78,16 @@ export type FeatureConfig = {
 	menu: MenuConfig;
 	/** Footer component */
 	footer?: ComponentConfig;
+	/**
+	 * Exit navigation shown at the bottom of the feature sidebar, giving users
+	 * an obvious way back out of the feature context (e.g. "All Events").
+	 */
+	exitLink?: {
+		/** Destination route (e.g. "/event") */
+		href: string;
+		/** Link label (e.g. "All Events") */
+		label: string;
+	};
 	/** Base path for menu item routes (e.g., "/event/123") */
 	basePath?: string;
 	/** Function to extract route params from pathname */

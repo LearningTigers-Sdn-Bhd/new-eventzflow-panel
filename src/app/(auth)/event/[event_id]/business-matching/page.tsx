@@ -1,52 +1,117 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	AlertTriangle,
 	Briefcase,
 	Download,
+	Info,
 	LinkIcon,
-	RefreshCw,
+	MoreVertical,
+	Settings2,
+	Tags,
 } from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { columns } from "@/components/pages/business-matching/columns";
-import { DataTable } from "@/components/pages/business-matching/data-table";
+import CreateSessionDialog from "@/components/pages/business-matching/create-session-dialog";
+import {
+	DataTable,
+	type SessionFilter,
+} from "@/components/pages/business-matching/data-table";
+import ManageTagsDialog from "@/components/pages/business-matching/manage-tags-dialog";
+import SessionDefaultsDialog from "@/components/pages/business-matching/session-defaults-dialog";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+	useBusinessMatchingEventDefaults,
 	useBusinessMatchingEvents,
 	useForceRefreshBusinessMatching,
 } from "@/hooks/use-business-matching";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
-import { downloadBookingsReport } from "@/lib/api/business-matching";
-import { getEventById, updateEvent } from "@/lib/api/event";
+import { useDialog } from "@/hooks/use-dialog";
+import {
+	downloadBookingsReport,
+	getHostProfile,
+} from "@/lib/api/business-matching";
+import { getEventById } from "@/lib/api/event";
 import { cable } from "@/lib/cable";
+import { useEventActionsStore } from "@/stores/event-actions-store";
 
 export default function BusinessMatchingPage() {
 	const params = useParams();
 	const event_id =
 		(Array.isArray(params.event_id) ? params.event_id[0] : params.event_id) ??
 		"";
-	console.log("Current event_id:", event_id); // Add this log
-	const { data, isLoading, error, isFetching } =
-		useBusinessMatchingEvents(event_id);
+	const router = useRouter();
+	const { permissions } = useEventSidebarContext();
 	const {
-		mutate: _forceRefresh,
-		mutateAsync: forceRefreshAsync,
-		isPending: isRefreshing,
-	} = useForceRefreshBusinessMatching(event_id);
+		isBusinessHost,
+		canManageEvent,
+		isOrgOwner,
+		isOrganizer,
+		isEventAdmin,
+		isBusinessMatchingAdmin,
+	} = permissions;
+
+	// Matches the backend's manage_business_matching_tags? policy exactly
+	// (org_owner || organizer || event_admin || business_matching_admin) —
+	// broader than canManageEvent, which intentionally excludes organizers
+	// for other event-management actions.
+	const canManageTags =
+		isOrgOwner || isOrganizer || isEventAdmin || isBusinessMatchingAdmin;
+	// Matches manage_business_matching_sessions? — event admins/BM admins can
+	// create sessions, in addition to whoever canManageEvent already covers.
+	const canManageSessions = canManageEvent || isBusinessMatchingAdmin;
+
+	const [sessionFilter, setSessionFilter] = useState<SessionFilter>("active");
+	const isArchivedView = sessionFilter === "archived";
+
+	const {
+		data: activeData,
+		isLoading: isActiveLoading,
+		error: activeError,
+		isFetching: isActiveFetching,
+	} = useBusinessMatchingEvents(event_id, false);
+
+	const {
+		data: archivedData,
+		isLoading: isArchivedLoading,
+		error: archivedError,
+		isFetching: isArchivedFetching,
+	} = useBusinessMatchingEvents(canManageSessions ? event_id : "", true);
+
+	const hasArchivedData = (archivedData?.length ?? 0) > 0;
+
+	useEffect(() => {
+		if (!hasArchivedData && sessionFilter === "archived") {
+			setSessionFilter("active");
+		}
+	}, [hasArchivedData, sessionFilter]);
+
+	const data = isArchivedView ? archivedData : activeData;
+	const isLoading = isArchivedView ? isArchivedLoading : isActiveLoading;
+	const isFetching = isArchivedView ? isArchivedFetching : isActiveFetching;
+	const error = isArchivedView ? archivedError : activeError;
+
+	const { mutateAsync: forceRefreshAsync } =
+		useForceRefreshBusinessMatching(event_id);
 	const queryClient = useQueryClient();
+	const { openDialog } = useDialog();
+	const setActions = useEventActionsStore((state) => state.setActions);
+	const clearActions = useEventActionsStore((state) => state.clearActions);
 
 	// Fetch event details to check for webhook URL
 	const { data: event } = useQuery({
@@ -55,53 +120,43 @@ export default function BusinessMatchingPage() {
 		enabled: !!event_id,
 	});
 
-	// State for webhook URL input
-	const [webhookUrlInput, setWebhookUrlInput] = useState("");
+	// Session defaults prefill new sessions — only fetch for staff who can
+	// actually manage them (the endpoint is staff-only).
+	const { data: eventDefaults } = useBusinessMatchingEventDefaults(
+		canManageSessions ? event_id : "",
+	);
 
-	// Update event mutation
-	const updateEventMutation = useMutation({
-		mutationFn: async (url: string) => {
-			return await updateEvent(event_id, {
-				business_matching_webhook_url: url,
-			});
-		},
-		onSuccess: () => {
-			toast.success("Webhook URL updated successfully!");
-			queryClient.invalidateQueries({ queryKey: ["event", event_id] });
-		},
-		onError: (error: Error) => {
-			toast.error(error.message || "Failed to update webhook URL");
-		},
+	// Check if logged-in host has completed their profile
+	const { data: hostProfile } = useQuery({
+		queryKey: ["host-profile", event_id],
+		queryFn: () => getHostProfile(event_id),
+		enabled: isBusinessHost,
 	});
 
-	const handleSaveWebhook = () => {
-		if (!webhookUrlInput) {
-			toast.error("Please enter a valid URL");
-			return;
-		}
-		try {
-			new URL(webhookUrlInput); // Basic validation
-			updateEventMutation.mutate(webhookUrlInput);
-		} catch {
-			toast.error("Invalid URL format");
-		}
-	};
-
-	const { isBusinessHost, canManageEvent } = useEventPermissions(
-		event_id,
-		event,
-	);
+	const showProfileWarning = useMemo(() => {
+		if (!isBusinessHost || !hostProfile) return false;
+		return (
+			!hostProfile.description ||
+			!hostProfile.sourcing_intent ||
+			!hostProfile.capabilities ||
+			hostProfile.description.includes("Professional host available") ||
+			hostProfile.sourcing_intent.includes(
+				"Looking for strategic partnerships",
+			) ||
+			hostProfile.capabilities.includes("Expertise in technology solutions")
+		);
+	}, [isBusinessHost, hostProfile]);
 
 	// Filter columns for business hosts
 	const filteredColumns = useMemo(() => {
-		if (isBusinessHost && !canManageEvent) {
+		if (isBusinessHost && !canManageSessions) {
 			// Remove the 'host' column for business hosts
 			return columns.filter(
 				(col) => (col as { accessorKey: string }).accessorKey !== "host",
 			);
 		}
 		return columns;
-	}, [isBusinessHost, canManageEvent]);
+	}, [isBusinessHost, canManageSessions]);
 
 	useEffect(() => {
 		const lastRefreshKey = `last_bm_refresh_${event_id}`;
@@ -157,35 +212,6 @@ export default function BusinessMatchingPage() {
 		};
 	}, [event_id, queryClient]);
 
-	const handleRefresh = async () => {
-		toast.info("Refreshing events and clearing cache...", {
-			description: "Fetching the latest data and reloading the page.",
-		});
-
-		try {
-			await forceRefreshAsync();
-			localStorage.setItem(
-				`last_bm_refresh_${event_id}`,
-				Date.now().toString(),
-			);
-			window.location.reload();
-		} catch (error) {
-			console.error("Manual refresh failed", error);
-			toast.error("Refresh failed. Please try again.");
-
-			// If refresh fails (e.g. invalid webhook), clear the cache so the UI shows the error state
-			// instead of stale data.
-			queryClient.removeQueries({ queryKey: ["business-matching-events"] });
-			queryClient.removeQueries({ queryKey: ["business-matching-bookings"] });
-			queryClient.removeQueries({
-				queryKey: ["business-matching-availability"],
-			});
-			queryClient.removeQueries({
-				queryKey: ["business-matching-detailed-slots"],
-			});
-		}
-	};
-
 	const handleGenerateReport = async (format: "pdf" | "xlsx") => {
 		toast.info(`Generating ${format.toUpperCase()} report...`, {
 			description: "Please wait while we compile the data.",
@@ -213,6 +239,125 @@ export default function BusinessMatchingPage() {
 			});
 	};
 
+	const hasMoreActions =
+		canManageTags || canManageSessions || (data && data.length > 0);
+
+	const actionButtons = (
+		<div className="flex items-center gap-2">
+			{canManageSessions && (
+				<Button
+					onClick={() => {
+						openDialog({
+							component: CreateSessionDialog,
+							props: {
+								eventId: event_id,
+								eventStartDate: event?.start_date,
+								eventEndDate: event?.end_date,
+								eventDefaults,
+							},
+							config: {
+								title: "Create Matchmaking Session",
+								size: "lg",
+								className: "rounded-none",
+							},
+						});
+					}}
+					className="h-8 rounded-none md:h-9"
+				>
+					Create Session
+				</Button>
+			)}
+
+			{hasMoreActions && (
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button
+							variant="outline"
+							size="icon"
+							className="h-8 w-8 rounded-none md:h-9 md:w-9"
+						>
+							<MoreVertical className="h-4 w-4" />
+							<span className="sr-only">More actions</span>
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						{canManageTags && (
+							<DropdownMenuItem
+								onClick={() => {
+									openDialog({
+										component: ManageTagsDialog,
+										props: { eventId: event_id },
+										config: {
+											title: "Manage Matching Tags",
+											size: "lg",
+											className: "rounded-none",
+										},
+									});
+								}}
+							>
+								<Tags className="h-4 w-4" />
+								Manage Tags
+							</DropdownMenuItem>
+						)}
+
+						{canManageSessions && (
+							<DropdownMenuItem
+								onClick={() => {
+									openDialog({
+										component: SessionDefaultsDialog,
+										props: { eventId: event_id },
+										config: {
+											title: (
+												<span className="flex items-center gap-1.5">
+													Session Defaults
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<Info className="h-3.5 w-3.5 text-muted-foreground" />
+														</TooltipTrigger>
+														<TooltipContent>
+															New sessions created for this event will prefill
+															from these — no need to set the date and hours
+															manually every time.
+														</TooltipContent>
+													</Tooltip>
+												</span>
+											),
+											size: "lg",
+											className: "rounded-none",
+										},
+									});
+								}}
+							>
+								<Settings2 className="h-4 w-4" />
+								Session Defaults
+							</DropdownMenuItem>
+						)}
+
+						{data && data.length > 0 && (
+							<>
+								<DropdownMenuItem onClick={() => handleGenerateReport("xlsx")}>
+									<Download className="h-4 w-4" />
+									Generate Report
+								</DropdownMenuItem>
+								{!isBusinessHost && (
+									<DropdownMenuItem onClick={handleCopyPublicLink}>
+										<LinkIcon className="h-4 w-4" />
+										Copy Invite Link
+									</DropdownMenuItem>
+								)}
+							</>
+						)}
+					</DropdownMenuContent>
+				</DropdownMenu>
+			)}
+		</div>
+	);
+
+	useEffect(() => {
+		setActions(actionButtons);
+		return () => clearActions();
+	}, [actionButtons, setActions, clearActions]);
+
 	if (isLoading || isFetching) {
 		return (
 			<LoadingState
@@ -232,91 +377,36 @@ export default function BusinessMatchingPage() {
 		);
 	}
 
-	const actionButtons = (
-		<div className="flex items-center gap-2">
-			{data && data.length > 0 && (
-				<>
+	return (
+		<div className="space-y-4">
+			{showProfileWarning && (
+				<div className="mb-4 flex flex-col items-start justify-between gap-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3.5 text-yellow-800 sm:flex-row sm:items-center dark:text-yellow-200">
+					<div className="flex items-center gap-2.5">
+						<AlertTriangle className="h-5 w-5 shrink-0 text-yellow-600 dark:text-yellow-400" />
+						<div className="text-sm">
+							<span className="font-semibold">Complete Your Host Profile:</span>{" "}
+							You haven't filled out your matching details (Bio, Sourcing
+							Intent, or Capabilities) yet. Fill them out to get the best
+							matchmaking matches.
+						</div>
+					</div>
 					<Button
 						variant="outline"
 						size="sm"
-						onClick={() => handleGenerateReport("xlsx")}
-						className="h-8 rounded-none md:h-9"
+						onClick={() => router.push(`/event/${event_id}/host-profile`)}
+						className="h-8 shrink-0 self-end border-yellow-500/30 bg-yellow-500/20 text-yellow-900 hover:bg-yellow-500/30 sm:self-center dark:text-yellow-200"
 					>
-						<Download className="h-4 w-4 md:mr-2" />
-						<span className="hidden lg:inline">Generate Report</span>
-						<span className="hidden md:inline lg:hidden">Report</span>
+						Edit Profile
 					</Button>
-					{!isBusinessHost && (
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={handleCopyPublicLink}
-							className="h-8 rounded-none md:h-9"
-						>
-							<LinkIcon className="h-4 w-4 md:mr-2" />
-							<span className="hidden lg:inline">Copy Invite Link</span>
-							<span className="hidden md:inline lg:hidden">Invite Link</span>
-						</Button>
-					)}
-				</>
-			)}
-
-			<Button
-				variant="outline"
-				size="sm"
-				onClick={handleRefresh}
-				disabled={isRefreshing}
-				className="h-8 rounded-none md:h-9"
-			>
-				<RefreshCw
-					className={`h-4 w-4 md:mr-2 ${isRefreshing ? "animate-spin" : ""}`}
-				/>
-				<span className="hidden md:inline">Refresh</span>
-			</Button>
-		</div>
-	);
-
-	return (
-		<div className="space-y-4">
-			{canManageEvent && event && !event.business_matching_webhook_url && (
-				<Card className="rounded-none border border-l-4 border-l-amber-500">
-					<CardHeader className="pb-3">
-						<CardTitle className="flex items-center gap-2 font-medium text-lg">
-							<AlertTriangle className="h-5 w-5 text-amber-500" />
-							Setup Business Matching
-						</CardTitle>
-						<CardDescription>
-							To enable real-time data synchronization for Business Matching,
-							please provide the Webhook URL. (Contact your administrator if you
-							don&apos;t have this URL).
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<div className="flex w-full max-w-sm items-center space-x-2">
-							<Input
-								type="url"
-								placeholder="https://webhook.example.com/bm"
-								value={webhookUrlInput}
-								onChange={(e) => setWebhookUrlInput(e.target.value)}
-								disabled={updateEventMutation.isPending}
-								className="rounded-none"
-							/>
-							<Button
-								type="button"
-								onClick={handleSaveWebhook}
-								disabled={updateEventMutation.isPending}
-								className="rounded-none"
-							>
-								{updateEventMutation.isPending ? "Saving..." : "Save URL"}
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
+				</div>
 			)}
 			<DataTable
 				columns={filteredColumns}
 				data={data || []}
-				actions={actionButtons}
+				sessionFilter={sessionFilter}
+				onSessionFilterChange={
+					canManageSessions && hasArchivedData ? setSessionFilter : undefined
+				}
 			/>
 		</div>
 	);

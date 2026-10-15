@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	CircleDashed,
 	Clock,
 	DollarSign,
 	QrCode,
@@ -36,6 +37,21 @@ export function EventDetailsKeyMetrics({
 						Icon={Ticket}
 					/>
 					<StatsCard
+						label="Paid Tickets"
+						value={ticketAnalytics?.paidTickets ?? 0}
+						Icon={DollarSign}
+					/>
+					<StatsCard
+						label="Pending Tickets"
+						value={ticketAnalytics?.pendingTickets ?? 0}
+						Icon={Clock}
+					/>
+					<StatsCard
+						label="Total Visitor"
+						value={ticketAnalytics?.totalVisitors ?? 0}
+						Icon={Users}
+					/>
+					<StatsCard
 						label="Scanned Tickets"
 						value={ticketAnalytics?.scannedTickets ?? 0}
 						Icon={QrCode}
@@ -43,12 +59,17 @@ export function EventDetailsKeyMetrics({
 					<StatsCard
 						label="Unscanned Tickets"
 						value={ticketAnalytics?.unscannedTickets ?? 0}
-						Icon={Clock}
+						Icon={CircleDashed}
 					/>
 					<StatsCard
-						label="Revenue"
+						label="Collected Revenue"
 						value={formatCurrency(ticketAnalytics?.totalRevenue) ?? "0"}
 						Icon={TrendingUp}
+					/>
+					<StatsCard
+						label="Pending Revenue"
+						value={formatCurrency(ticketAnalytics?.pendingRevenue) ?? "0"}
+						Icon={DollarSign}
 					/>
 				</>
 			) : (

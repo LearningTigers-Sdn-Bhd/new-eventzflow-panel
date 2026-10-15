@@ -41,9 +41,12 @@ export default function AssignStaffForm({
 	const roleIdField = useId();
 
 	const [userId, setUserId] = useState<string>("");
-	const [role, setRole] = useState<"event_admin" | "event_team_member">(
-		"event_team_member",
-	);
+	const [role, setRole] = useState<
+		| "event_admin"
+		| "event_team_member"
+		| "business_host"
+		| "business_matching_admin"
+	>("event_team_member");
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	// Fetch available team members
@@ -197,7 +200,13 @@ export default function AssignStaffForm({
 							<Select
 								value={role}
 								onValueChange={(value) =>
-									setRole(value as "event_admin" | "event_team_member")
+									setRole(
+										value as
+											| "event_admin"
+											| "event_team_member"
+											| "business_host"
+											| "business_matching_admin",
+									)
 								}
 								disabled={assignStaffMutation.isPending}
 							>
@@ -207,11 +216,16 @@ export default function AssignStaffForm({
 								<SelectContent>
 									<SelectItem value="event_admin">Event Admin</SelectItem>
 									<SelectItem value="event_team_member">Team Member</SelectItem>
+									<SelectItem value="business_host">Business Host</SelectItem>
+									<SelectItem value="business_matching_admin">
+										Business Matching Admin
+									</SelectItem>
 								</SelectContent>
 							</Select>
 							<FieldDescription>
 								Event Admins can manage all aspects of the event. Team Members
-								have limited access.
+								have limited access. Business Matching Admins can only manage
+								Business Matching for this event.
 							</FieldDescription>
 						</Field>
 

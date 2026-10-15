@@ -1,10 +1,22 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, DollarSign, Ticket, XCircle } from "lucide-react";
+import {
+	CheckCircle2,
+	CircleDashed,
+	Clock,
+	DollarSign,
+	Percent,
+	QrCode,
+	Ticket,
+} from "lucide-react";
 import { use, useMemo, useState } from "react";
 import { StatsCard } from "@/components/admin-ui/analytic";
 import { AnalyticsGraph } from "@/components/pages/analytics/analytics-graph";
+import {
+	CustomFieldBreakdownCard,
+	humanizeFieldKey,
+} from "@/components/pages/analytics/custom-field-breakdown-card";
 import {
 	ExportPdfButton,
 	prepareTicketReportData,
@@ -15,9 +27,13 @@ import {
 	getAnalyticsParamsFromSelection,
 	getDateFilterLabelFromSelection,
 } from "@/components/ui/event-date-filter";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { getEventAnalytics } from "@/lib/api/dashboard";
 import { getEventById } from "@/lib/api/event";
+import type { CustomFieldBreakdownRow } from "@/lib/api/event/analytics";
 import { getHourlyBreakdownByDay } from "@/lib/api/event/analytics";
 
 interface TicketAnalyticsPageProps {
@@ -34,6 +50,14 @@ export default function TicketAnalyticsPage({
 	const [dateSelection, setDateSelection] = useState<EventDateSelection>({
 		type: "all_time",
 	});
+	const [includeMultiScans, setIncludeMultiScans] = usePersistedState(
+		`event-${event_id}-include-multi-scans`,
+		false,
+	);
+	const [customFieldBreakdown, setCustomFieldBreakdown] = useState<{
+		fieldKey: string;
+		rows: CustomFieldBreakdownRow[];
+	} | null>(null);
 
 	// Fetch event to get start/end dates
 	const { data: event, isLoading: eventLoading } = useQuery({
@@ -44,55 +68,78 @@ export default function TicketAnalyticsPage({
 	const analyticsParams = getAnalyticsParamsFromSelection(dateSelection);
 
 	const { data, isLoading: analyticsLoading } = useQuery({
-		queryKey: ["event", eventId, "analytics", dateSelection],
+		queryKey: ["event", eventId, "analytics", dateSelection, includeMultiScans],
 		queryFn: () =>
 			getEventAnalytics(event_id, {
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
 				dateMode: analyticsParams.dateMode,
 				groupBy: analyticsParams.groupBy,
+				includeMultiScans,
 			}),
 		enabled: !!event,
 	});
 
-	// Determine if event spans multiple days (for hourly breakdown)
-	const isMultiDayEvent = useMemo(() => {
-		if (!event) return false;
-		const start = new Date(event.start_date);
-		const end = new Date(event.end_date);
-		return start.toDateString() !== end.toDateString();
-	}, [event]);
-
-	// Fetch hourly breakdown by day for multi-day events with all_time, pre_event, or event_duration filter
+	// Fetch hourly breakdown by day for all_time, pre_event, or event_duration filter
+	// (works for single-day events too — just renders one day's bars)
 	const shouldFetchHourlyBreakdown =
-		isMultiDayEvent &&
-		(dateSelection.type === "all_time" ||
-			dateSelection.type === "pre_event" ||
-			dateSelection.type === "event_duration");
+		dateSelection.type === "all_time" ||
+		dateSelection.type === "pre_event" ||
+		dateSelection.type === "event_duration";
 
-	const { data: hourlyRegistrations } = useQuery({
-		queryKey: ["event", eventId, "hourly_breakdown", "tickets", dateSelection],
-		queryFn: () =>
-			getHourlyBreakdownByDay(event_id, "tickets", {
-				dateMode: analyticsParams.dateMode,
-				startDate: analyticsParams.startDate,
-				endDate: analyticsParams.endDate,
-			}),
-		enabled: !!event && shouldFetchHourlyBreakdown,
-	});
+	const { data: hourlyRegistrations, isLoading: hourlyRegistrationsLoading } =
+		useQuery({
+			queryKey: [
+				"event",
+				eventId,
+				"hourly_breakdown",
+				"tickets",
+				dateSelection,
+			],
+			queryFn: () =>
+				getHourlyBreakdownByDay(event_id, "tickets", {
+					dateMode: analyticsParams.dateMode,
+					startDate: analyticsParams.startDate,
+					endDate: analyticsParams.endDate,
+				}),
+			enabled: !!event && shouldFetchHourlyBreakdown,
+		});
 
-	const { data: hourlyScans } = useQuery({
-		queryKey: ["event", eventId, "hourly_breakdown", "scans", dateSelection],
+	const { data: hourlyScans, isLoading: hourlyScansLoading } = useQuery({
+		queryKey: [
+			"event",
+			eventId,
+			"hourly_breakdown",
+			"scans",
+			dateSelection,
+			includeMultiScans,
+		],
 		queryFn: () =>
 			getHourlyBreakdownByDay(event_id, "scans", {
 				dateMode: analyticsParams.dateMode,
 				startDate: analyticsParams.startDate,
 				endDate: analyticsParams.endDate,
+				includeMultiScans,
 			}),
 		enabled: !!event && shouldFetchHourlyBreakdown,
 	});
 
-	const isLoading = eventLoading || analyticsLoading;
+	// Hourly breakdown queries only run for certain filters — don't block
+	// export on them when they're not enabled (would never resolve).
+	const hourlyBreakdownLoading =
+		shouldFetchHourlyBreakdown &&
+		(hourlyRegistrationsLoading || hourlyScansLoading);
+
+	const isLoading = eventLoading || analyticsLoading || hourlyBreakdownLoading;
+	// Rate must stay based on unique checked-in tickets (paid - unscanned), never
+	// on scannedTickets directly — with multi-scan re-entries included, scannedTickets
+	// can exceed paidTickets and would push the rate past 100%.
+	const uniqueScannedTickets = data
+		? (data.paidTickets ?? 0) - (data.unscannedTickets ?? 0)
+		: 0;
+	const checkInRate = data?.paidTickets
+		? Math.round((uniqueScannedTickets / data.paidTickets) * 1000) / 10
+		: 0;
 
 	// Generate date filter label for PDF filename
 	const dateFilterLabel = useMemo(() => {
@@ -121,9 +168,13 @@ export default function TicketAnalyticsPage({
 			},
 			{
 				totalTickets: data.totalTickets ?? 0,
+				paidTickets: data.paidTickets ?? 0,
+				pendingTickets: data.pendingTickets ?? 0,
+				totalVisitors: data.totalVisitors ?? 0,
 				scannedTickets: data.scannedTickets ?? 0,
 				unscannedTickets: data.unscannedTickets ?? 0,
 				totalRevenue: data.totalRevenue ?? 0,
+				pendingRevenue: data.pendingRevenue ?? 0,
 			},
 			{
 				registrations: data.registrationData,
@@ -132,6 +183,12 @@ export default function TicketAnalyticsPage({
 			},
 			hourlyBreakdown,
 			dateFilterLabel,
+			customFieldBreakdown
+				? {
+						fieldLabel: humanizeFieldKey(customFieldBreakdown.fieldKey),
+						rows: customFieldBreakdown.rows,
+					}
+				: undefined,
 		);
 	}, [
 		event,
@@ -141,6 +198,7 @@ export default function TicketAnalyticsPage({
 		hourlyRegistrations,
 		hourlyScans,
 		dateFilterLabel,
+		customFieldBreakdown,
 	]);
 
 	const formatCurrency = (amount?: number) => {
@@ -167,9 +225,13 @@ export default function TicketAnalyticsPage({
 					<div className="grid grid-cols-2 gap-2 rounded-none border-y border-dashed p-0 lg:grid-cols-4">
 						{[
 							"total-tickets",
+							"paid-tickets",
+							"pending-tickets",
+							"check-in-rate",
 							"scanned-tickets",
 							"unscanned-tickets",
-							"total-amount",
+							"collected-revenue",
+							"pending-revenue",
 						].map((key) => (
 							<div
 								key={key}
@@ -197,18 +259,38 @@ export default function TicketAnalyticsPage({
 							Icon={Ticket}
 						/>
 						<StatsCard
-							label="Scanned Tickets"
+							label="Paid Tickets"
+							value={data?.paidTickets?.toLocaleString() || "0"}
+							Icon={DollarSign}
+						/>
+						<StatsCard
+							label="Pending Tickets"
+							value={data?.pendingTickets?.toLocaleString() || "0"}
+							Icon={Clock}
+						/>
+						<StatsCard
+							label="Check-in Rate"
+							value={`${checkInRate}%`}
+							Icon={Percent}
+						/>
+						<StatsCard
+							label={includeMultiScans ? "Total Scans" : "Scanned Tickets"}
 							value={data?.scannedTickets?.toLocaleString() || "0"}
-							Icon={CheckCircle2}
+							Icon={QrCode}
 						/>
 						<StatsCard
 							label="Unscanned Tickets"
 							value={data?.unscannedTickets?.toLocaleString() || "0"}
-							Icon={XCircle}
+							Icon={CircleDashed}
 						/>
 						<StatsCard
-							label="Total Amount"
+							label="Collected Revenue"
 							value={formatCurrency(data?.totalRevenue)}
+							Icon={CheckCircle2}
+						/>
+						<StatsCard
+							label="Pending Revenue"
+							value={formatCurrency(data?.pendingRevenue)}
 							Icon={DollarSign}
 						/>
 					</div>
@@ -220,6 +302,18 @@ export default function TicketAnalyticsPage({
 				<div className="flex items-center justify-between px-4 pt-4">
 					<h3 className="font-medium text-sm">Analytics Trends</h3>
 					<div className="flex items-center gap-2">
+						{event?.multiple_scans && (
+							<div className="flex items-center gap-2">
+								<Switch
+									id="include-multi-scans"
+									checked={includeMultiScans}
+									onCheckedChange={setIncludeMultiScans}
+								/>
+								<Label htmlFor="include-multi-scans" className="text-sm">
+									Include re-scans
+								</Label>
+							</div>
+						)}
 						{event && (
 							<EventDateFilter
 								eventStartDate={event.start_date}
@@ -239,6 +333,13 @@ export default function TicketAnalyticsPage({
 					isLoading={isLoading}
 				/>
 			</div>
+
+			<CustomFieldBreakdownCard
+				eventId={event_id}
+				onDataChange={(result) =>
+					setCustomFieldBreakdown(result && "rows" in result ? result : null)
+				}
+			/>
 		</div>
 	);
 }

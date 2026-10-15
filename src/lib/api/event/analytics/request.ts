@@ -7,6 +7,7 @@ export const getEventAnalyticsSchema = z.object({
 	endDate: z.string().optional(),
 	dateMode: z.enum(["all_time", "pre_event"]).optional(),
 	groupBy: z.enum(["hour", "day", "week", "month"]).optional(),
+	includeMultiScans: z.boolean().optional(),
 });
 
 // Validation schema for time series request
@@ -21,11 +22,14 @@ export const getTimeSeriesSchema = z.object({
 		"stamps",
 		"redemptions",
 		"redemption_value",
+		"exhibitor_bookings",
+		"exhibitor_revenue",
 	]),
 	groupBy: z.enum(["hour", "day", "week", "month"]).optional(),
 	dateMode: z.enum(["all_time", "pre_event"]).optional(),
 	startDate: z.string().optional(),
 	endDate: z.string().optional(),
+	includeMultiScans: z.boolean().optional(),
 });
 
 // Type exports for request data

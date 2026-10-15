@@ -2,12 +2,14 @@
 
 import type { LucideIcon } from "lucide-react";
 import {
+	Activity,
 	CircleHelp,
 	ClipboardList,
 	FileText,
 	FolderOpen,
 	Handshake,
 	HardHat,
+	Home,
 	Import,
 	Key,
 	LayoutDashboard,
@@ -62,6 +64,13 @@ export const navigationData = {
 			allowBottomNavigation: true,
 		},
 		{
+			name: "Home",
+			url: "/dashboard" as Route,
+			icon: Home,
+			roleAllowed: [USER_ROLES.EXHIBITOR],
+			allowBottomNavigation: true,
+		},
+		{
 			name: "Events",
 			url: "/event" as Route,
 			icon: MdEvent,
@@ -107,7 +116,7 @@ export const navigationData = {
 			name: "Lead Scan",
 			url: "/lead-scan" as Route,
 			icon: BiQrScan,
-			roleAllowed: [USER_ROLES.VENDOR, USER_ROLES.EXHIBITOR],
+			roleAllowed: [USER_ROLES.VENDOR],
 			allowBottomNavigation: true,
 		},
 		{
@@ -167,11 +176,7 @@ export const navigationData = {
 			name: "Manage Post Content",
 			url: "/manage-resources/posts/" as Route,
 			icon: FileText,
-			roleAllowed: [
-				USER_ROLES.ORG_OWNER,
-				USER_ROLES.ORGANIZER,
-				USER_ROLES.MEMBER,
-			],
+			roleAllowed: [USER_ROLES.ORG_OWNER, USER_ROLES.ORGANIZER],
 			allowBottomNavigation: false,
 			requiresPermission: "has_writer_permission",
 			isActive: (pathname: string) => pathname.startsWith("/manage-resources/"),
@@ -205,6 +210,14 @@ export const navigationData = {
 			allowBottomNavigation: false,
 		},
 		{
+			name: "System Status & Activity",
+			url: "/system-activity" as Route,
+			icon: Activity,
+			roleAllowed: [USER_ROLES.ORG_OWNER],
+			allowBottomNavigation: false,
+			requiresPermission: "is_superadmin",
+		},
+		{
 			name: "Help & Docs",
 			url: "/help" as Route,
 			icon: CircleHelp,
@@ -224,6 +237,7 @@ export const navigationData = {
 export interface UserPermissions {
 	allow_printing_services?: boolean;
 	has_writer_permission?: boolean;
+	is_superadmin?: boolean;
 }
 
 function filterByRoleAndPermissions(
@@ -237,12 +251,15 @@ function filterByRoleAndPermissions(
 			return false;
 		}
 		// Then check permission if required
-		if (item.requiresPermission && permissions) {
-			const permKey = item.requiresPermission as keyof UserPermissions;
+		if (item.requiresPermission) {
+			// Special case: is_superadmin strictly requires permissions.is_superadmin === true
+			if (item.requiresPermission === "is_superadmin") {
+				return permissions?.is_superadmin === true;
+			}
 
 			// Special case: has_writer_permission must be strictly followed as per backend
 			if (item.requiresPermission === "has_writer_permission") {
-				return permissions[permKey] === true;
+				return permissions?.has_writer_permission === true;
 			}
 
 			// For org_owner, always allow other permissions (they control them)
@@ -251,7 +268,10 @@ function filterByRoleAndPermissions(
 			}
 
 			// For other roles, check the permission value
-			if (permissions[permKey] === false) {
+			if (
+				permissions &&
+				permissions[item.requiresPermission as keyof UserPermissions] === false
+			) {
 				return false;
 			}
 		}
@@ -259,10 +279,27 @@ function filterByRoleAndPermissions(
 	});
 }
 
+// A user whose ONLY standing on the platform is business_matching_admin
+// never sees Dashboard/Scans/management screens — but they're often
+// assigned to more than one event, so they still need "Events" to get
+// to whichever one they're there to manage Business Matching for.
+const businessMatchingAdminMainMenu = navigationData.mainMenu.filter(
+	(item) => item.name === "Events",
+);
+
 export function getFilteredNavigation(
 	userRole?: UserRole,
 	permissions?: UserPermissions,
+	isPureBusinessMatchingAdmin?: boolean,
 ) {
+	if (isPureBusinessMatchingAdmin) {
+		return {
+			mainMenu: businessMatchingAdminMainMenu,
+			memberManagement: [],
+			miscellaneous: [],
+		};
+	}
+
 	const role = userRole || USER_ROLES.MEMBER;
 	return {
 		mainMenu: filterByRoleAndPermissions(
@@ -286,7 +323,21 @@ export function getFilteredNavigation(
 export function getMobileNavigation(
 	userRole?: UserRole,
 	permissions?: UserPermissions,
+	isPureBusinessMatchingAdmin?: boolean,
 ) {
+	if (isPureBusinessMatchingAdmin) {
+		return {
+			bottomNavItems: businessMatchingAdminMainMenu.filter(
+				(item) => item.allowBottomNavigation,
+			),
+			mainMenuNotInBottomNav: businessMatchingAdminMainMenu.filter(
+				(item) => !item.allowBottomNavigation,
+			),
+			memberManagement: [],
+			miscellaneous: [],
+		};
+	}
+
 	const role = userRole || USER_ROLES.MEMBER;
 	const filtered = filterByRoleAndPermissions(
 		navigationData.mainMenu,

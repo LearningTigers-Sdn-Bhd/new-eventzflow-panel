@@ -7,7 +7,7 @@ interface StationSelectionProps {
 	currentStation?: string | null;
 }
 
-const STATIONS = ["1", "2", "3"];
+const STATIONS = ["1", "2", "3", "4"];
 
 export function StationSelection({
 	onSelect,
@@ -25,7 +25,7 @@ export function StationSelection({
 				animate={{ opacity: 1, scale: 1, y: 0 }}
 				exit={{ opacity: 0, scale: 0.95, y: 20 }}
 				transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-				className="w-full max-w-sm bg-white p-5 sm:max-w-md sm:p-8"
+				className="w-full max-w-md bg-white p-5 sm:max-w-lg sm:p-8"
 			>
 				{/* Header */}
 				<div className="mb-5 border-black border-l-4 pl-4 sm:mb-8 sm:pl-6">
@@ -38,7 +38,7 @@ export function StationSelection({
 				</div>
 
 				{/* Station Grid */}
-				<div className="grid grid-cols-3 gap-2 sm:gap-3">
+				<div className="grid grid-cols-4 gap-2 sm:gap-3">
 					{STATIONS.map((stationNum) => (
 						<button
 							key={stationNum}

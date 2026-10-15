@@ -4,6 +4,7 @@ import { FileSpreadsheet, Upload } from "lucide-react";
 import { useState } from "react";
 import TableUpload from "@/components/file-upload/table-upload";
 import { Button } from "@/components/ui/button";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import { useDialog } from "@/hooks/use-dialog";
@@ -109,8 +110,10 @@ export function ImportQuickForm(props: ImportQuickFormProps) {
 
 export function ImportQuickButton({
 	importType = "tickets",
+	asMenuItem,
 }: {
 	importType?: ImportType;
+	asMenuItem?: boolean;
 }) {
 	const { openDialog } = useDialog();
 
@@ -139,6 +142,15 @@ export function ImportQuickButton({
 			},
 		});
 	};
+
+	if (asMenuItem) {
+		return (
+			<DropdownMenuItem onSelect={openImportDialog} className="rounded-none">
+				<FileSpreadsheet className="h-4 w-4" />
+				Import {getTypeLabel()}
+			</DropdownMenuItem>
+		);
+	}
 
 	return (
 		<Button

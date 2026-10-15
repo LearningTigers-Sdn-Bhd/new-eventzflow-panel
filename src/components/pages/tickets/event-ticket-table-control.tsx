@@ -15,12 +15,19 @@ interface DataControlProps<TData> {
 	labelsData?: Record<string, string>;
 	ticketFilter?: TicketFilter;
 	onTicketFilterChange?: (filter: TicketFilter) => void;
+	onResetColumns?: () => void;
+	search: string;
+	onSearchChange: (value: string) => void;
 }
 
 function getColumnLabel(
 	columnId: string,
 	labelsData?: Record<string, string>,
 ): string {
+	if (columnId === "custom_participation_category") {
+		return labelsData?.participation_category || "Category";
+	}
+
 	if (columnId.startsWith("custom_")) {
 		const labelKey = columnId.replace("custom_", "");
 		return labelsData?.[labelKey] || columnId;
@@ -41,6 +48,9 @@ export function DataControl<TData>({
 	labelsData,
 	ticketFilter = "active",
 	onTicketFilterChange,
+	onResetColumns,
+	search,
+	onSearchChange,
 }: DataControlProps<TData>) {
 	const params = useParams();
 	const eventId = params.event_id as string;
@@ -62,10 +72,23 @@ export function DataControl<TData>({
 		return Array.from(names).sort();
 	}, [table]);
 
-	const ticketTypes =
-		eventTicketTypes && eventTicketTypes.length > 0
-			? eventTicketTypes
-			: uniqueTicketTypeNames.map((name) => ({ id: name, name }));
+	const ticketTypes = React.useMemo(() => {
+		const source =
+			eventTicketTypes && eventTicketTypes.length > 0
+				? eventTicketTypes
+				: uniqueTicketTypeNames.map((name) => ({ id: name, name }));
+
+		// Ticket type names aren't guaranteed unique (e.g. an archived type
+		// renamed to match an active one) — the filter only ever matches
+		// against the ticketTypeName string column, so dedupe by name here
+		// rather than rendering two options with the same key/value.
+		const seenNames = new Set<string>();
+		return source.filter(({ name }) => {
+			if (seenNames.has(name)) return false;
+			seenNames.add(name);
+			return true;
+		});
+	}, [eventTicketTypes, uniqueTicketTypeNames]);
 
 	const getStatusFilterValue = () => {
 		const statusFilter = table.getColumn("status")?.getFilterValue() as
@@ -152,6 +175,7 @@ export function DataControl<TData>({
 			type: "visibility",
 			getColumnLabel: (columnId) => getColumnLabel(columnId, labelsData),
 			excludeColumns: ["phone"],
+			onReset: onResetColumns,
 		},
 	];
 
@@ -207,6 +231,7 @@ export function DataControl<TData>({
 					placeholder: "Search tickets...",
 					enableCustomSearch: true,
 					columns: ["name", "email", "phone", "ticketTypeName"],
+					controlled: { value: search, onChange: onSearchChange },
 				},
 			}}
 			desktopConfig={{

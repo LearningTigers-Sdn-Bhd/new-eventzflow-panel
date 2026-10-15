@@ -3,9 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { createContext, type ReactNode, useContext, useMemo } from "react";
-import { useEventPermissions } from "@/hooks/use-event-permissions";
-import { getEvents } from "@/lib/api/event";
-import type { Event } from "@/lib/api/event/response";
+import { getEventSidebarContext } from "@/lib/api/event";
+import type {
+	EventPermissions,
+	EventSidebarEvent,
+} from "@/lib/api/event/response";
 
 // ============================================================================
 // CONTEXT TYPES
@@ -15,11 +17,11 @@ interface EventSidebarContextValue {
 	/** Event ID from URL params */
 	eventId: string | undefined;
 	/** All events for the user */
-	events: Event[] | undefined;
+	events: EventSidebarEvent[] | undefined;
 	/** Currently selected event */
-	currentEvent: Event | undefined;
+	currentEvent: EventSidebarEvent | undefined;
 	/** Event permissions */
-	permissions: ReturnType<typeof useEventPermissions>;
+	permissions: EventPermissions;
 	/** Loading state */
 	isLoading: boolean;
 }
@@ -60,27 +62,49 @@ interface EventSidebarProviderProps {
 	children: ReactNode;
 }
 
+const EMPTY_PERMISSIONS: EventPermissions = {
+	isLoading: false,
+	isOrgOwner: false,
+	isOrganizer: false,
+	isMember: false,
+	isVendor: false,
+	isExhibitionContractor: false,
+	isEventAdmin: false,
+	isEventTeamMember: false,
+	isEventStaff: false,
+	isEventVendor: false,
+	isBusinessHost: false,
+	isBusinessMatchingAdmin: false,
+	canManageEvent: false,
+	canManageEventStaff: false,
+	canManageEventVendors: false,
+	canViewAnalytics: false,
+	canManageTickets: false,
+	canScanTickets: false,
+	canViewVisitors: false,
+	canScanVisitorStamps: false,
+	canEditVendorProfile: false,
+	canViewLeadAnalytics: false,
+	canManageBusinessMatching: false,
+	canViewVendorsTab: false,
+	canViewVisitorsTab: false,
+	canViewLeadScannerTab: false,
+};
+
 export function EventSidebarProvider({ children }: EventSidebarProviderProps) {
 	// Get event ID from URL params
 	const params = useParams();
 	const eventId = params.event_id as string | undefined;
 
-	// Fetch events
-	const { data: events, isLoading: isLoadingEvents } = useQuery({
-		queryKey: ["events"],
-		queryFn: () => getEvents(),
+	const { data, isLoading } = useQuery({
+		queryKey: ["event", eventId, "sidebar-context"],
+		queryFn: () => getEventSidebarContext(eventId as string),
+		enabled: !!eventId,
+		staleTime: 60_000,
 	});
-
-	// Get current event
-	const currentEvent = useMemo(() => {
-		return events?.find((event) => event.id.toString() === eventId);
-	}, [events, eventId]);
-
-	// Get permissions
-	const permissions = useEventPermissions(eventId ?? "", currentEvent);
-
-	// Combined loading state
-	const isLoading = isLoadingEvents || permissions.isLoading;
+	const events = data?.events;
+	const currentEvent = data?.currentEvent;
+	const permissions = data?.permissions ?? EMPTY_PERMISSIONS;
 
 	const value = useMemo<EventSidebarContextValue>(
 		() => ({

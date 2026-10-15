@@ -12,7 +12,12 @@ import type {
  */
 export async function importTickets(
 	file: File,
-	options?: { dryRun?: boolean; full?: boolean; noLabel?: boolean },
+	options?: {
+		dryRun?: boolean;
+		full?: boolean;
+		noLabel?: boolean;
+		overwriteBlankCustomFields?: boolean;
+	},
 ): Promise<ImportTicketsResponse> {
 	try {
 		// Validate file type
@@ -50,6 +55,9 @@ export async function importTickets(
 		}
 		// Always send no_label explicitly for clarity (default false)
 		params.append("no_label", options?.noLabel ? "true" : "false");
+		if (options?.overwriteBlankCustomFields) {
+			params.append("overwrite_blank_custom_fields", "true");
+		}
 		const queryString = params.toString();
 		const url = queryString
 			? `v1/imports/tickets?${queryString}`
@@ -97,6 +105,7 @@ export async function importTickets(
 				count: backendData.errors.count,
 				data: backendData.errors.data || [],
 			},
+			events: backendData.events || [],
 		};
 	} catch (error) {
 		const message = await extractErrorMessage(error);
@@ -119,7 +128,12 @@ export async function importTicketsDryRun(
  */
 export async function importVisitors(
 	file: File,
-	options?: { dryRun?: boolean; full?: boolean; noLabel?: boolean },
+	options?: {
+		dryRun?: boolean;
+		full?: boolean;
+		noLabel?: boolean;
+		overwriteBlankCustomFields?: boolean;
+	},
 ): Promise<ImportVisitorsResponse> {
 	try {
 		// Validate file type
@@ -157,6 +171,9 @@ export async function importVisitors(
 		}
 		// Always send no_label explicitly for clarity (default false)
 		params.append("no_label", options?.noLabel ? "true" : "false");
+		if (options?.overwriteBlankCustomFields) {
+			params.append("overwrite_blank_custom_fields", "true");
+		}
 		const queryString = params.toString();
 		const url = queryString
 			? `v1/imports/visitors?${queryString}`
@@ -204,6 +221,7 @@ export async function importVisitors(
 				count: backendData.errors.count,
 				data: backendData.errors.data || [],
 			},
+			events: backendData.events || [],
 		};
 	} catch (error) {
 		const message = await extractErrorMessage(error);

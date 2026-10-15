@@ -8,7 +8,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect } from "react";
 import { RegistrationOptionCards } from "@/components/pages/public-registration/RegistrationOptionCards";
 import { getPublicEventById } from "@/lib/api/event/endpoints";
-import { getPublicPassBundle, getPublicRegistrationForms } from "@/lib/api/public-registration";
+import {
+	getPublicPassBundle,
+	getPublicRegistrationForms,
+} from "@/lib/api/public-registration";
 import { buildPublicRegistrationLandingTitle } from "@/lib/public-registration/title";
 import { API_BASE_URL } from "@/utils/rest-api";
 
@@ -139,7 +142,7 @@ export default function EventRegistrationLandingPage({
 	if (bundleToken && bundleQuery.isError) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-slate-50/50 px-4">
-				<div className="border-2 border-black bg-white p-8 text-center max-w-md w-full">
+				<div className="w-full max-w-md border-2 border-black bg-white p-8 text-center">
 					<h2 className="mb-3 font-black text-2xl text-black tracking-tighter">
 						INVALID BUNDLE LINK
 					</h2>

@@ -6,35 +6,59 @@ import type { ControlConfig } from "@/components/admin-ui/table/control/type";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
+	search: string;
+	onSearchChange: (value: string) => void;
+	source: string;
+	onSourceChange: (value: string) => void;
+	ticketTypeId: string;
+	onTicketTypeIdChange: (value: string) => void;
+	ticketTypeOptions: { label: string; value: string }[];
 }
 
-export function DataControl<TData>({ table }: DataControlProps<TData>) {
-	const statusFilterControl: ControlConfig = {
-		label: "Status",
-		columnId: "status",
+export function DataControl<TData>({
+	table,
+	search,
+	onSearchChange,
+	source,
+	onSourceChange,
+	ticketTypeId,
+	onTicketTypeIdChange,
+	ticketTypeOptions,
+}: DataControlProps<TData>) {
+	const sourceFilterControl: ControlConfig = {
+		label: "Source",
+		columnId: "source",
 		type: "filter",
 		data: [
 			{ label: "All", value: "all" },
-			{ label: "Scanned", value: "scanned" },
-			{ label: "Not Scanned", value: "not_scanned" },
+			{ label: "Staff scan", value: "staff_scan" },
+			{ label: "Self check-in", value: "self_check_in" },
+			{ label: "Public Check-in Page", value: "kiosk" },
 		],
 		customFilter: {
-			value: (table.getColumn("status")?.getFilterValue() as string) ?? "all",
-			onChange: (value: string) => {
-				const column = table.getColumn("status");
-				column?.setFilterValue(value === "all" ? undefined : value);
-			},
+			value: source,
+			onChange: onSourceChange,
 		},
 	};
 
-	const desktopControlConfigs: ControlConfig[] = [statusFilterControl];
+	const ticketTypeFilterControl: ControlConfig = {
+		label: "Ticket Type",
+		columnId: "ticketTypeName",
+		type: "filter",
+		data: [{ label: "All", value: "all" }, ...ticketTypeOptions],
+		customFilter: {
+			value: ticketTypeId,
+			onChange: onTicketTypeIdChange,
+		},
+	};
 
 	const mobileControlConfigs: ControlConfig[] = [
-		{ ...statusFilterControl, topPriority: true },
+		{ ...sourceFilterControl, topPriority: true },
+		{ ...ticketTypeFilterControl, topPriority: true },
 		{ label: "Name", columnId: "name", type: "sort" },
 		{ label: "Location", columnId: "locationName", type: "sort" },
 		{ label: "Scanned By", columnId: "scannedBy", type: "sort" },
-		{ label: "Check-In Time", columnId: "checkedInAt", type: "sort" },
+		{ label: "Scanned At", columnId: "scannedAt", type: "sort" },
 	];
 
 	return (
@@ -44,15 +68,13 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 				searchConfig: {
 					placeholder: "Search scanned logs...",
 					enableCustomSearch: true,
-					columns: ["name", "email", "phone", "locationName", "scannedBy"],
+					controlled: { value: search, onChange: onSearchChange },
 				},
 			}}
 			desktopConfig={{
-				controlConfigs: desktopControlConfigs,
+				controlConfigs: [sourceFilterControl, ticketTypeFilterControl],
 			}}
-			mobileConfig={{
-				controlConfigs: mobileControlConfigs,
-			}}
+			mobileConfig={{ controlConfigs: mobileControlConfigs }}
 		/>
 	);
 }

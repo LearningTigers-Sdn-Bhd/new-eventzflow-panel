@@ -1,7 +1,7 @@
 "use client";
 
-import { use } from "react";
 import type { ReactNode } from "react";
+import { use } from "react";
 import { useCurrentUserEventVendorId } from "@/hooks/use-event-vendors";
 
 interface ExhibitorKitLayoutProps {
