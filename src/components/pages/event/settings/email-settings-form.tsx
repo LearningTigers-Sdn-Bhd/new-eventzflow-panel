@@ -12,7 +12,14 @@ import { InputLabel } from "@/components/admin-ui/form/input-label";
 import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
-import { FieldGroup } from "@/components/ui/field";
+import {
+	Field,
+	FieldDescription,
+	FieldError,
+	FieldGroup,
+	FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MultiSelectLegacy } from "@/components/ui/multi-select";
 import {
@@ -46,12 +53,15 @@ const DEDICATED_CATEGORY_KEYS = [
 	THANK_YOU_CATEGORY_KEY,
 ];
 
+// Organizers only choose the part before the @; the domain is verified with the mail provider.
+const SENDER_DOMAIN = "notify.eventzflow.com";
+
 const formSchema = z.object({
 	senderName: z.string(),
 	senderAddress: z
 		.string()
-		.refine((val) => val === "" || z.string().email().safeParse(val).success, {
-			message: "Please enter a valid email address",
+		.refine((val) => val === "" || /^[a-z0-9._+-]+$/i.test(val), {
+			message: "Use letters, numbers, dots, dashes or underscores only",
 		}),
 	contactEmail: z
 		.string()
@@ -146,13 +156,14 @@ export default function EmailSettingsForm({
 				data: {
 					event_email_setting_attributes: {
 						sender_name: value.senderName || "",
-						sender_address: value.senderAddress || "",
+						sender_address: value.senderAddress
+							? `${value.senderAddress.toLowerCase()}@${SENDER_DOMAIN}`
+							: "",
 						contact_email: value.contactEmail || "",
 						payment_receipt_email: value.paymentReceiptEmail || "",
 						business_matching_sender_name:
 							value.businessMatchingSenderName || "",
-						business_matching_host_label:
-							value.businessMatchingHostLabel || "",
+						business_matching_host_label: value.businessMatchingHostLabel || "",
 						business_matching_host_invite_subject:
 							value.businessMatchingHostInviteSubject || "",
 						business_matching_host_invite_message:
@@ -179,7 +190,10 @@ export default function EmailSettingsForm({
 			setTimeout(() => {
 				const setting = event.event_email_setting;
 				form.setFieldValue("senderName", setting?.sender_name || "");
-				form.setFieldValue("senderAddress", setting?.sender_address || "");
+				form.setFieldValue(
+					"senderAddress",
+					(setting?.sender_address || "").split("@")[0],
+				);
 				form.setFieldValue("contactEmail", setting?.contact_email || "");
 				form.setFieldValue(
 					"paymentReceiptEmail",
@@ -222,6 +236,13 @@ export default function EmailSettingsForm({
 			hasInitialized.current = event.id;
 		}
 	}, [event, form]);
+
+	// Saved before the domain was locked: still sends from this address until re-saved.
+	const savedSenderAddress = event?.event_email_setting?.sender_address;
+	const legacySenderAddress =
+		savedSenderAddress && !savedSenderAddress.endsWith(`@${SENDER_DOMAIN}`)
+			? savedSenderAddress
+			: null;
 
 	if (isLoading) {
 		return (
@@ -296,18 +317,44 @@ export default function EmailSettingsForm({
 									const isInvalid =
 										field.state.meta.isTouched && !field.state.meta.isValid;
 									return (
-										<InputLabel
-											label="Sender Email Address"
-											htmlFor={field.name}
-											value={field.state.value}
-											onChange={field.handleChange}
-											onBlur={field.handleBlur}
-											errors={field.state.meta.errors}
-											isInvalid={isInvalid}
-											placeholder="e.g. noreply@yourdomain.com"
-											disabled={updateEventMutation.isPending}
-											description="Email address used in the From field. Defaults to system address if empty."
-										/>
+										<Field data-invalid={isInvalid}>
+											<FieldLabel htmlFor={field.name}>
+												Sender Email Address
+											</FieldLabel>
+											<div className="flex items-center gap-2">
+												<Input
+													id={field.name}
+													value={field.state.value}
+													// Drop a typed/pasted "@..." since the domain is already fixed.
+													onChange={(e) =>
+														field.handleChange(e.target.value.split("@")[0])
+													}
+													onBlur={field.handleBlur}
+													aria-invalid={isInvalid}
+													placeholder="e.g. events"
+													disabled={updateEventMutation.isPending}
+													className="h-9 min-w-0 flex-1 rounded-none py-6 md:py-2"
+												/>
+												<span className="shrink-0 text-muted-foreground text-sm">
+													@{SENDER_DOMAIN}
+												</span>
+											</div>
+											{isInvalid ? (
+												<FieldError errors={field.state.meta.errors} />
+											) : (
+												<FieldDescription>
+													Only the name before @ is customizable. Defaults to
+													system address if empty.
+												</FieldDescription>
+											)}
+											{legacySenderAddress && (
+												<p className="border border-amber-300 bg-amber-50 p-2 text-amber-900 text-xs">
+													Currently sending from{" "}
+													<strong>{legacySenderAddress}</strong>. Saving will
+													switch it to {SENDER_DOMAIN}.
+												</p>
+											)}
+										</Field>
 									);
 								}}
 							</form.Field>
