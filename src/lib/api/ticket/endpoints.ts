@@ -201,6 +201,7 @@ function transformBackendTicket(
 	let name = "";
 	let email = "";
 	let registeredByEmail: string | undefined;
+	let emailProblem: string | null = null;
 	let phone: string | undefined;
 	let ticketTypeName = "Unknown";
 	let ticketTypeId = 0;
@@ -220,6 +221,7 @@ function transformBackendTicket(
 		name = bt.attendee_name;
 		email = bt.attendee_email;
 		registeredByEmail = bt.registered_by_email || undefined;
+		emailProblem = bt.email_problem ?? null;
 		phone = bt.attendee_phone || undefined;
 		ticketTypeId = bt.ticket_type_id;
 		ticketTypeName = bt.ticket_type?.name || "Unknown";
@@ -275,6 +277,7 @@ function transformBackendTicket(
 		name,
 		email,
 		registeredByEmail,
+		emailProblem,
 		phone,
 		ticketTypeName,
 		ticketTypeId,
