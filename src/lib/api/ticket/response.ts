@@ -13,6 +13,8 @@ export type Ticket = {
 	name: string;
 	email: string;
 	registeredByEmail?: string;
+	// Set when the latest email to this address bounced or failed to send.
+	emailProblem?: string | null;
 	phone?: string;
 	ticketTypeName: string;
 	ticketTypeId: number;
@@ -140,6 +142,7 @@ export type BackendTicket = {
 	attendee_name: string;
 	attendee_email: string;
 	registered_by_email?: string | null;
+	email_problem?: string | null;
 	attendee_phone?: string | null;
 	ticket_type_id: number;
 	event_id: number;

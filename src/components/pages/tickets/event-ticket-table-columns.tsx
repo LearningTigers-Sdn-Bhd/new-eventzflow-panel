@@ -1,10 +1,16 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import { MailWarning } from "lucide-react";
 import { FilterableHeader } from "@/components/admin-ui/table/header/filterable-header";
 import { SortableHeader } from "@/components/admin-ui/table/header/sortable-header";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { TicketActionsMenu } from "./event-ticket-action-menu";
 
@@ -15,6 +21,7 @@ export type BaseTicket = {
 	name: string;
 	email: string | null;
 	registeredByEmail?: string;
+	emailProblem?: string | null;
 	phone: string;
 	value: number | string;
 	status: "scanned" | "not_scanned";
@@ -140,6 +147,20 @@ export function generateColumns(
 						)}
 					>
 						{email || "Not provided"}
+						{row.original.emailProblem && (
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<MailWarning
+										className="ml-1.5 inline size-4 text-red-500"
+										aria-label="Email did not arrive"
+									/>
+								</TooltipTrigger>
+								<TooltipContent className="rounded-none">
+									The last email to this address didn't arrive. Fix it in Email
+									Status.
+								</TooltipContent>
+							</Tooltip>
+						)}
 					</div>
 				);
 			},

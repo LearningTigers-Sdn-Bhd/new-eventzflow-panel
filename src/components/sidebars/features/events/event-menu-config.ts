@@ -29,6 +29,7 @@ import {
 	Key,
 	Logs,
 	type LucideIcon,
+	MailCheck,
 	MapPin,
 	MessageSquareHeart,
 	MessageSquareQuote,
@@ -681,6 +682,14 @@ const rawEventMenuConfig: EventMenuConfig = {
 					description: "View recent actions on this event.",
 					icon: SquareActivity,
 					visible: (p) => p.isOrgOwner || p.isEventAdmin || p.isEventTeamMember,
+				},
+				{
+					route: "email-status",
+					label: "Email Status",
+					description:
+						"See which attendee emails were delivered, and fix bounces.",
+					icon: MailCheck,
+					visible: (p) => p.isOrgOwner || p.isEventAdmin,
 				},
 				{
 					route: "lead-logs",
