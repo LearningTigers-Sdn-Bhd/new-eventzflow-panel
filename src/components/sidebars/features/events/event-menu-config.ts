@@ -173,78 +173,16 @@ const visible = {
 // ============================================================================
 
 const rawEventMenuConfig: EventMenuConfig = {
-	/** Tabs that are always visible to all users */
+	/**
+	 * Top block, always first: what this event is, plus the profile pages that
+	 * only one role ever sees (vendor, contractor, host).
+	 */
 	standalone: [
 		{
 			route: "details",
 			label: "Event Information",
 			description: "View and manage event information.",
 			icon: BiInfoSquare,
-		},
-		{
-			route: "vendor-profile",
-			label: "Vendor Profile",
-			description: "Manage your vendor profile and settings.",
-			icon: User,
-			visible: visible.vendor,
-		},
-		{
-			route: "event-leads",
-			label: "Event Leads",
-			description: "Scan attendee QR codes to capture leads.",
-			icon: Speech,
-			visible: (p, e) => visible.vendor(p) && e?.use_event_leads === true,
-		},
-		{
-			route: "contractor-profile",
-			label: "Contractor Profile",
-			description: "Manage your contractor profile and settings.",
-			icon: User,
-			visible: visible.contractorOnly,
-		},
-		{
-			route: "sponsorships",
-			label: "Sponsorships",
-			description: "Manage event sponsorships and tiers.",
-			icon: Handshake,
-			visible: (p, e) => visible.eventAdmin(p) && e?.use_sponsorship === true,
-		},
-		{
-			route: "business-matching",
-			label: "Business Matching",
-			description: "View and manage business matching for this event.",
-			icon: Briefcase,
-			visible: visible.businessMatchingAccess,
-		},
-		{
-			route: "host-profile",
-			label: "Host Profile",
-			description: "Manage your business matching details and capabilities.",
-			icon: User,
-			visible: (p) => p.isBusinessHost,
-		},
-		// {
-		// 	route: "photo-booth",
-		// 	label: "Photo Booth",
-		// 	description: "Manage photo booth settings and gallery.",
-		// 	icon: Camera,
-		// 	visible: visible.photoBoothAccess,
-		// },
-		{
-			route: "plans",
-			label: "Seating Plans",
-			description: "Manage seating plans and table assignments.",
-			icon: Grid,
-			visible: visible.eventAdmin,
-		},
-		{
-			route: "wishes",
-			label: "Guestbook",
-			description:
-				"Approve blessings for the live wishes wall, or keep unsuitable messages out of the venue display.",
-			icon: MessageSquareHeart,
-			visible: (_p: Permissions, e?: EventSidebarEvent) =>
-				e?.use_wedding === true,
 		},
 		{
 			route: "location",
@@ -254,189 +192,89 @@ const rawEventMenuConfig: EventMenuConfig = {
 			visible: (p) =>
 				!(p.isEventVendor ?? false) && !(p.isExhibitionContractor ?? false),
 		},
-		// Import Visitors - mall events only, organizer/org_owner only
 		{
-			route: "import-visitors",
-			label: "Import Visitors",
-			description: "Import visitors from Excel or CSV files.",
-			icon: Import,
-			visible: (p, e) => visible.mallEvent(p, e) && visible.organizerOrOwner(p),
+			route: "vendor-profile",
+			label: "Vendor Profile",
+			description: "Manage your vendor profile and settings.",
+			icon: User,
+			visible: visible.vendor,
 		},
 		{
-			route: "api-keys",
-			label: "API Keys",
-			description: "Manage API keys for external integrations with this event.",
-			icon: Key,
-			visible: (p, e) =>
-				e?.use_api_access === true && visible.organizerOrOwner(p),
+			route: "contractor-profile",
+			label: "Contractor Profile",
+			description: "Manage your contractor profile and settings.",
+			icon: User,
+			visible: visible.contractorOnly,
 		},
+		{
+			route: "host-profile",
+			label: "Host Profile",
+			description: "Manage your business matching details and capabilities.",
+			icon: User,
+			visible: (p) => p.isBusinessHost,
+		},
+		{
+			route: "event-leads",
+			label: "Event Leads",
+			description: "Scan attendee QR codes to capture leads.",
+			icon: Speech,
+			visible: (p, e) => visible.vendor(p) && e?.use_event_leads === true,
+		},
+		{
+			route: "business-matching",
+			label: "Business Matching",
+			description: "View and manage business matching for this event.",
+			icon: Briefcase,
+			visible: visible.businessMatchingAccess,
+		},
+		{
+			route: "sponsorships",
+			label: "Sponsorships",
+			description: "Manage event sponsorships and tiers.",
+			icon: Handshake,
+			visible: (p, e) => visible.eventAdmin(p) && e?.use_sponsorship === true,
+		},
+		// {
+		// 	route: "photo-booth",
+		// 	label: "Photo Booth",
+		// 	description: "Manage photo booth settings and gallery.",
+		// 	icon: Camera,
+		// 	visible: visible.photoBoothAccess,
+		// },
 	],
 
-	/** Grouped tabs with conditional visibility */
+	/**
+	 * Groups, in the order a person works through an event:
+	 * role workspaces, sell & register, seats, people, exhibitors, engage the
+	 * crowd, feedback, run the day, review the numbers, settings.
+	 */
 	groups: [
 		// ------------------------------------------------------------------------
-		// EVENT INFORMATION GROUP - Only for ticket-based events
+		// MY EXHIBITOR KIT GROUP - Vendor's own booths (vendors only, so first for them)
 		// ------------------------------------------------------------------------
 		{
-			id: "surprise-mechanics",
-			label: "Surprise Mechanics",
-			icon: BiInfoSquare,
-			// Visible on both ticket and visitor events
+			id: "my-exhibitor-kit",
+			label: "My Exhibitor Kits",
+			icon: Package,
+			visible: visible.vendorExhibitorKitAccess,
 			tabs: [
 				{
-					route: "lucky-draw",
-					label: "Lucky Draw",
-					description:
-						"Manage lucky draw sessions, configurations, and prizes.",
-					icon: Gift,
-					visible: visible.luckyDrawAccess,
+					route: "contractor-guidelines",
+					label: "Exhibitor Guidelines",
+					description: "View exhibitor rules, terms & conditions.",
+					icon: FileText,
 				},
 				{
-					route: "prize-roulette",
-					label: "Prize Roulette",
-					description: "Manage prize roulette sessions for this event.",
-					icon: FaGifts,
-					visible: visible.prizeRouletteAccess,
+					route: "exhibitor-kits",
+					label: "My Booths",
+					description: "View and manage your exhibitor booths.",
+					icon: Package,
 				},
 			],
 		},
 
 		// ------------------------------------------------------------------------
-		// TICKETS GROUP - Only for ticket-based events
-		// ------------------------------------------------------------------------
-		{
-			id: "tickets",
-			label: "Tickets",
-			icon: HiTicket,
-			visible: (p, e) =>
-				visible.ticketEvent(p, e) && visible.canAccessTickets(p),
-			tabs: [
-				{
-					route: "tickets",
-					label: "Manage Tickets",
-					description: "Manage ticket sales and attendee information.",
-					icon: HiTicket,
-				},
-				{
-					route: "pending-tickets",
-					label: "Pending Tickets",
-					description: "View and approve pending ticket transactions.",
-					icon: TbClockDollar,
-				},
-				{
-					route: "ticket-types",
-					label: "Ticket Types",
-					description: "Manage ticket types for this event.",
-					icon: HiTicket,
-				},
-				{
-					route: "registration-forms",
-					label: "Registration Forms",
-					description: "Manage registration forms and ticket mapping.",
-					icon: ClipboardList,
-				},
-				{
-					route: "vehicles",
-					label: "Vehicles",
-					description:
-						"View registered vehicles, their crew, and fix mismatches.",
-					icon: Car,
-					visible: (p, e) => visible.hasVehicles(p, e),
-				},
-				{
-					route: "bundle-passes",
-					label: "Bundle Passes",
-					description: "Create private bundle pass links for invited entities.",
-					icon: PackageOpen,
-				},
-				{
-					route: "certificates",
-					label: "E-Certificates",
-					description: "Design and send certificates to attendees.",
-					icon: Award,
-					visible: (p, e) =>
-						visible.hasCertificate(p, e) && visible.eventAdmin(p),
-				},
-			],
-		},
-		// ------------------------------------------------------------------------
-		// SEAT TICKETING GROUP
-		// ------------------------------------------------------------------------
-		{
-			id: "seat-ticketing",
-			label: "Seat Reservation",
-			icon: Ticket,
-			visible: (p, e) => visible.hasSeatTicketing(p, e) && visible.adminOnly(p),
-			tabs: [
-				{
-					route: "seat-ticketing/sessions",
-					label: "Seat Reservation Sessions",
-					description:
-						"Set up and organize seat reservation sessions, sections, and seating layouts for this event.",
-					icon: Ticket,
-				},
-			],
-		},
-
-		// ------------------------------------------------------------------------
-		// PEOPLE GROUP - Staff, visitors, vendors (hidden from contractors)
-		// ------------------------------------------------------------------------
-		{
-			id: "people",
-			label: "People",
-			icon: Users,
-			visible: (p) => !(p.isExhibitionContractor ?? false),
-			tabs: [
-				// Visitors - mall events only, with view permission
-				{
-					route: "visitors",
-					label: "Visitors",
-					description: "Manage visitors for non-ticket events.",
-					icon: UserCheck,
-					visible: (p, e) =>
-						visible.mallEvent(p, e) && visible.canViewVisitors(p),
-				},
-				// Event Staff - org owner only
-				{
-					route: "event-staff",
-					label: "Event Staff",
-					description: "Manage event staff assignments and permissions.",
-					icon: Users,
-					visible: visible.orgOwner,
-				},
-				// Vendors OR Exhibitor (mutually exclusive based on event settings)
-				{
-					route: "vendors",
-					label: "Vendors",
-					description: "View and manage vendors for this event.",
-					icon: Building2,
-					visible: (p, e) =>
-						visible.eventAdminOnly(p) && visible.hasVendors(p, e),
-				},
-				{
-					route: "exhibitor",
-					label: "Exhibitor",
-					description:
-						"View and manage exhibitors and their kits for this event.",
-					icon: Building2,
-					visible: (p, e) =>
-						visible.canViewVendors(p) &&
-						visible.hasExhibitorKit(p, e) &&
-						!visible.vendor(p),
-				},
-				// Main Contractor - org owner only, when using exhibitor kit
-				{
-					route: "exhibitor-contractor",
-					label: "Main Contractor",
-					description: "Assign and manage the main contractor for this event.",
-					icon: HardHat,
-					visible: visible.exhibitorContractorAccess,
-				},
-			],
-		},
-
-		// ------------------------------------------------------------------------
-		// EXHIBITOR KITS GROUP - Contractor kit management (contractor only)
+		// EXHIBITOR KITS GROUP - Contractor kit management (contractors only)
 		// ------------------------------------------------------------------------
 		{
 			id: "exhibitor-kits",
@@ -473,28 +311,230 @@ const rawEventMenuConfig: EventMenuConfig = {
 		},
 
 		// ------------------------------------------------------------------------
-		// EVENT CATALOG GROUP - Org owner item/printing management
+		// TICKETS GROUP - Selling and registering attendees (ticket-based events)
 		// ------------------------------------------------------------------------
 		{
-			id: "event-catalog",
-			label: "Event Catalog",
-			icon: Package,
+			id: "tickets",
+			label: "Tickets",
+			icon: HiTicket,
 			visible: (p, e) =>
-				visible.orgOwner(p) &&
-				visible.hasExhibitorKit(p, e) &&
-				!p.isExhibitionContractor,
+				visible.ticketEvent(p, e) && visible.canAccessTickets(p),
 			tabs: [
+				{
+					route: "tickets",
+					label: "Manage Tickets",
+					description: "Manage ticket sales and attendee information.",
+					icon: HiTicket,
+				},
+				{
+					route: "pending-tickets",
+					label: "Pending Tickets",
+					description: "View and approve pending ticket transactions.",
+					icon: TbClockDollar,
+				},
+				{
+					route: "ticket-types",
+					label: "Ticket Types",
+					description: "Manage ticket types for this event.",
+					icon: HiTicket,
+				},
+				{
+					route: "registration-forms",
+					label: "Registration Forms",
+					description: "Manage registration forms and ticket mapping.",
+					icon: ClipboardList,
+				},
+				{
+					route: "bundle-passes",
+					label: "Bundle Passes",
+					description: "Create private bundle pass links for invited entities.",
+					icon: PackageOpen,
+				},
+				{
+					route: "vehicles",
+					label: "Vehicles",
+					description:
+						"View registered vehicles, their crew, and fix mismatches.",
+					icon: Car,
+					visible: (p, e) => visible.hasVehicles(p, e),
+				},
+				{
+					route: "certificates",
+					label: "E-Certificates",
+					description: "Design and send certificates to attendees.",
+					icon: Award,
+					visible: (p, e) =>
+						visible.hasCertificate(p, e) && visible.eventAdmin(p),
+				},
+			],
+		},
+
+		// ------------------------------------------------------------------------
+		// SEATING GROUP - Table plans and seat reservation
+		// ------------------------------------------------------------------------
+		{
+			id: "seating",
+			label: "Seating",
+			icon: Grid,
+			tabs: [
+				{
+					route: "plans",
+					label: "Seating Plans",
+					description: "Manage seating plans and table assignments.",
+					icon: Grid,
+					visible: visible.eventAdmin,
+				},
+				{
+					route: "seat-ticketing/sessions",
+					label: "Seat Reservation Sessions",
+					description:
+						"Set up and organize seat reservation sessions, sections, and seating layouts for this event.",
+					icon: Ticket,
+					visible: (p, e) =>
+						visible.hasSeatTicketing(p, e) && visible.adminOnly(p),
+				},
+			],
+		},
+
+		// ------------------------------------------------------------------------
+		// PEOPLE GROUP - Visitors, staff, vendors (hidden from contractors)
+		// ------------------------------------------------------------------------
+		{
+			id: "people",
+			label: "People",
+			icon: Users,
+			visible: (p) => !(p.isExhibitionContractor ?? false),
+			tabs: [
+				// Visitors - mall events only, with view permission
+				{
+					route: "visitors",
+					label: "Visitors",
+					description: "Manage visitors for non-ticket events.",
+					icon: UserCheck,
+					visible: (p, e) =>
+						visible.mallEvent(p, e) && visible.canViewVisitors(p),
+				},
+				// Import Visitors - mall events only, organizer/org_owner only
+				{
+					route: "import-visitors",
+					label: "Import Visitors",
+					description: "Import visitors from Excel or CSV files.",
+					icon: Import,
+					visible: (p, e) =>
+						visible.mallEvent(p, e) && visible.organizerOrOwner(p),
+				},
+				// Event Staff - org owner only
+				{
+					route: "event-staff",
+					label: "Event Staff",
+					description: "Manage event staff assignments and permissions.",
+					icon: Users,
+					visible: visible.orgOwner,
+				},
+				// Vendors (events without exhibitor kits; those use Exhibitor Management)
+				{
+					route: "vendors",
+					label: "Vendors",
+					description: "View and manage vendors for this event.",
+					icon: Building2,
+					visible: (p, e) =>
+						visible.eventAdminOnly(p) && visible.hasVendors(p, e),
+				},
+			],
+		},
+
+		// ------------------------------------------------------------------------
+		// EXHIBITOR MANAGEMENT GROUP - Everything an organizer does for exhibitors
+		// (not shown to contractors, who have their own group above)
+		// ------------------------------------------------------------------------
+		{
+			id: "exhibitor-management",
+			label: "Exhibitor Management",
+			icon: Building2,
+			visible: (p) => !(p.isExhibitionContractor ?? false),
+			tabs: [
+				{
+					route: "exhibitor",
+					label: "Exhibitor",
+					description:
+						"View and manage exhibitors and their kits for this event.",
+					icon: Building2,
+					visible: (p, e) =>
+						visible.canViewVendors(p) &&
+						visible.hasExhibitorKit(p, e) &&
+						!visible.vendor(p),
+				},
+				// Main Contractor - org owner only, when using exhibitor kit
+				{
+					route: "exhibitor-contractor",
+					label: "Main Contractor",
+					description: "Assign and manage the main contractor for this event.",
+					icon: HardHat,
+					visible: visible.exhibitorContractorAccess,
+				},
+				// Catalog - org owner item/printing management
 				{
 					route: "rentable-items",
 					label: "Event Items",
 					description: "View rentable items linked to this event.",
 					icon: Warehouse,
+					visible: (p, e) =>
+						visible.orgOwner(p) && visible.hasExhibitorKit(p, e),
 				},
 				{
 					route: "printing-services",
 					label: "Event Printing",
 					description: "View printing services linked to this event.",
 					icon: Printer,
+					visible: (p, e) =>
+						visible.orgOwner(p) && visible.hasExhibitorKit(p, e),
+				},
+				{
+					route: "exhibitor-certificates",
+					label: "Exhibitor E-Certificates",
+					description: "Design and send certificates to exhibitor companies.",
+					icon: Award,
+					visible: (p, e) =>
+						visible.hasCertificate(p, e) &&
+						visible.hasExhibitorKit(p, e) &&
+						visible.eventAdmin(p) &&
+						!visible.vendor(p),
+				},
+			],
+		},
+
+		// ------------------------------------------------------------------------
+		// ENGAGEMENT GROUP - Crowd-pleasers: draws, roulette, guestbook
+		// ------------------------------------------------------------------------
+		{
+			id: "engagement",
+			label: "Engagement",
+			icon: Gift,
+			// Visible on both ticket and visitor events
+			tabs: [
+				{
+					route: "lucky-draw",
+					label: "Lucky Draw",
+					description:
+						"Manage lucky draw sessions, configurations, and prizes.",
+					icon: Gift,
+					visible: visible.luckyDrawAccess,
+				},
+				{
+					route: "prize-roulette",
+					label: "Prize Roulette",
+					description: "Manage prize roulette sessions for this event.",
+					icon: FaGifts,
+					visible: visible.prizeRouletteAccess,
+				},
+				{
+					route: "wishes",
+					label: "Guestbook",
+					description:
+						"Approve blessings for the live wishes wall, or keep unsuitable messages out of the venue display.",
+					icon: MessageSquareHeart,
+					visible: (_p: Permissions, e?: EventSidebarEvent) =>
+						e?.use_wedding === true,
 				},
 			],
 		},
@@ -550,25 +590,33 @@ const rawEventMenuConfig: EventMenuConfig = {
 		},
 
 		// ------------------------------------------------------------------------
-		// MY EXHIBITOR KIT GROUP - Vendor exhibitor kit management
+		// ON-SITE GROUP - Live operations during the event
 		// ------------------------------------------------------------------------
 		{
-			id: "my-exhibitor-kit",
-			label: "My Exhibitor Kits",
-			icon: Package,
-			visible: visible.vendorExhibitorKitAccess,
+			id: "on-site",
+			label: "On-site",
+			icon: Radio,
 			tabs: [
 				{
-					route: "contractor-guidelines",
-					label: "Exhibitor Guidelines",
-					description: "View exhibitor rules, terms & conditions.",
-					icon: FileText,
+					route: "rfid",
+					label: "RFID",
+					description:
+						"RFID headcount, stations, bindings, visits, and corrections.",
+					icon: Radio,
+					visible: (p, e) =>
+						visible.hasRfid(p, e) &&
+						visible.ticketEvent(p, e) &&
+						visible.eventAdmin(p),
 				},
 				{
-					route: "exhibitor-kits",
-					label: "My Booths",
-					description: "View and manage your exhibitor booths.",
-					icon: Package,
+					route: "people-counter",
+					label: "People Counter",
+					description:
+						"Live people counts per hall and level. Org owners also set up the counter connection and halls.",
+					icon: Users,
+					visible: (p, e) =>
+						visible.hasPeopleCounter(p, e) &&
+						(visible.eventAdmin(p) || visible.organizerOrOwner(p)),
 				},
 			],
 		},
@@ -581,13 +629,6 @@ const rawEventMenuConfig: EventMenuConfig = {
 			label: "Analytics",
 			icon: ChartBar,
 			tabs: [
-				{
-					route: "voucher-analytics",
-					label: "Voucher Analytics",
-					description: "View analytics and insights for vouchers.",
-					icon: ChartBar,
-					visible: visible.vendorOrAdmin,
-				},
 				{
 					route: "analytics/ticket",
 					label: "Ticket Analytics",
@@ -623,6 +664,13 @@ const rawEventMenuConfig: EventMenuConfig = {
 						visible.hasExhibitorKit(p, e) && visible.eventAdmin(p),
 				},
 				{
+					route: "voucher-analytics",
+					label: "Voucher Analytics",
+					description: "View analytics and insights for vouchers.",
+					icon: ChartBar,
+					visible: visible.vendorOrAdmin,
+				},
+				{
 					route: "mall-live-feed",
 					label: "Mall Live Feed",
 					description:
@@ -634,20 +682,13 @@ const rawEventMenuConfig: EventMenuConfig = {
 		},
 
 		// ------------------------------------------------------------------------
-		// LOGS GROUP - Activity history (Admin only)
+		// LOGS GROUP - Activity history and exports (what happened, newest concerns first)
 		// ------------------------------------------------------------------------
 		{
 			id: "logs",
 			label: "Logs",
 			icon: Logs,
 			tabs: [
-				{
-					route: "voucher-logs",
-					label: "Voucher Logs",
-					description: "View all voucher redemption logs for this event.",
-					icon: Logs,
-					visible: visible.eventAdmin,
-				},
 				{
 					route: "scanned-logs",
 					label: "Scanned Logs",
@@ -656,32 +697,18 @@ const rawEventMenuConfig: EventMenuConfig = {
 					visible: (p) => visible.eventAdmin(p) || visible.canAccessTickets(p),
 				},
 				{
-					route: "rfid",
-					label: "RFID",
-					description:
-						"RFID headcount, stations, bindings, visits, and corrections.",
-					icon: Radio,
-					visible: (p, e) =>
-						visible.hasRfid(p, e) &&
-						visible.ticketEvent(p, e) &&
-						visible.eventAdmin(p),
+					route: "voucher-logs",
+					label: "Voucher Logs",
+					description: "View all voucher redemption logs for this event.",
+					icon: Logs,
+					visible: visible.eventAdmin,
 				},
 				{
-					route: "people-counter",
-					label: "People Counter",
-					description:
-						"Live people counts per hall and level. Org owners also set up the counter connection and halls.",
-					icon: Users,
-					visible: (p, e) =>
-						visible.hasPeopleCounter(p, e) &&
-						(visible.eventAdmin(p) || visible.organizerOrOwner(p)),
-				},
-				{
-					route: "event-activity",
-					label: "Activity Log",
-					description: "View recent actions on this event.",
-					icon: SquareActivity,
-					visible: (p) => p.isOrgOwner || p.isEventAdmin || p.isEventTeamMember,
+					route: "lead-logs",
+					label: "Lead Logs",
+					description: "View all event lead logs for this event.",
+					icon: Logs,
+					visible: (p, e) => visible.mallEvent(p, e) && visible.eventAdmin(p),
 				},
 				{
 					route: "email-status",
@@ -692,11 +719,11 @@ const rawEventMenuConfig: EventMenuConfig = {
 					visible: (p) => p.isOrgOwner || p.isEventAdmin,
 				},
 				{
-					route: "lead-logs",
-					label: "Lead Logs",
-					description: "View all event lead logs for this event.",
-					icon: Logs,
-					visible: (p, e) => visible.mallEvent(p, e) && visible.eventAdmin(p),
+					route: "event-activity",
+					label: "Activity Log",
+					description: "View recent actions on this event.",
+					icon: SquareActivity,
+					visible: (p) => p.isOrgOwner || p.isEventAdmin || p.isEventTeamMember,
 				},
 				{
 					route: "export-logs",
@@ -704,6 +731,26 @@ const rawEventMenuConfig: EventMenuConfig = {
 					description: "Export event logs and data.",
 					icon: Logs,
 					visible: (p, e) => visible.ticketEvent(p, e) && visible.adminOnly(p),
+				},
+			],
+		},
+
+		// ------------------------------------------------------------------------
+		// SETTINGS GROUP - Integrations (last, rarely touched)
+		// ------------------------------------------------------------------------
+		{
+			id: "settings",
+			label: "Settings",
+			icon: Key,
+			tabs: [
+				{
+					route: "api-keys",
+					label: "API Keys",
+					description:
+						"Manage API keys for external integrations with this event.",
+					icon: Key,
+					visible: (p, e) =>
+						e?.use_api_access === true && visible.organizerOrOwner(p),
 				},
 			],
 		},
