@@ -94,6 +94,23 @@ export type CheckInResponse = {
 export type CreateTicketResponse = Ticket;
 export type UpdateTicketResponse = Ticket;
 
+// Guest passes response (transformed): the created tickets plus the label
+// they were generated from.
+export type CreateGuestPassesResponse = {
+	label: string;
+	quantity: number;
+	groupPublicIds: string[];
+	tickets: Ticket[];
+};
+
+// Backend guest passes response (raw API shape).
+export type BackendGuestPassesResponse = {
+	label: string;
+	quantity: number;
+	group_public_ids: string[];
+	tickets: BackendTicket[];
+};
+
 // Bulk update ticket type response
 export type BulkUpdateTicketTypeResponse = {
 	updated: string[];
