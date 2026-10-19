@@ -51,3 +51,28 @@ export const updateTicketSchema = z.object({
 export type CheckInRequest = z.infer<typeof checkInTicketSchema>;
 export type CreateTicketRequest = z.infer<typeof createTicketSchema>;
 export type UpdateTicketRequest = z.infer<typeof updateTicketSchema>;
+
+// Sponsor guest passes: N placeholder tickets named "<label> Pax i/N" for
+// guests whose real names aren't known yet. Backend auto-numbers the names,
+// marks all passes paid/purchased, and groups them under one registration
+// batch. Renaming a pass later is optional, never required.
+export const createGuestPassesSchema = z.object({
+	eventId: z.string().min(1, "Event ID is required"),
+	label: z.string().min(2, "Label must be at least 2 characters"),
+	// Hard ceiling against typos; ticket-type capacity is the real limit. The
+	// dialog asks for confirmation above 50 before calling the API.
+	quantity: z.number().int().min(1).max(500),
+	ticket_type_id: z.number().min(1, "Ticket type ID is required"),
+	attendee_email: z
+		.union([
+			z.string().email("Please enter a valid email address"),
+			z.literal(""),
+			z.null(),
+			z.undefined(),
+		])
+		.optional(),
+	attendee_phone: z.union([z.string(), z.null(), z.undefined()]).optional(),
+	role: z.string().optional(),
+});
+
+export type CreateGuestPassesRequest = z.infer<typeof createGuestPassesSchema>;

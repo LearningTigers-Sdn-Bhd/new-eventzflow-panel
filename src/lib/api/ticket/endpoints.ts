@@ -4,11 +4,13 @@ import { extractErrorMessage } from "@/utils/error-handler";
 import { restClient } from "@/utils/rest-api";
 import {
 	checkInTicketSchema,
+	createGuestPassesSchema,
 	createTicketSchema,
 	updateTicketSchema,
 } from "./request";
 import type {
 	BackendCheckInResponse,
+	BackendGuestPassesResponse,
 	BackendImportTicketsResponse,
 	BackendTicket,
 	BackendTicketTransformed,
@@ -16,6 +18,7 @@ import type {
 	BulkDeleteResponse,
 	BulkUpdateTicketTypeResponse,
 	CheckInResponse,
+	CreateGuestPassesResponse,
 	CreateTicketResponse,
 	ImportTicketsResponse,
 	OfflineData,
@@ -454,6 +457,37 @@ export async function createTicket(data: {
 
 	// Transform backend response to frontend format
 	return transformBackendTicket(response, "Unknown Event", eventId);
+}
+
+/**
+ * Create N placeholder sponsor guest passes ("<label> Pax i/N").
+ * Backend marks them paid/purchased and batches them; renaming is optional.
+ */
+export async function createGuestPasses(data: {
+	eventId: string;
+	label: string;
+	quantity: number;
+	ticket_type_id: number;
+	attendee_email?: string | null;
+	attendee_phone?: string | null;
+	role?: string;
+}): Promise<CreateGuestPassesResponse> {
+	const validated = createGuestPassesSchema.parse(data);
+	const { eventId, ...body } = validated;
+
+	const response = await restClient.post<BackendGuestPassesResponse>(
+		`v1/events/${eventId}/tickets/create_guest_passes`,
+		body,
+	);
+
+	return {
+		label: response.label,
+		quantity: response.quantity,
+		groupPublicIds: response.group_public_ids,
+		tickets: response.tickets.map((t) =>
+			transformBackendTicket(t, "Unknown Event", eventId),
+		),
+	};
 }
 
 /**
