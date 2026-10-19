@@ -9,7 +9,10 @@ import type {
 	CertificateAudience,
 	CertificateParticipant,
 	CertificateTemplate,
+	CertificateTemplateAudience,
+	ExhibitorCertificateRow,
 	SendCertificatesResponse,
+	SendExhibitorCertificatesResponse,
 	SendOneCertificateResponse,
 } from "./response";
 
@@ -21,9 +24,12 @@ const templatesPath = (eventId: string) =>
  */
 export async function getCertificateTemplates(
 	eventId: string,
+	audience: CertificateTemplateAudience = "ticket",
 ): Promise<CertificateTemplate[]> {
 	const response = await restClient.get<CertificateTemplate[] | null>(
-		templatesPath(eventId),
+		audience === "exhibitor"
+			? `${templatesPath(eventId)}?audience=exhibitor`
+			: templatesPath(eventId),
 	);
 	return response ?? [];
 }
@@ -36,12 +42,18 @@ export async function createCertificateTemplate(
 	eventId: string,
 	data: UpsertCertificateTemplateRequest,
 	duplicateFromId?: number,
+	audience: CertificateTemplateAudience = "ticket",
 ): Promise<CertificateTemplate> {
 	const validated = upsertCertificateTemplateSchema.parse(data);
-	return await restClient.post<CertificateTemplate>(templatesPath(eventId), {
-		certificate_template: validated,
-		duplicate_from_id: duplicateFromId,
-	});
+	return await restClient.post<CertificateTemplate>(
+		audience === "exhibitor"
+			? `${templatesPath(eventId)}?audience=exhibitor`
+			: templatesPath(eventId),
+		{
+			certificate_template: validated,
+			duplicate_from_id: duplicateFromId,
+		},
+	);
 }
 
 /**
@@ -200,6 +212,63 @@ export async function downloadAllCertificates(
 ): Promise<Blob> {
 	const { blob } = await restClient.getBlob(
 		`v1/events/${eventId}/certificates/download_all?audience=${audience}`,
+	);
+	return blob;
+}
+
+const exhibitorPath = (eventId: string) =>
+	`v1/events/${eventId}/exhibitor_certificates`;
+
+/** Exhibitor companies eligible for a certificate, with delivery status. */
+export async function getExhibitorCertificates(
+	eventId: string,
+): Promise<ExhibitorCertificateRow[]> {
+	const response = await restClient.get<{ data: ExhibitorCertificateRow[] }>(
+		exhibitorPath(eventId),
+	);
+	return response.data;
+}
+
+/** Send (or resend) the certificate to one exhibitor company. */
+export async function sendOneExhibitorCertificate(
+	eventId: string,
+	exhibitorId: number,
+): Promise<SendOneCertificateResponse> {
+	return await restClient.post<SendOneCertificateResponse>(
+		`${exhibitorPath(eventId)}/send_one`,
+		{ exhibitor_id: exhibitorId },
+	);
+}
+
+/** Queue a send to every eligible company; skipSent leaves out those already sent. */
+export async function sendExhibitorCertificates(
+	eventId: string,
+	skipSent: boolean,
+): Promise<SendExhibitorCertificatesResponse> {
+	return await restClient.post<SendExhibitorCertificatesResponse>(
+		`${exhibitorPath(eventId)}/send_batch`,
+		{ skip_sent: skipSent },
+	);
+}
+
+/** One exhibitor's certificate PDF, or a sample when no exhibitorId is given. */
+export async function downloadExhibitorCertificate(
+	eventId: string,
+	exhibitorId?: number,
+): Promise<Blob> {
+	const qs = exhibitorId ? `&exhibitor_id=${exhibitorId}` : "";
+	const { blob } = await restClient.getBlob(
+		`${exhibitorPath(eventId)}/preview?download=true${qs}`,
+	);
+	return blob;
+}
+
+/** One combined PDF, a page per eligible exhibitor company. */
+export async function downloadAllExhibitorCertificates(
+	eventId: string,
+): Promise<Blob> {
+	const { blob } = await restClient.getBlob(
+		`${exhibitorPath(eventId)}/download_all`,
 	);
 	return blob;
 }

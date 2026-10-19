@@ -33,7 +33,11 @@ const statusTone: Record<CertificateDeliveryStatus, string> = {
 	suppressed: "bg-zinc-500 text-white border-transparent",
 };
 
-function StatusBadge({ status }: { status: CertificateDeliveryStatus | null }) {
+export function StatusBadge({
+	status,
+}: {
+	status: CertificateDeliveryStatus | null;
+}) {
 	if (!status) {
 		return (
 			<Badge variant="outline" className="rounded-none px-2 py-0.5 text-xs">

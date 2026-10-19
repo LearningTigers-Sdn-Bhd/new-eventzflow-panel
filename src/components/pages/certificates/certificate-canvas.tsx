@@ -2,7 +2,15 @@
 
 import type Konva from "konva";
 import { useEffect, useRef, useState } from "react";
-import { Image as KonvaImage, Layer, Rect, Stage, Text } from "react-konva";
+import {
+	Circle,
+	Group,
+	Image as KonvaImage,
+	Layer,
+	Rect,
+	Stage,
+	Text,
+} from "react-konva";
 import type { CertificateField } from "@/lib/api/certificate";
 
 type CertificateCanvasProps = {
@@ -16,6 +24,8 @@ type CertificateCanvasProps = {
 	readOnly?: boolean;
 	onSelectField: (id: string | null) => void;
 	onChangeField: (id: string, patch: Partial<CertificateField>) => void;
+	/** Shows a small "x" on the selected field's top-right corner to remove it. */
+	onRemoveField?: (id: string) => void;
 };
 
 // Tracks the available width of a container element so the canvas can scale to
@@ -69,6 +79,12 @@ function fieldDisplayValue(
 	switch (field.type) {
 		case "attendee_name":
 			return sampleName || "Attendee Name";
+		case "company_name":
+			return sampleName || "Company Name";
+		case "booth_count":
+			return "3";
+		case "booth_numbers":
+			return "A01, A02, A03";
 		case "event_title":
 			return "Event Title";
 		case "date":
@@ -96,7 +112,15 @@ export function CertificateCanvas({
 	readOnly = false,
 	onSelectField,
 	onChangeField,
+	onRemoveField,
 }: CertificateCanvasProps) {
+	// Live position of the field being dragged, so the selection box and the
+	// remove button follow it before the drop commits the new position.
+	const [dragPos, setDragPos] = useState<{
+		id: string;
+		x: number;
+		y: number;
+	} | null>(null);
 	const bgImage = useHtmlImage(backgroundUrl);
 	const stageRef = useRef<Konva.Stage>(null);
 	const { ref: containerRef, width: containerWidth } = useContainerWidth();
@@ -109,6 +133,13 @@ export function CertificateCanvas({
 	const scale = measured ? Math.min(1, containerWidth / canvasWidth) : 0;
 	const stageWidth = canvasWidth * scale;
 	const stageHeight = canvasHeight * scale;
+	// Keep the remove button the same size on screen whatever the canvas scale.
+	const removeRadius = scale > 0 ? 11 / scale : 11;
+	const selectedField = fields.find((f) => f.id === selectedFieldId);
+	const selectedPos =
+		selectedField && dragPos?.id === selectedField.id
+			? dragPos
+			: selectedField && { x: selectedField.x, y: selectedField.y };
 
 	return (
 		<div ref={containerRef} className="w-full">
@@ -151,7 +182,6 @@ export function CertificateCanvas({
 							)}
 
 							{fields.map((field) => {
-								const isSelected = field.id === selectedFieldId;
 								return (
 									<Text
 										key={field.id}
@@ -170,17 +200,77 @@ export function CertificateCanvas({
 										listening={!readOnly}
 										onClick={() => !readOnly && onSelectField(field.id)}
 										onTap={() => !readOnly && onSelectField(field.id)}
+										onDragMove={(e) =>
+											setDragPos({
+												id: field.id,
+												x: e.target.x(),
+												y: e.target.y(),
+											})
+										}
 										onDragEnd={(e) => {
+											setDragPos(null);
 											onChangeField(field.id, {
 												x: Math.round(e.target.x()),
 												y: Math.round(e.target.y()),
 											});
 										}}
-										stroke={isSelected ? "#2563eb" : undefined}
-										strokeWidth={isSelected ? 1 : 0}
 									/>
 								);
 							})}
+							{!readOnly && onRemoveField && selectedField && selectedPos && (
+								<>
+									<Rect
+										x={selectedPos.x}
+										y={selectedPos.y}
+										width={selectedField.width}
+										height={selectedField.height}
+										stroke="#2563eb"
+										strokeWidth={1.5 / scale}
+										dash={[6 / scale, 4 / scale]}
+										listening={false}
+									/>
+									<Group
+										x={selectedPos.x + selectedField.width}
+										y={selectedPos.y}
+										onClick={(e) => {
+											e.cancelBubble = true;
+											onRemoveField(selectedField.id);
+										}}
+										onTap={(e) => {
+											e.cancelBubble = true;
+											onRemoveField(selectedField.id);
+										}}
+										onMouseEnter={(e) => {
+											const c = e.target.getStage()?.container();
+											if (c) c.style.cursor = "pointer";
+										}}
+										onMouseLeave={(e) => {
+											const c = e.target.getStage()?.container();
+											if (c) c.style.cursor = "default";
+										}}
+									>
+										<Circle
+											radius={removeRadius}
+											fill="#dc2626"
+											stroke="#ffffff"
+											strokeWidth={removeRadius / 8}
+										/>
+										<Text
+											text="×"
+											fontSize={removeRadius * 1.8}
+											fontStyle="bold"
+											fill="#ffffff"
+											width={removeRadius * 2}
+											height={removeRadius * 2}
+											offsetX={removeRadius}
+											offsetY={removeRadius}
+											align="center"
+											verticalAlign="middle"
+											listening={false}
+										/>
+									</Group>
+								</>
+							)}
 						</Layer>
 					</Stage>
 				</div>

@@ -12,6 +12,9 @@ const FIELD_TYPE_LABELS: Record<CertificateField["type"], string> = {
 	event_title: "Event title",
 	date: "Date",
 	static_text: "Custom text",
+	company_name: "Company name",
+	booth_count: "Booth count",
+	booth_numbers: "Booth numbers",
 };
 
 type CertificateSummaryProps = {

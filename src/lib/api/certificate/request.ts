@@ -2,7 +2,15 @@ import { z } from "zod";
 
 export const certificateFieldSchema = z.object({
 	id: z.string(),
-	type: z.enum(["attendee_name", "event_title", "date", "static_text"]),
+	type: z.enum([
+		"attendee_name",
+		"event_title",
+		"date",
+		"static_text",
+		"company_name",
+		"booth_count",
+		"booth_numbers",
+	]),
 	label: z.string(),
 	x: z.number(),
 	y: z.number(),

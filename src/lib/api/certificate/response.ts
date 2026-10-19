@@ -4,7 +4,10 @@ export type CertificateFieldType =
 	| "attendee_name"
 	| "event_title"
 	| "date"
-	| "static_text";
+	| "static_text"
+	| "company_name"
+	| "booth_count"
+	| "booth_numbers";
 
 export type CertificateFieldFontStyle = "normal" | "bold" | "italic";
 export type CertificateFieldAlign = "left" | "center" | "right";
@@ -28,9 +31,13 @@ export type CertificateField = {
 
 export type CertificateTemplateStatus = "draft" | "ready" | "archived";
 
+export type CertificateTemplateAudience = "ticket" | "exhibitor";
+
 export type CertificateTemplate = {
 	id: number;
 	event_id: number;
+	/** "exhibitor" templates are the event's single design for exhibitor companies. */
+	audience: CertificateTemplateAudience;
 	name: string;
 	/** Empty means this is the default template for every other ticket type. */
 	ticket_type_ids: number[];
@@ -100,4 +107,22 @@ export type CertificateParticipant = {
 export type SendOneCertificateResponse = {
 	message: string;
 	email_delivery_id: number;
+};
+
+// One row per eligible exhibitor company (live, settled booking).
+export type ExhibitorCertificateRow = {
+	exhibitor_id: number;
+	company_name: string | null;
+	email: string | null;
+	booth_count: number;
+	booth_numbers: string;
+	certificate_status: CertificateDeliveryStatus | null;
+	certificate_sent_at: string | null;
+	last_delivery_id: number | null;
+};
+
+export type SendExhibitorCertificatesResponse = {
+	message: string;
+	queued: number;
+	skipped_no_email: number;
 };

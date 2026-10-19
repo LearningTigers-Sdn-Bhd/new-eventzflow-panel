@@ -19,8 +19,10 @@ import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import {
 	type CertificateField,
 	type CertificateTemplate,
+	type CertificateTemplateAudience,
 	deleteCertificateTemplate,
 	downloadCertificate,
+	downloadExhibitorCertificate,
 	removeCertificateBackground,
 	updateCertificateTemplate,
 	uploadCertificateBackground,
@@ -42,6 +44,7 @@ const CertificateCanvas = dynamic(
 );
 
 const SAMPLE_NAME = "Jane Attendee";
+const SAMPLE_COMPANY = "Acme Sdn Bhd";
 
 // The backend returns Active Storage URLs as relative paths (only_path: true).
 // Prepend the API origin so the browser fetches them from the backend, not the
@@ -57,6 +60,9 @@ const FIELD_PRESETS: Record<
 	{ label: string; fontSize: number; fontStyle: CertificateField["font_style"] }
 > = {
 	attendee_name: { label: "Attendee Name", fontSize: 48, fontStyle: "bold" },
+	company_name: { label: "Company Name", fontSize: 48, fontStyle: "bold" },
+	booth_count: { label: "Booth Count", fontSize: 22, fontStyle: "normal" },
+	booth_numbers: { label: "Booth Numbers", fontSize: 22, fontStyle: "normal" },
 	event_title: { label: "Event Title", fontSize: 28, fontStyle: "normal" },
 	date: { label: "Date", fontSize: 22, fontStyle: "normal" },
 	static_text: { label: "Custom Text", fontSize: 22, fontStyle: "normal" },
@@ -76,7 +82,7 @@ function makeField(
 		x: Math.round(canvasWidth * 0.2),
 		y: Math.round(canvasHeight * 0.45 + index * 80),
 		width: Math.round(canvasWidth * 0.6),
-		height: type === "attendee_name" ? 100 : 60,
+		height: type === "attendee_name" || type === "company_name" ? 100 : 60,
 		font_size: preset.fontSize,
 		font_style: preset.fontStyle,
 		color: "#1A1A1A",
@@ -92,6 +98,8 @@ type CertificateTemplateEditorProps = {
 	templates: CertificateTemplate[];
 	ticketTypes: TicketType[];
 	onDeleted: () => void;
+	/** Exhibitor templates have no ticket types and offer company/booth fields. */
+	audience?: CertificateTemplateAudience;
 };
 
 // Mounted with key={template.id}, so local state starts from the template and
@@ -102,10 +110,14 @@ export function CertificateTemplateEditor({
 	templates,
 	ticketTypes,
 	onDeleted,
+	audience = "ticket",
 }: CertificateTemplateEditorProps) {
+	const isExhibitor = audience === "exhibitor";
 	const queryClient = useQueryClient();
 	const { openConfirm } = useConfirmDialog();
-	const templatesKey = ["event", eventId, "certificate-templates"];
+	const templatesKey = isExhibitor
+		? ["event", eventId, "certificate-templates", "exhibitor"]
+		: ["event", eventId, "certificate-templates"];
 
 	// Local editable state, seeded from the server template.
 	const [name, setName] = useState(template.name);
@@ -186,10 +198,10 @@ export function CertificateTemplateEditor({
 	};
 
 	const addField = (type: CertificateField["type"]) => {
-		// Only one attendee name field makes sense per certificate.
+		// Only one name field makes sense per certificate.
 		if (
-			type === "attendee_name" &&
-			fields.some((f) => f.type === "attendee_name")
+			(type === "attendee_name" || type === "company_name") &&
+			fields.some((f) => f.type === type)
 		) {
 			toast.info("A name field already exists on the certificate.");
 			return;
@@ -280,7 +292,10 @@ export function CertificateTemplateEditor({
 	});
 
 	const downloadMutation = useMutation({
-		mutationFn: () => downloadCertificate(eventId, { templateId: template.id }),
+		mutationFn: () =>
+			isExhibitor
+				? downloadExhibitorCertificate(eventId)
+				: downloadCertificate(eventId, { templateId: template.id }),
 		onSuccess: (blob) => {
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
@@ -309,7 +324,9 @@ export function CertificateTemplateEditor({
 	const confirmDelete = () => {
 		openConfirm({
 			title: "Delete template",
-			message: `Delete "${template.name}"? Tickets using it will fall back to the default template, or get no certificate if there is none.`,
+			message: isExhibitor
+				? `Delete "${template.name}"? Exhibitors will have no certificate until a new template is made.`
+				: `Delete "${template.name}"? Tickets using it will fall back to the default template, or get no certificate if there is none.`,
 			confirmLabel: "Delete template",
 			cancelLabel: "Cancel",
 			type: "destructive",
@@ -344,9 +361,27 @@ export function CertificateTemplateEditor({
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align="start" className="rounded-none">
-									<DropdownMenuItem onClick={() => addField("attendee_name")}>
-										Attendee name
-									</DropdownMenuItem>
+									{isExhibitor ? (
+										<>
+											<DropdownMenuItem
+												onClick={() => addField("company_name")}
+											>
+												Company name
+											</DropdownMenuItem>
+											<DropdownMenuItem onClick={() => addField("booth_count")}>
+												Booth count
+											</DropdownMenuItem>
+											<DropdownMenuItem
+												onClick={() => addField("booth_numbers")}
+											>
+												Booth numbers
+											</DropdownMenuItem>
+										</>
+									) : (
+										<DropdownMenuItem onClick={() => addField("attendee_name")}>
+											Attendee name
+										</DropdownMenuItem>
+									)}
 									<DropdownMenuItem onClick={() => addField("event_title")}>
 										Event title
 									</DropdownMenuItem>
@@ -410,15 +445,17 @@ export function CertificateTemplateEditor({
 				</div>
 			</div>
 
-			<CertificateTemplateSettings
-				isEditing={isEditing}
-				name={name}
-				onNameChange={setName}
-				ticketTypeIds={ticketTypeIds}
-				onTicketTypeIdsChange={setTicketTypeIds}
-				ticketTypes={ticketTypes}
-				otherTemplates={templates.filter((t) => t.id !== template.id)}
-			/>
+			{!isExhibitor && (
+				<CertificateTemplateSettings
+					isEditing={isEditing}
+					name={name}
+					onNameChange={setName}
+					ticketTypeIds={ticketTypeIds}
+					onTicketTypeIdsChange={setTicketTypeIds}
+					ticketTypes={ticketTypes}
+					otherTemplates={templates.filter((t) => t.id !== template.id)}
+				/>
+			)}
 
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
 				<div className="min-w-0 space-y-3">
@@ -430,10 +467,11 @@ export function CertificateTemplateEditor({
 								canvasHeight={canvasHeight}
 								fields={fields}
 								selectedFieldId={isEditing ? selectedFieldId : null}
-								sampleName={SAMPLE_NAME}
+								sampleName={isExhibitor ? SAMPLE_COMPANY : SAMPLE_NAME}
 								readOnly={!isEditing}
 								onSelectField={setSelectedFieldId}
 								onChangeField={patchField}
+								onRemoveField={isEditing ? removeField : undefined}
 							/>
 							{isEditing && (
 								<>
