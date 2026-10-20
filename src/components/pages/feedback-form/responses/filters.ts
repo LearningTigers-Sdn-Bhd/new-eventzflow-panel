@@ -26,7 +26,12 @@ export function hasActiveFilters(filters: FeedbackFilters) {
 
 /** Stable react-query key part for a filter set. */
 export function filtersKey(filters: FeedbackFilters) {
-	return [filters.ticketTypeId ?? "all", filters.from ?? "", filters.to ?? ""];
+	return [
+		filters.audience ?? "ticket",
+		filters.ticketTypeId ?? "all",
+		filters.from ?? "",
+		filters.to ?? "",
+	];
 }
 
 /** "4.3" → 4.3 style helpers shared by the views. */

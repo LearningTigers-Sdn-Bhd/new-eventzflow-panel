@@ -30,15 +30,18 @@ import {
 type PublicFeedbackFormProps = {
 	slug: string;
 	ticketPublicId?: string;
+	/** Signed token from an exhibitor's personal `?exhibitor=` link. */
+	exhibitorToken?: string;
 };
 
 export function PublicFeedbackForm({
 	slug,
 	ticketPublicId,
+	exhibitorToken,
 }: PublicFeedbackFormProps) {
 	// Draft survives refresh; cleared on successful submit or "Clear all answers".
 	const [values, setValues] = usePersistedState<FeedbackAnswerValues>(
-		`feedback-draft:${slug}:${ticketPublicId ?? "preview"}`,
+		`feedback-draft:${slug}:${ticketPublicId ?? exhibitorToken ?? "preview"}`,
 		{},
 	);
 	// Preview only: the organizer clicked Send to see the thank-you screen.
@@ -53,8 +56,12 @@ export function PublicFeedbackForm({
 		isLoading,
 		isError,
 	} = useQuery({
-		queryKey: ["public-feedback-form", slug, ticketPublicId],
-		queryFn: () => getPublicFeedbackForm(slug, ticketPublicId),
+		queryKey: ["public-feedback-form", slug, ticketPublicId, exhibitorToken],
+		queryFn: () =>
+			getPublicFeedbackForm(slug, {
+				ticket: ticketPublicId,
+				exhibitor: exhibitorToken,
+			}),
 		retry: false,
 		// Once loaded, keep this form for the whole session even if it's closed meanwhile.
 		refetchOnWindowFocus: false,
@@ -112,6 +119,7 @@ export function PublicFeedbackForm({
 			return submitFeedback({
 				form_id: form.id,
 				ticket_public_id: ticketPublicId,
+				exhibitor_token: exhibitorToken,
 				session_token: form.session_token,
 				answers: toAnswerPayload(reachableQuestions, values),
 			});
@@ -143,7 +151,7 @@ export function PublicFeedbackForm({
 	};
 
 	// No ?ticket= means the organizer's preview link: show the form, collect nothing.
-	const isPreview = !ticketPublicId;
+	const isPreview = !ticketPublicId && !exhibitorToken;
 
 	const currentQuestions = useMemo(
 		() => questions.filter((q) => (q.page_number ?? 1) === currentPage),
@@ -293,7 +301,7 @@ export function PublicFeedbackForm({
 			? {
 					heading: form.title,
 					title: "Thank you, your feedback is in!",
-					body: "We've received your answers for this ticket. Thank you for taking the time to share your thoughts.",
+					body: `We've received your answers for ${form.company_name ? "your company" : "this ticket"}. Thank you for taking the time to share your thoughts.`,
 				}
 			: null;
 	const answeredCount = reachableQuestions.filter((q) => {
@@ -409,6 +417,11 @@ export function PublicFeedbackForm({
 						</motion.div>
 					) : (
 						<form className="space-y-6" onSubmit={handleSubmit} noValidate>
+							{form?.company_name && (
+								<p className="text-muted-foreground text-sm">
+									Responding as <strong>{form?.company_name}</strong>
+								</p>
+							)}
 							{isPreview && (
 								<p
 									role="status"

@@ -35,6 +35,7 @@ import {
 
 import { FeedbackAiSummaryCard } from "./responses/ai-summary-card";
 import { FeedbackCommentsTab } from "./responses/comments-tab";
+import { FeedbackExportMenu } from "./responses/export/export-menu";
 import { FeedbackFilterBar } from "./responses/filter-bar";
 import {
 	DEFAULT_FILTERS,
@@ -42,7 +43,6 @@ import {
 	formatPercent,
 	hasActiveFilters,
 } from "./responses/filters";
-import { FeedbackExportMenu } from "./responses/export/export-menu";
 import { FeedbackKpiHeader } from "./responses/kpi-header";
 import { FeedbackNonRespondersTab } from "./responses/non-responders-tab";
 
@@ -55,7 +55,10 @@ export function FeedbackResponsesViewer({
 	eventId: string;
 	form: FeedbackForm;
 }) {
-	const [filters, setFilters] = useState<FeedbackFilters>(DEFAULT_FILTERS);
+	const [filters, setFilters] = useState<FeedbackFilters>({
+		...DEFAULT_FILTERS,
+		audience: form.audience,
+	});
 	const {
 		data: summary,
 		isLoading,
@@ -84,7 +87,10 @@ export function FeedbackResponsesViewer({
 				<ErrorState title="Unable to load the response summary" />
 			) : (
 				<>
-					<FeedbackKpiHeader summary={summary} />
+					<FeedbackKpiHeader
+						summary={summary}
+						exhibitor={form.audience === "exhibitor"}
+					/>
 					<Tabs defaultValue="summary" className="w-full">
 						<div className="w-full border-y border-dashed">
 							<TabsList className="flex h-12 w-full rounded-none">

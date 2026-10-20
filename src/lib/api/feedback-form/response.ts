@@ -5,6 +5,9 @@ export type FeedbackQuestionType =
 	| "multi_choice"
 	| "yes_no";
 
+/** Who a form is for: ticket holders (visitors) or exhibitor companies. */
+export type FeedbackAudience = "ticket" | "exhibitor";
+
 export type FeedbackDisplayMode = "pages" | "continuous";
 
 export interface FeedbackPageMetadata {
@@ -37,6 +40,7 @@ export interface FeedbackQuestion {
 export interface FeedbackForm {
 	id: number;
 	event_id: number;
+	audience?: FeedbackAudience;
 	/** Version stamp; sent back on save so concurrent edits are detected. */
 	updated_at?: string;
 	title: string;
@@ -49,6 +53,8 @@ export interface FeedbackForm {
 	questions: FeedbackQuestion[];
 	/** Public endpoint only: the `?ticket=` holder has already responded. */
 	already_submitted?: boolean;
+	/** Public endpoint only: the company behind an `?exhibitor=` link. */
+	company_name?: string | null;
 	/** Public endpoint only: lets this visitor finish even if the form closes. */
 	session_token?: string;
 	/** Organizer only. */
@@ -166,6 +172,8 @@ export interface FeedbackResponsesEnvelope {
 
 /** Filters shared by every view and the exports. Empty values mean "no filter". */
 export interface FeedbackFilters {
+	/** Which form's data to show; the ticket-holder form when unset. */
+	audience?: FeedbackAudience;
 	ticketTypeId?: string;
 	from?: string;
 	to?: string;
@@ -191,12 +199,24 @@ export interface FeedbackCommentsEnvelope {
 	pagination: FeedbackResponsePagination;
 }
 
+export interface FeedbackExhibitorLink {
+	id: number;
+	company_name: string | null;
+	email: string | null;
+	booth_numbers: string;
+	submitted: boolean;
+	url: string;
+}
+
 export interface FeedbackNonResponder {
+	/** Ticket public id, or the exhibitor id for the exhibitor form. */
 	public_id: string;
 	attendee_name: string | null;
 	attendee_email: string | null;
 	ticket_type_name: string | null;
 	checked_in_at: string | null;
+	/** Exhibitor form only. */
+	booth_numbers?: string;
 	last_emailed_at: string | null;
 }
 

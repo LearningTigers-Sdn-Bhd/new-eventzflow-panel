@@ -81,6 +81,7 @@ const formSchema = z.object({
 	disabledCategories: z.array(z.string()),
 	businessMatchingTicketTypeIds: z.array(z.string()),
 	thankYouIncludeFeedback: z.boolean(),
+	thankYouExhibitors: z.boolean(),
 	thankYouDelayMinutes: z.number(),
 });
 
@@ -145,6 +146,7 @@ export default function EmailSettingsForm({
 			disabledCategories: [] as string[],
 			businessMatchingTicketTypeIds: [] as string[],
 			thankYouIncludeFeedback: false,
+			thankYouExhibitors: false,
 			thankYouDelayMinutes: 120,
 		},
 		validators: {
@@ -175,6 +177,7 @@ export default function EmailSettingsForm({
 									business_matching_ticket_type_ids:
 										value.businessMatchingTicketTypeIds.map(Number),
 									thank_you_include_feedback: value.thankYouIncludeFeedback,
+									thank_you_exhibitors: value.thankYouExhibitors,
 									thank_you_delay_minutes: value.thankYouDelayMinutes,
 								}
 							: {}),
@@ -227,6 +230,10 @@ export default function EmailSettingsForm({
 				form.setFieldValue(
 					"thankYouIncludeFeedback",
 					setting?.thank_you_include_feedback ?? false,
+				);
+				form.setFieldValue(
+					"thankYouExhibitors",
+					setting?.thank_you_exhibitors ?? false,
 				);
 				form.setFieldValue(
 					"thankYouDelayMinutes",
@@ -637,6 +644,28 @@ export default function EmailSettingsForm({
 										</form.Field>
 									)}
 								</form.Field>
+								{event?.use_exhibitor_kit === true && (
+									<form.Field name="emailsEnabled">
+										{(emailsEnabledField) => (
+											<form.Field name="thankYouExhibitors">
+												{(field) => (
+													<SwitchCardInput
+														variant="no-rounded"
+														label="Also thank exhibitors"
+														htmlFor={field.name}
+														checked={field.state.value}
+														onCheckedChange={field.handleChange}
+														disabled={
+															updateEventMutation.isPending ||
+															!emailsEnabledField.state.value
+														}
+														description="Sends one thank-you per exhibitor company, however many booths it has. Works on its own: you can turn visitors off and exhibitors on."
+													/>
+												)}
+											</form.Field>
+										)}
+									</form.Field>
+								)}
 								<form.Field name="disabledCategories">
 									{(categoriesField) => (
 										<form.Field name="thankYouIncludeFeedback">
@@ -653,7 +682,7 @@ export default function EmailSettingsForm({
 															THANK_YOU_CATEGORY_KEY,
 														)
 													}
-													description="Adds a “Share Your Feedback” button. Skipped automatically if the feedback form is inactive."
+													description="Adds a “Share Your Feedback” button for visitors and exhibitors. Skipped automatically if that audience's feedback form is inactive."
 												/>
 											)}
 										</form.Field>

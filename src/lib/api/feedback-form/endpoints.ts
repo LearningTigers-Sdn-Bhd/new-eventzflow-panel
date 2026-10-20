@@ -4,7 +4,9 @@ import type { SaveFeedbackFormRequest, SubmitFeedbackRequest } from "./request";
 import type {
 	FeedbackAiSummaryEnvelope,
 	FeedbackAiSummaryState,
+	FeedbackAudience,
 	FeedbackCommentsEnvelope,
+	FeedbackExhibitorLink,
 	FeedbackExportData,
 	FeedbackExportEnvelope,
 	FeedbackFilters,
@@ -22,11 +24,17 @@ import type {
 /** Organizer: the event's form, or null when none has been created yet. */
 export async function getFeedbackForm(
 	eventId: string,
+	audience: FeedbackAudience = "ticket",
 ): Promise<FeedbackForm | null> {
 	const response = await restClient.get<FeedbackFormEnvelope>(
-		`v1/events/${eventId}/feedback_form`,
+		`v1/events/${eventId}/feedback_form${audienceQuery(audience)}`,
 	);
 	return response.data ?? null;
+}
+
+/** "?audience=exhibitor" for the exhibitor form; nothing for the default ticket form. */
+function audienceQuery(audience: FeedbackAudience = "ticket") {
+	return audience === "exhibitor" ? "?audience=exhibitor" : "";
 }
 
 /** Thrown on 409: someone else saved the form after this editor loaded it. */
@@ -41,8 +49,9 @@ export async function saveFeedbackForm(
 	eventId: string,
 	data: Partial<SaveFeedbackFormRequest>,
 	exists: boolean,
+	audience: FeedbackAudience = "ticket",
 ): Promise<FeedbackForm> {
-	const url = `v1/events/${eventId}/feedback_form`;
+	const url = `v1/events/${eventId}/feedback_form${audienceQuery(audience)}`;
 	const body = { feedback_form: data };
 	try {
 		const response = exists
@@ -64,11 +73,12 @@ export async function saveFeedbackForm(
 /** Public: active form for an event, by event slug. */
 export async function getPublicFeedbackForm(
 	eventSlug: string,
-	ticketPublicId?: string,
+	link: { ticket?: string; exhibitor?: string } = {},
 ): Promise<FeedbackForm> {
-	const query = ticketPublicId
-		? `?${new URLSearchParams({ ticket: ticketPublicId })}`
-		: "";
+	const params = new URLSearchParams();
+	if (link.ticket) params.set("ticket", link.ticket);
+	if (link.exhibitor) params.set("exhibitor", link.exhibitor);
+	const query = params.size > 0 ? `?${params}` : "";
 	try {
 		const response = await publicRestClient.get<FeedbackFormEnvelope>(
 			`v1/public/events/${eventSlug}/feedback_form${query}`,
@@ -97,6 +107,7 @@ export function feedbackFilterParams(
 	extra: Record<string, string | undefined> = {},
 ) {
 	const query = new URLSearchParams();
+	if (filters.audience === "exhibitor") query.set("audience", "exhibitor");
 	if (filters.ticketTypeId && filters.ticketTypeId !== "all") {
 		query.set("ticket_type_id", filters.ticketTypeId);
 	}
@@ -217,9 +228,10 @@ export async function getFeedbackExportData(
 /** The latest stored AI summary and what the current user may do (only org owners can generate). */
 export async function getFeedbackAiSummary(
 	eventId: string,
+	audience: FeedbackAudience = "ticket",
 ): Promise<FeedbackAiSummaryState> {
 	const response = await restClient.get<FeedbackAiSummaryEnvelope>(
-		`v1/events/${eventId}/feedback_form/ai_summary`,
+		`v1/events/${eventId}/feedback_form/ai_summary${audienceQuery(audience)}`,
 	);
 	return response.data;
 }
@@ -235,6 +247,49 @@ export async function generateFeedbackAiSummary(
 			`v1/events/${eventId}/feedback_form/ai_summary${query ? `?${query}` : ""}`,
 			{},
 		);
+		return response.data;
+	} catch (error: unknown) {
+		throw new Error(await extractErrorMessage(error));
+	}
+}
+
+/** Organizer: search exhibitor companies and get each one's personal feedback link. */
+export async function searchFeedbackExhibitorLinks(
+	eventId: string,
+	search: string,
+): Promise<FeedbackExhibitorLink[]> {
+	const query = new URLSearchParams({ audience: "exhibitor" });
+	if (search.trim()) query.set("q", search.trim());
+	const response = await restClient.get<{ data: FeedbackExhibitorLink[] }>(
+		`v1/events/${eventId}/feedback_form/exhibitor_links?${query}`,
+	);
+	return response.data;
+}
+
+/** Organizer: a short personal feedback link for one exhibitor company, to pass on by hand. */
+export async function getFeedbackExhibitorShortLink(
+	eventId: string,
+	exhibitorId: string,
+): Promise<string> {
+	try {
+		const response = await restClient.post<{ data: { url: string } }>(
+			`v1/events/${eventId}/feedback_form/exhibitor_link`,
+			{ exhibitor_id: exhibitorId },
+		);
+		return response.data.url;
+	} catch (error: unknown) {
+		throw new Error(await extractErrorMessage(error));
+	}
+}
+
+/** Public: resolve a short `/feedback/<code>` link to the event slug and exhibitor token. */
+export async function resolveFeedbackShortLink(
+	code: string,
+): Promise<{ event_slug: string; exhibitor_token: string }> {
+	try {
+		const response = await publicRestClient.get<{
+			data: { event_slug: string; exhibitor_token: string };
+		}>(`v1/public/feedback_links/${encodeURIComponent(code)}`);
 		return response.data;
 	} catch (error: unknown) {
 		throw new Error(await extractErrorMessage(error));

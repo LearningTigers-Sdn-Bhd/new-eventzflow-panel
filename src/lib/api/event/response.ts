@@ -49,6 +49,7 @@ export type EventEmailSetting = {
 	disabled_categories: string[];
 	business_matching_ticket_type_ids: number[];
 	thank_you_include_feedback: boolean;
+	thank_you_exhibitors?: boolean;
 	thank_you_delay_minutes?: number;
 	business_matching_sender_name?: string | null;
 	business_matching_host_label?: string | null;

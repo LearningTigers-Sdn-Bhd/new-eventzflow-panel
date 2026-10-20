@@ -45,6 +45,11 @@ export const EMAIL_CATEGORIES: {
 	},
 	{ key: "thank_you", label: "Post-Event Thank You", group: "ticket" },
 	{
+		key: "exhibitor_thank_you",
+		label: "Exhibitor Post-Event Thank You",
+		group: "exhibitor",
+	},
+	{
 		key: "ticket_application",
 		label: "Ticket Application (RSVP)",
 		group: "ticket",

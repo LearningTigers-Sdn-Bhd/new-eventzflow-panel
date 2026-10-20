@@ -8,6 +8,13 @@ export default function FeedbackPage() {
 	const searchParams = useSearchParams();
 	const slug = params.slug as string;
 	const ticket = searchParams.get("ticket") ?? undefined;
+	const exhibitor = searchParams.get("exhibitor") ?? undefined;
 
-	return <PublicFeedbackForm slug={slug} ticketPublicId={ticket} />;
+	return (
+		<PublicFeedbackForm
+			slug={slug}
+			ticketPublicId={ticket}
+			exhibitorToken={exhibitor}
+		/>
+	);
 }

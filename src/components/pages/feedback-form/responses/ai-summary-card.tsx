@@ -30,6 +30,7 @@ import type {
 	FeedbackSentiment,
 } from "@/lib/api/feedback-form";
 import {
+	type FeedbackAudience,
 	generateFeedbackAiSummary,
 	getFeedbackAiSummary,
 } from "@/lib/api/feedback-form";
@@ -52,11 +53,10 @@ const SENTIMENT_LABELS: Record<FeedbackSentiment, string> = {
 	negative: "Mostly negative",
 };
 
-export const aiSummaryQueryKey = (eventId: string) => [
-	"event",
-	eventId,
-	"feedback-ai-summary",
-];
+export const aiSummaryQueryKey = (
+	eventId: string,
+	audience: FeedbackAudience = "ticket",
+) => ["event", eventId, "feedback-ai-summary", audience];
 
 /**
  * AI summary of the comments. Everyone who can see responses reads the stored
@@ -82,8 +82,8 @@ function FeedbackAiSummaryCardContent({
 	const [confirmOpen, setConfirmOpen] = useState(false);
 
 	const { data, isLoading } = useQuery({
-		queryKey: aiSummaryQueryKey(eventId),
-		queryFn: () => getFeedbackAiSummary(eventId),
+		queryKey: aiSummaryQueryKey(eventId, filters.audience),
+		queryFn: () => getFeedbackAiSummary(eventId, filters.audience),
 		// Keep checking while a run is in progress.
 		refetchInterval: (query) => {
 			const status = query.state.data?.summary?.status;
@@ -94,7 +94,10 @@ function FeedbackAiSummaryCardContent({
 	const generate = useMutation({
 		mutationFn: () => generateFeedbackAiSummary(eventId, filters),
 		onSuccess: (state) => {
-			queryClient.setQueryData(aiSummaryQueryKey(eventId), state);
+			queryClient.setQueryData(
+				aiSummaryQueryKey(eventId, filters.audience),
+				state,
+			);
 			toast.success("Summarizing the comments…");
 		},
 		onError: (error: Error) => toast.error(error.message),

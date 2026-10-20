@@ -47,14 +47,17 @@ describe("filter state", () => {
 
 	test("query key changes with each filter", () => {
 		expect(filtersKey({ ticketTypeId: "all", from: "", to: "" })).toEqual([
+			"ticket",
 			"all",
 			"",
 			"",
 		]);
 		expect(filtersKey({ ticketTypeId: "2", from: "a", to: "b" })).toEqual([
+			"ticket",
 			"2",
 			"a",
 			"b",
 		]);
+		expect(filtersKey({ audience: "exhibitor" })[0]).toBe("exhibitor");
 	});
 });

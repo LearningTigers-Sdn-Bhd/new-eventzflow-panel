@@ -55,6 +55,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
+	type FeedbackAudience,
 	FeedbackConflictError,
 	type FeedbackDisplayMode,
 	type FeedbackForm,
@@ -64,6 +65,7 @@ import {
 } from "@/lib/api/feedback-form";
 import { cn } from "@/lib/utils";
 import { AttendeeFeedbackLink } from "./attendee-feedback-link";
+import { ExhibitorFeedbackLink } from "./exhibitor-feedback-link";
 import {
 	findDuplicateOptions,
 	pruneRulesToOptions,
@@ -134,6 +136,7 @@ type PendingDelete =
 type FeedbackFormBuilderProps = {
 	eventId: string;
 	eventSlug: string;
+	audience?: FeedbackAudience;
 	form: FeedbackForm | null;
 };
 
@@ -141,9 +144,12 @@ type FeedbackFormBuilderProps = {
 export function FeedbackFormBuilder({
 	eventId,
 	eventSlug,
+	audience = "ticket",
 	form,
 }: FeedbackFormBuilderProps) {
 	const queryClient = useQueryClient();
+	const isExhibitor = audience === "exhibitor";
+	const formKey = ["event", eventId, "feedback-form", audience];
 	const [initial] = useState(() => {
 		const rawPages = form?.pages_metadata ?? [];
 		const qPages = [
@@ -403,10 +409,11 @@ export function FeedbackFormBuilder({
 					})),
 				},
 				form !== null,
+				audience,
 			);
 		},
 		onSuccess: (saved) => {
-			queryClient.setQueryData(["event", eventId, "feedback-form"], saved);
+			queryClient.setQueryData(formKey, saved);
 			toast.success("Feedback form saved");
 		},
 		onError: (error: Error) => {
@@ -425,15 +432,15 @@ export function FeedbackFormBuilder({
 					expected_updated_at: force ? undefined : serverUpdatedAt,
 				},
 				true,
+				audience,
 			),
 		onSuccess: (saved, { next }) => {
 			setIsActive(next);
 			setSavedActive(next);
 			setServerUpdatedAt(saved.updated_at);
 			// Keep dataUpdatedAt so the page doesn't remount and drop other drafts.
-			const key = ["event", eventId, "feedback-form"];
-			queryClient.setQueryData(key, saved, {
-				updatedAt: queryClient.getQueryState(key)?.dataUpdatedAt,
+			queryClient.setQueryData(formKey, saved, {
+				updatedAt: queryClient.getQueryState(formKey)?.dataUpdatedAt,
 			});
 			toast.success(next ? "Now accepting responses" : "Responses closed");
 		},
@@ -772,19 +779,25 @@ export function FeedbackFormBuilder({
 										Unsaved edits aren't in the preview. Save first to see them.
 									</p>
 								)}
-								<DropdownMenuItem
-									onSelect={() => window.open(publicUrl, "_blank", "noopener")}
-								>
-									<ExternalLink className="size-4" />
-									Open in new tab
-								</DropdownMenuItem>
-								<DropdownMenuItem onSelect={copyLink}>
-									<Copy className="size-4" />
-									Copy preview link
-								</DropdownMenuItem>
+								{!isExhibitor && (
+									<>
+										<DropdownMenuItem
+											onSelect={() =>
+												window.open(publicUrl, "_blank", "noopener")
+											}
+										>
+											<ExternalLink className="size-4" />
+											Open in new tab
+										</DropdownMenuItem>
+										<DropdownMenuItem onSelect={copyLink}>
+											<Copy className="size-4" />
+											Copy preview link
+										</DropdownMenuItem>
+									</>
+								)}
 								<DropdownMenuItem onSelect={() => setTestOpen(true)}>
 									<UserCheck className="size-4" />
-									Test as attendee…
+									{isExhibitor ? "Test as exhibitor…" : "Test as attendee…"}
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
@@ -1607,14 +1620,9 @@ export function FeedbackFormBuilder({
 									const latest = conflict?.latest;
 									setConflict(null);
 									if (latest) {
-										queryClient.setQueryData(
-											["event", eventId, "feedback-form"],
-											latest,
-										);
+										queryClient.setQueryData(formKey, latest);
 									} else {
-										queryClient.invalidateQueries({
-											queryKey: ["event", eventId, "feedback-form"],
-										});
+										queryClient.invalidateQueries({ queryKey: formKey });
 									}
 								}}
 							>
@@ -1627,15 +1635,21 @@ export function FeedbackFormBuilder({
 				<Dialog open={testOpen} onOpenChange={setTestOpen}>
 					<DialogContent className="rounded-none">
 						<DialogHeader>
-							<DialogTitle>Test as attendee</DialogTitle>
+							<DialogTitle>
+								{isExhibitor ? "Test as exhibitor" : "Test as attendee"}
+							</DialogTitle>
 							<DialogDescription>
-								Choose an attendee first. Submitting through their link is a
-								real submission recorded under them.
+								{isExhibitor
+									? "Choose a company first. Submitting through its link is a real submission recorded under that company."
+									: "Choose an attendee first. Submitting through their link is a real submission recorded under them."}
 							</DialogDescription>
 						</DialogHeader>
-						{form && (
-							<AttendeeFeedbackLink eventId={eventId} publicUrl={publicUrl} />
-						)}
+						{form &&
+							(isExhibitor ? (
+								<ExhibitorFeedbackLink eventId={eventId} />
+							) : (
+								<AttendeeFeedbackLink eventId={eventId} publicUrl={publicUrl} />
+							))}
 					</DialogContent>
 				</Dialog>
 

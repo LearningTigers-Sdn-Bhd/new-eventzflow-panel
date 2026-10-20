@@ -3,14 +3,18 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Route } from "next";
 import Link from "next/link";
-import { use } from "react";
+import { use, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { FeatureLockedState } from "@/components/feature-locked-state";
+import { FeedbackAudienceTabs } from "@/components/pages/feedback-form/audience-tabs";
 import { FeedbackResponsesViewer } from "@/components/pages/feedback-form/feedback-responses-viewer";
 import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { getEventById } from "@/lib/api/event";
-import { getFeedbackForm } from "@/lib/api/feedback-form";
+import {
+	type FeedbackAudience,
+	getFeedbackForm,
+} from "@/lib/api/feedback-form";
 
 export default function FeedbackResponsesPage({
 	params,
@@ -20,6 +24,7 @@ export default function FeedbackResponsesPage({
 	const { event_id } = use(params);
 	const { permissions } = useEventSidebarContext();
 	const { canManageEventVendors, isEventVendor } = permissions;
+	const [audience, setAudience] = useState<FeedbackAudience>("ticket");
 
 	const { data: event, isLoading: eventLoading } = useQuery({
 		queryKey: ["event", event_id],
@@ -31,12 +36,12 @@ export default function FeedbackResponsesPage({
 		isLoading: formLoading,
 		isError,
 	} = useQuery({
-		queryKey: ["event", event_id, "feedback-form"],
-		queryFn: () => getFeedbackForm(event_id),
+		queryKey: ["event", event_id, "feedback-form", audience],
+		queryFn: () => getFeedbackForm(event_id, audience),
 		enabled: canManageEventVendors && event?.use_feedback === true,
 	});
 
-	if (eventLoading || (event?.use_feedback === true && formLoading)) {
+	if (eventLoading) {
 		return (
 			<LoadingState
 				title="Loading feedback responses..."
@@ -58,9 +63,31 @@ export default function FeedbackResponsesPage({
 		return <ErrorState title="Unable to load feedback responses" />;
 	}
 
+	// Keep the tabs on screen while the other audience's form loads.
+	if (formLoading) {
+		return (
+			<div className="space-y-4">
+				<FeedbackAudienceTabs
+					value={audience}
+					onChange={setAudience}
+					enabled={event?.use_exhibitor_kit === true}
+				/>
+				<LoadingState
+					title="Loading feedback responses..."
+					description="Please wait while we load feedback."
+				/>
+			</div>
+		);
+	}
+
 	if (!form) {
 		return (
 			<div className="space-y-6">
+				<FeedbackAudienceTabs
+					value={audience}
+					onChange={setAudience}
+					enabled={event?.use_exhibitor_kit === true}
+				/>
 				<section className="space-y-3 border border-dashed p-8 text-center">
 					<h2 className="font-medium">No feedback form yet</h2>
 					<p className="text-muted-foreground text-sm">
@@ -76,5 +103,14 @@ export default function FeedbackResponsesPage({
 		);
 	}
 
-	return <FeedbackResponsesViewer eventId={event_id} form={form} />;
+	return (
+		<div className="space-y-4">
+			<FeedbackAudienceTabs
+				value={audience}
+				onChange={setAudience}
+				enabled={event?.use_exhibitor_kit === true}
+			/>
+			<FeedbackResponsesViewer key={audience} eventId={event_id} form={form} />
+		</div>
+	);
 }

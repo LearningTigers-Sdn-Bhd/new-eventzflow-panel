@@ -15,7 +15,13 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 /** Headline numbers for the current filter, plus responses per day. */
-export function FeedbackKpiHeader({ summary }: { summary: FeedbackSummary }) {
+export function FeedbackKpiHeader({
+	summary,
+	exhibitor = false,
+}: {
+	summary: FeedbackSummary;
+	exhibitor?: boolean;
+}) {
 	const rate = summary.response_rate;
 	const timeline = summary.timeline ?? [];
 
@@ -37,8 +43,12 @@ export function FeedbackKpiHeader({ summary }: { summary: FeedbackSummary }) {
 					hint={
 						rate
 							? rate.eligible === 0
-								? "No checked-in attendees yet"
-								: `${rate.responded} of ${rate.eligible} checked-in attendees`
+								? exhibitor
+									? "No exhibitors yet"
+									: "No checked-in attendees yet"
+								: exhibitor
+									? `${rate.responded} of ${rate.eligible} exhibitor companies`
+									: `${rate.responded} of ${rate.eligible} checked-in attendees`
 							: undefined
 					}
 				/>

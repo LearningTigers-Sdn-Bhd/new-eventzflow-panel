@@ -1,13 +1,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { use } from "react";
+import { use, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { FeatureLockedState } from "@/components/feature-locked-state";
+import { FeedbackAudienceTabs } from "@/components/pages/feedback-form/audience-tabs";
 import { FeedbackFormBuilder } from "@/components/pages/feedback-form/feedback-form-builder";
 import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { getEventById } from "@/lib/api/event";
-import { getFeedbackForm } from "@/lib/api/feedback-form";
+import {
+	type FeedbackAudience,
+	getFeedbackForm,
+} from "@/lib/api/feedback-form";
 
 export default function FeedbackFormBuilderPage({
 	params,
@@ -17,6 +21,7 @@ export default function FeedbackFormBuilderPage({
 	const { event_id } = use(params);
 	const { permissions } = useEventSidebarContext();
 	const { canManageEventVendors, isEventVendor } = permissions;
+	const [audience, setAudience] = useState<FeedbackAudience>("ticket");
 
 	const { data: event, isLoading: eventLoading } = useQuery({
 		queryKey: ["event", event_id],
@@ -29,14 +34,14 @@ export default function FeedbackFormBuilderPage({
 		isError,
 		dataUpdatedAt,
 	} = useQuery({
-		queryKey: ["event", event_id, "feedback-form"],
-		queryFn: () => getFeedbackForm(event_id),
+		queryKey: ["event", event_id, "feedback-form", audience],
+		queryFn: () => getFeedbackForm(event_id, audience),
 		enabled: canManageEventVendors && event?.use_feedback === true,
 		// A focus refetch bumps dataUpdatedAt, which remounts the builder and drops unsaved edits.
 		refetchOnWindowFocus: false,
 	});
 
-	if (eventLoading || (event?.use_feedback === true && formLoading)) {
+	if (eventLoading) {
 		return (
 			<LoadingState
 				title="Loading feedback form..."
@@ -58,13 +63,38 @@ export default function FeedbackFormBuilderPage({
 		return <ErrorState title="Unable to load the feedback form" />;
 	}
 
+	// Keep the tabs on screen while the other audience's form loads.
+	if (formLoading) {
+		return (
+			<div className="space-y-4">
+				<FeedbackAudienceTabs
+					value={audience}
+					onChange={setAudience}
+					enabled={event?.use_exhibitor_kit === true}
+				/>
+				<LoadingState
+					title="Loading feedback form..."
+					description="Please wait while we load the form builder."
+				/>
+			</div>
+		);
+	}
+
 	return (
-		<FeedbackFormBuilder
-			// Remount after each save so drafts pick up server-assigned question ids.
-			key={dataUpdatedAt}
-			eventId={event_id}
-			eventSlug={event.slug}
-			form={form ?? null}
-		/>
+		<div className="space-y-4">
+			<FeedbackAudienceTabs
+				value={audience}
+				onChange={setAudience}
+				enabled={event?.use_exhibitor_kit === true}
+			/>
+			<FeedbackFormBuilder
+				// Remount after each save (or audience switch) so drafts pick up server-assigned question ids.
+				key={`${audience}-${dataUpdatedAt}`}
+				eventId={event_id}
+				eventSlug={event.slug}
+				audience={audience}
+				form={form ?? null}
+			/>
+		</div>
 	);
 }

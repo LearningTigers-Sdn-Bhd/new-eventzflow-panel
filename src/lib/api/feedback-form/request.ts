@@ -34,6 +34,7 @@ export interface SaveFeedbackFormRequest {
 export interface SubmitFeedbackRequest {
 	form_id: number;
 	ticket_public_id?: string;
+	exhibitor_token?: string;
 	session_token?: string;
 	answers: { question_id: number; answer_text: string }[];
 }

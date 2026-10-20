@@ -6,7 +6,7 @@ import {
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { Mail, PartyPopper } from "lucide-react";
+import { Link2, Mail, PartyPopper } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
@@ -25,6 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { FeedbackFilters } from "@/lib/api/feedback-form";
 import {
+	getFeedbackExhibitorShortLink,
 	getFeedbackNonResponders,
 	sendFeedbackReminders,
 } from "@/lib/api/feedback-form";
@@ -41,6 +42,7 @@ export function FeedbackNonRespondersTab({
 	filters: FeedbackFilters;
 }) {
 	const queryClient = useQueryClient();
+	const exhibitor = filters.audience === "exhibitor";
 	const [page, setPage] = useState(1);
 	const [search, setSearch] = useState("");
 	const debouncedSearch = useDebounce(search, 300);
@@ -65,6 +67,17 @@ export function FeedbackNonRespondersTab({
 				filters: listFilters,
 			}),
 		placeholderData: keepPreviousData,
+	});
+
+	// Short personal link to pass on by hand (WhatsApp etc); exhibitor form only.
+	const copyLink = useMutation({
+		mutationFn: (row: { public_id: string }) =>
+			getFeedbackExhibitorShortLink(eventId, row.public_id),
+		onSuccess: async (url) => {
+			await navigator.clipboard.writeText(url);
+			toast.success("Feedback link copied");
+		},
+		onError: (error: Error) => toast.error(error.message),
 	});
 
 	const remind = useMutation({
@@ -151,7 +164,9 @@ export function FeedbackNonRespondersTab({
 					<p className="text-muted-foreground text-sm">
 						{debouncedSearch.trim()
 							? "Try a different name or email."
-							: "No checked-in attendee is waiting to give feedback."}
+							: exhibitor
+								? "Every exhibitor company has given feedback."
+								: "No checked-in attendee is waiting to give feedback."}
 					</p>
 				</section>
 			) : (
@@ -176,9 +191,15 @@ export function FeedbackNonRespondersTab({
 											}
 										/>
 									</th>
-									<th className="px-3 py-2.5 font-medium">Attendee</th>
-									<th className="px-3 py-2.5 font-medium">Ticket type</th>
-									<th className="px-3 py-2.5 font-medium">Checked in</th>
+									<th className="px-3 py-2.5 font-medium">
+										{exhibitor ? "Company" : "Attendee"}
+									</th>
+									<th className="px-3 py-2.5 font-medium">
+										{exhibitor ? "Booths" : "Ticket type"}
+									</th>
+									{!exhibitor && (
+										<th className="px-3 py-2.5 font-medium">Checked in</th>
+									)}
 									<th className="px-3 py-2.5 font-medium">Last emailed</th>
 									<th className="px-3 py-2.5" />
 								</tr>
@@ -202,31 +223,50 @@ export function FeedbackNonRespondersTab({
 											</p>
 										</td>
 										<td className="px-3 py-2.5">
-											{row.ticket_type_name || "—"}
+											{(exhibitor ? row.booth_numbers : row.ticket_type_name) ||
+												"—"}
 										</td>
-										<td className="px-3 py-2.5 text-muted-foreground">
-											{row.checked_in_at
-												? new Date(row.checked_in_at).toLocaleString()
-												: "—"}
-										</td>
+										{!exhibitor && (
+											<td className="px-3 py-2.5 text-muted-foreground">
+												{row.checked_in_at
+													? new Date(row.checked_in_at).toLocaleString()
+													: "—"}
+											</td>
+										)}
 										<td className="px-3 py-2.5 text-muted-foreground">
 											{row.last_emailed_at
 												? new Date(row.last_emailed_at).toLocaleDateString()
 												: "Never"}
 										</td>
-										<td className="px-3 py-2.5 text-right">
-											<Button
-												type="button"
-												variant="ghost"
-												size="sm"
-												className="rounded-none"
-												disabled={!row.attendee_email || remind.isPending}
-												onClick={() =>
-													remind.mutate({ ticketIds: [row.public_id] })
-												}
-											>
-												Send reminder
-											</Button>
+										<td className="px-3 py-2.5">
+											<div className="flex justify-end gap-2">
+												{exhibitor && (
+													<Button
+														type="button"
+														variant="outline"
+														size="sm"
+														className="rounded-none"
+														disabled={copyLink.isPending}
+														onClick={() => copyLink.mutate(row)}
+													>
+														<Link2 className="size-4" />
+														Copy link
+													</Button>
+												)}
+												<Button
+													type="button"
+													variant="outline"
+													size="sm"
+													className="rounded-none"
+													disabled={!row.attendee_email || remind.isPending}
+													onClick={() =>
+														remind.mutate({ ticketIds: [row.public_id] })
+													}
+												>
+													<Mail className="size-4" />
+													Send reminder
+												</Button>
+											</div>
 										</td>
 									</tr>
 								))}
@@ -245,8 +285,10 @@ export function FeedbackNonRespondersTab({
 						<AlertDialogTitle>Remind everyone outstanding?</AlertDialogTitle>
 						<AlertDialogDescription>
 							This re-sends the thank-you email, with the feedback link, to{" "}
-							{total} checked-in attendee{total === 1 ? "" : "s"} who haven't
-							responded. Anyone emailed in the last 24 hours is skipped.
+							{total} {exhibitor ? "exhibitor compan" : "checked-in attendee"}
+							{exhibitor ? (total === 1 ? "y" : "ies") : total === 1 ? "" : "s"}{" "}
+							who haven't responded. Anyone emailed in the last 24 hours is
+							skipped.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

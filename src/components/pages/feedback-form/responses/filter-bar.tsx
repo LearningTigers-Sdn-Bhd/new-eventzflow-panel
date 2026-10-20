@@ -29,45 +29,49 @@ export function FeedbackFilterBar({
 	onChange: (next: FeedbackFilters) => void;
 	actions?: ReactNode;
 }) {
+	const isExhibitor = filters.audience === "exhibitor";
 	const { data: ticketTypes = [] } = useQuery({
 		queryKey: ["event", eventId, "ticket-types"],
 		queryFn: () => getEventTicketTypes({ eventId }),
+		enabled: !isExhibitor,
 	});
 
 	return (
 		<div className="flex flex-wrap items-end gap-3 border border-dashed bg-accent/40 p-3 sm:p-4">
-			<div className="space-y-1">
-				<Label htmlFor="feedback-filter-type" className="text-xs">
-					Ticket type
-				</Label>
-				<Select
-					value={filters.ticketTypeId ?? "all"}
-					onValueChange={(value) =>
-						onChange({ ...filters, ticketTypeId: value })
-					}
-				>
-					<SelectTrigger
-						id="feedback-filter-type"
-						className="h-9 w-44 rounded-none bg-background text-sm"
+			{!isExhibitor && (
+				<div className="space-y-1">
+					<Label htmlFor="feedback-filter-type" className="text-xs">
+						Ticket type
+					</Label>
+					<Select
+						value={filters.ticketTypeId ?? "all"}
+						onValueChange={(value) =>
+							onChange({ ...filters, ticketTypeId: value })
+						}
 					>
-						<SelectValue placeholder="All" />
-					</SelectTrigger>
-					<SelectContent className="rounded-none">
-						<SelectItem value="all" className="rounded-none">
-							All ticket types
-						</SelectItem>
-						{ticketTypes.map((ticketType) => (
-							<SelectItem
-								key={ticketType.id}
-								value={String(ticketType.id)}
-								className="rounded-none"
-							>
-								{ticketType.name}
+						<SelectTrigger
+							id="feedback-filter-type"
+							className="h-9 w-44 rounded-none bg-background text-sm"
+						>
+							<SelectValue placeholder="All" />
+						</SelectTrigger>
+						<SelectContent className="rounded-none">
+							<SelectItem value="all" className="rounded-none">
+								All ticket types
 							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-			</div>
+							{ticketTypes.map((ticketType) => (
+								<SelectItem
+									key={ticketType.id}
+									value={String(ticketType.id)}
+									className="rounded-none"
+								>
+									{ticketType.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+			)}
 			<div className="space-y-1">
 				<Label htmlFor="feedback-filter-from" className="text-xs">
 					Submitted from
@@ -98,7 +102,9 @@ export function FeedbackFilterBar({
 					variant="ghost"
 					size="sm"
 					className="h-9 rounded-none text-muted-foreground"
-					onClick={() => onChange(DEFAULT_FILTERS)}
+					onClick={() =>
+						onChange({ ...DEFAULT_FILTERS, audience: filters.audience })
+					}
 				>
 					<X className="size-4" />
 					Clear filters

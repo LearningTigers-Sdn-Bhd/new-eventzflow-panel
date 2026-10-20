@@ -111,8 +111,13 @@ export function FeedbackExportMenu({
 
 	// A ready AI summary can be added to Excel and PDF files (never CSV), opt-in.
 	const { data: aiState } = useQuery({
-		queryKey: ["event", eventId, "feedback-ai-summary"],
-		queryFn: () => getFeedbackAiSummary(eventId),
+		queryKey: [
+			"event",
+			eventId,
+			"feedback-ai-summary",
+			filters.audience ?? "ticket",
+		],
+		queryFn: () => getFeedbackAiSummary(eventId, filters.audience),
 		enabled: FEEDBACK_AI_ENABLED && (format === "xlsx" || format === "pdf"),
 	});
 	const aiSummary =
