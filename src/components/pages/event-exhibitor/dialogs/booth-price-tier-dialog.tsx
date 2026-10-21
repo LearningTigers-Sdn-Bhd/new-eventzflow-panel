@@ -2,7 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Calendar, DollarSign, Loader2, Plus, Tag, Trash2 } from "lucide-react";
+import {
+	Calendar,
+	DollarSign,
+	Loader2,
+	Pencil,
+	Plus,
+	Tag,
+	Trash2,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +40,7 @@ import {
 	deleteExhibitorBoothPriceTier,
 	type ExhibitorBoothPriceTier,
 	getExhibitorBoothPriceTiers,
+	updateExhibitorBoothPriceTier,
 } from "@/lib/api/exhibitor-booth-price-tier";
 
 interface BoothPriceTierDialogProps {
@@ -52,6 +61,7 @@ export function BoothPriceTierDialog({
 	const queryClient = useQueryClient();
 	const [internalOpen, setInternalOpen] = useState(false);
 	const [isAdding, setIsAdding] = useState(defaultAdding);
+	const [editingId, setEditingId] = useState<number | null>(null);
 	const [formData, setFormData] = useState({
 		label: "",
 		price: "",
@@ -82,12 +92,24 @@ export function BoothPriceTierDialog({
 
 	const resetForm = () => {
 		setIsAdding(defaultAdding);
+		setEditingId(null);
 		setFormData({
 			label: "",
 			price: "",
 			start_date: undefined,
 			end_date: undefined,
 		});
+	};
+
+	const startEdit = (tier: ExhibitorBoothPriceTier) => {
+		setEditingId(tier.id);
+		setFormData({
+			label: tier.label,
+			price: String(tier.price),
+			start_date: new Date(tier.startDate),
+			end_date: tier.endDate ? new Date(tier.endDate) : undefined,
+		});
+		setIsAdding(true);
 	};
 
 	const createMutation = useMutation({
@@ -102,6 +124,21 @@ export function BoothPriceTierDialog({
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to create booth price tier");
+		},
+	});
+
+	const updateMutation = useMutation({
+		mutationFn: updateExhibitorBoothPriceTier,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey });
+			queryClient.invalidateQueries({
+				queryKey: ["exhibitor-booth-prices", boothPrice.eventId],
+			});
+			toast.success("Booth price tier updated");
+			resetForm();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to update booth price tier");
 		},
 	});
 
@@ -133,13 +170,15 @@ export function BoothPriceTierDialog({
 			return;
 		}
 
-		createMutation.mutate({
+		const payload = {
 			exhibitor_booth_price_id: boothPrice.id,
 			label: formData.label,
 			price,
 			start_date: formData.start_date.toISOString(),
 			end_date: formData.end_date?.toISOString(),
-		});
+		};
+		if (editingId) updateMutation.mutate({ ...payload, id: editingId });
+		else createMutation.mutate(payload);
 	};
 
 	const handleDelete = (tier: ExhibitorBoothPriceTier) => {
@@ -214,7 +253,7 @@ export function BoothPriceTierDialog({
 									<TableHead>Price</TableHead>
 									<TableHead>Start Date</TableHead>
 									<TableHead>End Date</TableHead>
-									<TableHead className="w-[70px]">Actions</TableHead>
+									<TableHead className="w-[100px]">Actions</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -253,7 +292,16 @@ export function BoothPriceTierDialog({
 												</span>
 											)}
 										</TableCell>
-										<TableCell>
+										<TableCell className="whitespace-nowrap">
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => startEdit(tier)}
+												className="h-8 w-8 rounded-none p-0"
+											>
+												<Pencil className="h-4 w-4" />
+												<span className="sr-only">Edit</span>
+											</Button>
 											<Button
 												variant="ghost"
 												size="sm"
@@ -276,7 +324,9 @@ export function BoothPriceTierDialog({
 						onSubmit={handleSubmit}
 						className="space-y-4 rounded-none border p-4"
 					>
-						<h4 className="font-medium">Add New Price Tier</h4>
+						<h4 className="font-medium">
+							{editingId ? "Edit Price Tier" : "Add New Price Tier"}
+						</h4>
 
 						<div className="space-y-2">
 							<Label htmlFor={`tier-label-${boothPrice.id}`}>
@@ -350,14 +400,16 @@ export function BoothPriceTierDialog({
 							</Button>
 							<Button
 								type="submit"
-								disabled={createMutation.isPending}
+								disabled={createMutation.isPending || updateMutation.isPending}
 								className="rounded-none"
 							>
-								{createMutation.isPending ? (
+								{createMutation.isPending || updateMutation.isPending ? (
 									<>
 										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-										Creating...
+										Saving...
 									</>
+								) : editingId ? (
+									"Save Changes"
 								) : (
 									"Create Tier"
 								)}

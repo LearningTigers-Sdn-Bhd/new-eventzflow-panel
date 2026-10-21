@@ -12,7 +12,9 @@ import type { EventPrintingService } from "@/lib/api/event-printing-service";
 import {
 	createPrintingServicePriceTier,
 	deletePrintingServicePriceTier,
+	type EventPrintingServicePriceTier,
 	getPrintingServicePriceTiers,
+	updatePrintingServicePriceTier,
 } from "@/lib/api/event-printing-service-price";
 import { PriceTierTable } from "./price-tier-table";
 
@@ -25,6 +27,13 @@ export function PriceTierDialog({
 }: PriceTierDialogProps) {
 	const queryClient = useQueryClient();
 	const [isAdding, setIsAdding] = useState(false);
+	const [editingId, setEditingId] = useState<number | null>(null);
+	const emptyForm = {
+		label: "",
+		price: "",
+		start_date: undefined as Date | undefined,
+		end_date: undefined as Date | undefined,
+	};
 	const [formData, setFormData] = useState({
 		label: "",
 		price: "",
@@ -42,6 +51,23 @@ export function PriceTierDialog({
 		queryFn: () => getPrintingServicePriceTiers(eventPrintingService.id),
 	});
 
+	const closeForm = () => {
+		setIsAdding(false);
+		setEditingId(null);
+		setFormData(emptyForm);
+	};
+
+	const startEdit = (tier: EventPrintingServicePriceTier) => {
+		setEditingId(tier.id);
+		setFormData({
+			label: tier.label,
+			price: String(tier.price),
+			start_date: new Date(tier.startDate),
+			end_date: tier.endDate ? new Date(tier.endDate) : undefined,
+		});
+		setIsAdding(true);
+	};
+
 	// Create mutation
 	const createMutation = useMutation({
 		mutationFn: createPrintingServicePriceTier,
@@ -53,16 +79,28 @@ export function PriceTierDialog({
 				queryKey: ["event-printing-services"],
 			});
 			toast.success("Price tier created successfully");
-			setIsAdding(false);
-			setFormData({
-				label: "",
-				price: "",
-				start_date: undefined,
-				end_date: undefined,
-			});
+			closeForm();
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to create price tier");
+		},
+	});
+
+	// Update mutation
+	const updateMutation = useMutation({
+		mutationFn: updatePrintingServicePriceTier,
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["printing-service-price-tiers", eventPrintingService.id],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["event-printing-services"],
+			});
+			toast.success("Price tier updated successfully");
+			closeForm();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to update price tier");
 		},
 	});
 
@@ -97,13 +135,15 @@ export function PriceTierDialog({
 			return;
 		}
 
-		createMutation.mutate({
+		const payload = {
 			event_printing_service_id: eventPrintingService.id,
 			label: formData.label,
 			price,
 			start_date: formData.start_date.toISOString(),
 			end_date: formData.end_date?.toISOString(),
-		});
+		};
+		if (editingId) updateMutation.mutate({ ...payload, id: editingId });
+		else createMutation.mutate(payload);
 	};
 
 	const handleDelete = (priceTierId: number) => {
@@ -153,6 +193,7 @@ export function PriceTierDialog({
 			) : (
 				<PriceTierTable
 					priceTiers={priceTiers}
+					onEdit={startEdit}
 					onDelete={handleDelete}
 					isDeleting={deleteMutation.isPending}
 				/>
@@ -164,7 +205,9 @@ export function PriceTierDialog({
 					onSubmit={handleSubmit}
 					className="space-y-4 rounded-none border p-4"
 				>
-					<h4 className="font-medium">Add New Price Tier</h4>
+					<h4 className="font-medium">
+						{editingId ? "Edit Price Tier" : "Add New Price Tier"}
+					</h4>
 
 					<div className="space-y-2">
 						<Label htmlFor="label">
@@ -231,29 +274,23 @@ export function PriceTierDialog({
 						<Button
 							type="button"
 							variant="outline"
-							onClick={() => {
-								setIsAdding(false);
-								setFormData({
-									label: "",
-									price: "",
-									start_date: undefined,
-									end_date: undefined,
-								});
-							}}
+							onClick={closeForm}
 							className="rounded-none"
 						>
 							Cancel
 						</Button>
 						<Button
 							type="submit"
-							disabled={createMutation.isPending}
+							disabled={createMutation.isPending || updateMutation.isPending}
 							className="rounded-none"
 						>
-							{createMutation.isPending ? (
+							{createMutation.isPending || updateMutation.isPending ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Creating...
+									Saving...
 								</>
+							) : editingId ? (
+								"Save Changes"
 							) : (
 								"Create Tier"
 							)}

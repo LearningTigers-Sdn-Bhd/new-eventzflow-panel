@@ -2,7 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Calendar, DollarSign, Loader2, Plus, Tag, Trash2 } from "lucide-react";
+import {
+	Calendar,
+	DollarSign,
+	Loader2,
+	Pencil,
+	Plus,
+	Tag,
+	Trash2,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +31,8 @@ import {
 	createTicketTypePriceTier,
 	deleteTicketTypePriceTier,
 	getTicketTypePriceTiers,
+	type TicketTypePriceTier,
+	updateTicketTypePriceTier,
 } from "@/lib/api/ticket-type-price-tier";
 
 interface PriceTierDialogProps {
@@ -33,6 +43,13 @@ interface PriceTierDialogProps {
 export function PriceTierDialog({ ticketType, eventId }: PriceTierDialogProps) {
 	const queryClient = useQueryClient();
 	const [isAdding, setIsAdding] = useState(false);
+	const [editingId, setEditingId] = useState<number | null>(null);
+	const emptyForm = {
+		label: "",
+		price: "",
+		starts_at: undefined as Date | undefined,
+		ends_at: undefined as Date | undefined,
+	};
 	const [formData, setFormData] = useState({
 		label: "",
 		price: "",
@@ -50,6 +67,23 @@ export function PriceTierDialog({ ticketType, eventId }: PriceTierDialogProps) {
 		queryFn: () => getTicketTypePriceTiers(ticketType.id),
 	});
 
+	const closeForm = () => {
+		setIsAdding(false);
+		setEditingId(null);
+		setFormData(emptyForm);
+	};
+
+	const startEdit = (tier: TicketTypePriceTier) => {
+		setEditingId(tier.id);
+		setFormData({
+			label: tier.label,
+			price: String(tier.price),
+			starts_at: new Date(tier.startsAt),
+			ends_at: new Date(tier.endsAt),
+		});
+		setIsAdding(true);
+	};
+
 	// Create mutation
 	const createMutation = useMutation({
 		mutationFn: createTicketTypePriceTier,
@@ -61,16 +95,28 @@ export function PriceTierDialog({ ticketType, eventId }: PriceTierDialogProps) {
 				queryKey: ["event", eventId, "ticket-types"],
 			});
 			toast.success("Price tier created successfully");
-			setIsAdding(false);
-			setFormData({
-				label: "",
-				price: "",
-				starts_at: undefined,
-				ends_at: undefined,
-			});
+			closeForm();
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Failed to create price tier");
+		},
+	});
+
+	// Update mutation
+	const updateMutation = useMutation({
+		mutationFn: updateTicketTypePriceTier,
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["ticket-type-price-tiers", ticketType.id],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["event", eventId, "ticket-types"],
+			});
+			toast.success("Price tier updated successfully");
+			closeForm();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to update price tier");
 		},
 	});
 
@@ -110,13 +156,15 @@ export function PriceTierDialog({ ticketType, eventId }: PriceTierDialogProps) {
 			return;
 		}
 
-		createMutation.mutate({
+		const payload = {
 			ticketTypeId: ticketType.id,
 			label: formData.label,
 			price,
 			starts_at: formData.starts_at.toISOString(),
 			ends_at: formData.ends_at.toISOString(),
-		});
+		};
+		if (editingId) updateMutation.mutate({ ...payload, id: editingId });
+		else createMutation.mutate(payload);
 	};
 
 	const handleDelete = (priceTierId: number) => {
@@ -181,7 +229,7 @@ export function PriceTierDialog({ ticketType, eventId }: PriceTierDialogProps) {
 									<TableHead>Price</TableHead>
 									<TableHead>Start Date</TableHead>
 									<TableHead>End Date</TableHead>
-									<TableHead className="w-[70px]">Actions</TableHead>
+									<TableHead className="w-[100px]">Actions</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -224,7 +272,16 @@ export function PriceTierDialog({ ticketType, eventId }: PriceTierDialogProps) {
 												</div>
 											</div>
 										</TableCell>
-										<TableCell>
+										<TableCell className="whitespace-nowrap">
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => startEdit(tier)}
+												className="h-8 w-8 rounded-none p-0"
+											>
+												<Pencil className="h-4 w-4" />
+												<span className="sr-only">Edit</span>
+											</Button>
 											<Button
 												variant="ghost"
 												size="sm"
@@ -250,7 +307,9 @@ export function PriceTierDialog({ ticketType, eventId }: PriceTierDialogProps) {
 					onSubmit={handleSubmit}
 					className="space-y-4 rounded-none border p-4"
 				>
-					<h4 className="font-medium">Add New Price Tier</h4>
+					<h4 className="font-medium">
+						{editingId ? "Edit Price Tier" : "Add New Price Tier"}
+					</h4>
 
 					<div className="space-y-2">
 						<Label htmlFor="label">
@@ -317,29 +376,23 @@ export function PriceTierDialog({ ticketType, eventId }: PriceTierDialogProps) {
 						<Button
 							type="button"
 							variant="outline"
-							onClick={() => {
-								setIsAdding(false);
-								setFormData({
-									label: "",
-									price: "",
-									starts_at: undefined,
-									ends_at: undefined,
-								});
-							}}
+							onClick={closeForm}
 							className="rounded-none"
 						>
 							Cancel
 						</Button>
 						<Button
 							type="submit"
-							disabled={createMutation.isPending}
+							disabled={createMutation.isPending || updateMutation.isPending}
 							className="rounded-none"
 						>
-							{createMutation.isPending ? (
+							{createMutation.isPending || updateMutation.isPending ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Creating...
+									Saving...
 								</>
+							) : editingId ? (
+								"Save Changes"
 							) : (
 								"Create Tier"
 							)}

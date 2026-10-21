@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { Calendar, Trash2 } from "lucide-react";
+import { Calendar, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,12 +16,14 @@ import type { EventPrintingServicePriceTier } from "@/lib/api/event-printing-ser
 
 interface PriceTierTableProps {
 	priceTiers: EventPrintingServicePriceTier[];
+	onEdit: (tier: EventPrintingServicePriceTier) => void;
 	onDelete: (id: number) => void;
 	isDeleting: boolean;
 }
 
 export function PriceTierTable({
 	priceTiers,
+	onEdit,
 	onDelete,
 	isDeleting,
 }: PriceTierTableProps) {
@@ -59,7 +61,7 @@ export function PriceTierTable({
 						<TableHead>Price</TableHead>
 						<TableHead>Start Date</TableHead>
 						<TableHead>End Date</TableHead>
-						<TableHead className="w-[70px]">Actions</TableHead>
+						<TableHead className="w-[100px]">Actions</TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
@@ -102,7 +104,16 @@ export function PriceTierTable({
 										</span>
 									)}
 								</TableCell>
-								<TableCell>
+								<TableCell className="whitespace-nowrap">
+									<Button
+										variant="ghost"
+										size="sm"
+										onClick={() => onEdit(tier)}
+										className="h-8 w-8 rounded-none p-0"
+									>
+										<Pencil className="h-4 w-4" />
+										<span className="sr-only">Edit</span>
+									</Button>
 									<Button
 										variant="ghost"
 										size="sm"
