@@ -2,10 +2,12 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
+	Armchair,
 	BarChart3,
 	BookOpen,
 	ChevronDown,
 	CreditCard,
+	Footprints,
 	Gift,
 	Handshake,
 	HelpCircle,
@@ -89,6 +91,18 @@ const services: NavService[] = [
 		label: "Lucky Draw System",
 		description: "Interactive giveaways & prizes",
 		href: "/services/lucky-draw",
+	},
+	{
+		icon: Armchair,
+		label: "Table Seating",
+		description: "Floor plans & guest seating",
+		href: "/services/table-seating",
+	},
+	{
+		icon: Footprints,
+		label: "People Counting",
+		description: "Live headcount & footfall",
+		href: "/services/people-counting",
 	},
 	// Analytics & Tech
 	{
