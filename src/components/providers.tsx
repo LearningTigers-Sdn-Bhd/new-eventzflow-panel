@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { AuthProvider } from "@/providers/auth-provider";
 import { queryClient } from "@/utils/rest-api";
+import { SystemUpdateBanner } from "./system-update-banner";
 import { ThemeProvider } from "./theme-provider";
 import { Toaster } from "./ui/sonner";
 
@@ -24,6 +25,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 		>
 			<QueryClientProvider client={queryClient}>
 				<AuthProvider>{children}</AuthProvider>
+				<SystemUpdateBanner />
 				{enableDevtools && <ReactQueryDevtools />}
 			</QueryClientProvider>
 			<Toaster richColors position={isTablet ? "top-center" : "bottom-right"} />
