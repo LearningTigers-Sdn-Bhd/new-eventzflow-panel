@@ -1,3 +1,5 @@
+import { isBackendUnavailable } from "@/lib/backend-availability";
+import { useBackendStatusStore } from "@/stores/backend-status-store";
 import { useUserSessionStore } from "@/stores/new-auth-store";
 import { extractErrorMessage } from "@/utils/error-handler";
 import { publicRestClient, restClient } from "@/utils/rest-api";
@@ -98,6 +100,7 @@ export async function refreshToken(): Promise<string> {
 					lastRefreshAt: Date.now(), // Track refresh time for rate limiting
 				});
 				state.setUser(user);
+				useBackendStatusStore.getState().setUnavailable(false);
 
 				return access_token;
 			} catch (error) {
@@ -111,10 +114,16 @@ export async function refreshToken(): Promise<string> {
 			}
 		}
 
-		// Both attempts failed — session is truly unrecoverable
-		// Only clear session if the token was actually expired
-		// Don't clear if it's just a server error (token might still be valid)
-		if (currentCredentials && Date.now() >= currentCredentials.expiresAt) {
+		// Both attempts failed. If the backend is unreachable (redeploy, network),
+		// the session may well still be valid: keep it and let the system-update
+		// banner recover once the backend is back. Calling logout() here would
+		// also fire DELETE /auth/logout and revoke a good session.
+		if (isBackendUnavailable(lastError)) {
+			useBackendStatusStore.getState().setUnavailable(true);
+		} else if (
+			currentCredentials &&
+			Date.now() >= currentCredentials.expiresAt
+		) {
 			logout();
 		}
 

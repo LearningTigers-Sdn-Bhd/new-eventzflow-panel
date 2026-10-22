@@ -1,7 +1,12 @@
 import { QueryCache, QueryClient } from "@tanstack/react-query";
 import ky from "ky";
 import { toast } from "sonner";
+import {
+	isBackendUnavailable,
+	isUnavailableStatus,
+} from "@/lib/backend-availability";
 import { refreshQueueService } from "@/services/refresh-queue";
+import { useBackendStatusStore } from "@/stores/backend-status-store";
 import { useUserSessionStore } from "@/stores/new-auth-store";
 
 // Conditional logger utility
@@ -52,6 +57,12 @@ export const queryClient = new QueryClient({
 	queryCache: new QueryCache({
 		onError: (error: Error, query) => {
 			if (query.meta?.suppressErrorToast) return;
+			// Backend redeploying/unreachable: the system-update banner covers it,
+			// so skip the per-query error toast.
+			if (isBackendUnavailable(error)) {
+				useBackendStatusStore.getState().setUnavailable(true);
+				return;
+			}
 			// Suppress global error toasts for business matching queries
 			// as they are handled locally with specific UI states or ignored to prevent spam
 			const queryKey = query.queryKey;
@@ -159,6 +170,14 @@ export const kyClient = ky.create({
 		],
 		afterResponse: [
 			async (request, _options, response) => {
+				// Track backend availability from live responses
+				const backendStatus = useBackendStatusStore.getState();
+				if (isUnavailableStatus(response.status)) {
+					backendStatus.setUnavailable(true);
+				} else if (response.ok && backendStatus.unavailable) {
+					backendStatus.setUnavailable(false);
+				}
+
 				// Global 401 handler — attempts recovery before clearing session
 				if (response.status === 401) {
 					const url = new URL(request.url);
@@ -183,14 +202,14 @@ export const kyClient = ky.create({
 								"Token refresh recovered session after 401. Retrying request.",
 							);
 							return kyClient(retryRequest);
-						} catch {
+						} catch (refreshError) {
 							// Refresh also failed — check if token was actually expired
 							// If token is not expired (just invalid rotation), don't logout
 							// This prevents logging out users when server has issues
 							const state = useUserSessionStore.getState();
 							const isExpired = state.isTokenExpired();
 
-							if (isExpired) {
+							if (isExpired && !isBackendUnavailable(refreshError)) {
 								logger.warn(
 									"Token refresh failed after 401 and token is expired. Clearing session.",
 								);

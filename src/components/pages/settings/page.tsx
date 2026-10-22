@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Bot, Cog, CreditCard, Lock, Sun, User } from "lucide-react";
+import { Bot, Cog, CreditCard, Lock, Megaphone, Sun, User } from "lucide-react";
 import {
 	Card,
 	CardContent,
@@ -15,6 +15,7 @@ import { AccountInfoForm } from "./account-info-form";
 import { AiIntegrationForm } from "./ai-integration-form";
 import { PasswordForm } from "./password-form";
 import { PaymentDetailForm } from "./payment-detail-form";
+import { SystemNoticeForm } from "./system-notice-form";
 import { ThemeSettings } from "./theme-settings";
 
 const PAYMENT_DETAIL_ROLES = [
@@ -33,6 +34,7 @@ export function SettingsPage() {
 		? PAYMENT_DETAIL_ROLES.includes(profile.role)
 		: false;
 	const canManageAiIntegration = profile?.role === "org_owner";
+	const canManageSystemNotice = profile?.role === "org_owner";
 
 	return (
 		<div className="space-y-4">
@@ -124,6 +126,26 @@ export function SettingsPage() {
 						<ThemeSettings />
 					</CardContent>
 				</Card>
+
+				{canManageSystemNotice && (
+					<Card className="rounded-none border-primary/20 px-0 shadow-none md:col-span-2">
+						<CardHeader className="flex items-start gap-4 px-2 md:px-4">
+							<div className="flex items-center gap-2 rounded-none border bg-muted p-2">
+								<Megaphone className="size-5" />
+							</div>
+							<div className="flex flex-col gap-2">
+								<CardTitle>System Notice</CardTitle>
+								<CardDescription>
+									Warn everyone before a planned update. Pick a template or
+									write your own message.
+								</CardDescription>
+							</div>
+						</CardHeader>
+						<CardContent className="px-2 md:px-4">
+							<SystemNoticeForm />
+						</CardContent>
+					</Card>
+				)}
 
 				{canManageAiIntegration && (
 					<Card className="rounded-none border-primary/20 px-0 shadow-none md:col-span-2">

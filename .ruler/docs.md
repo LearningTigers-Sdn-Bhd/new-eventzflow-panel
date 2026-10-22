@@ -32,6 +32,8 @@ NEXT_PUBLIC_API_URL=<backend base URL>   # e.g. http://localhost:3000
 
 Never put secrets in `NEXT_PUBLIC_*` variables — they are shipped to the browser.
 
+Planned-maintenance notice: org owners switch a top banner on or off, from templates or a custom message, in the **System Notice** card on the Settings page (stored in the backend `SystemNotice` row, read publicly via `GET /v1/public/system_notice`). It must be switched on *before* a deploy, since it cannot be read while the backend is down. Unplanned outages need no setup — the "System update in progress" banner (`SystemUpdateBanner`) appears automatically.
+
 ## Directory map (verified)
 
 - `src/app/` — App Router routes. Route groups: `(auth)/` authenticated, `(public)/` public, `(workshop)/` workshop flows; plus `app/api/` route handlers.
