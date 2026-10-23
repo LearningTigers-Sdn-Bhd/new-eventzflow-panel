@@ -66,6 +66,7 @@ const featuresFormSchema = z.object({
 	useFeedback: z.boolean(),
 	useApiAccess: z.boolean(),
 	vehiclesEnabled: z.boolean(),
+	useSeatTicketing: z.boolean(),
 	useExhibitorKit: z.boolean(),
 	enableExhibitorManagement: z.boolean(),
 	allowPrintingServices: z.boolean(),
@@ -132,6 +133,7 @@ export default function EventFeaturesForm({
 			useFeedback: false,
 			useApiAccess: false,
 			vehiclesEnabled: false,
+			useSeatTicketing: false,
 			useExhibitorKit: false,
 			enableExhibitorManagement: false,
 			allowPrintingServices: false,
@@ -160,6 +162,7 @@ export default function EventFeaturesForm({
 					use_feedback: value.useFeedback,
 					use_api_access: value.useApiAccess,
 					vehicles_enabled: value.vehiclesEnabled,
+					use_seat_ticketing: value.useSeatTicketing,
 					use_exhibitor_kit: value.useExhibitorKit,
 					enable_exhibitor_management: value.enableExhibitorManagement,
 					allow_contractor_printing_services: value.allowPrintingServices,
@@ -200,6 +203,10 @@ export default function EventFeaturesForm({
 			form.setFieldValue("useFeedback", event.use_feedback ?? false);
 			form.setFieldValue("useApiAccess", event.use_api_access ?? false);
 			form.setFieldValue("vehiclesEnabled", event.vehicles_enabled ?? false);
+			form.setFieldValue(
+				"useSeatTicketing",
+				event.use_seat_ticketing ?? false,
+			);
 			form.setFieldValue("useExhibitorKit", event.use_exhibitor_kit ?? false);
 			form.setFieldValue(
 				"enableExhibitorManagement",
@@ -485,6 +492,21 @@ export default function EventFeaturesForm({
 												<SwitchCardInput
 													label="Vehicles"
 													description="Allow vehicle registration for this event."
+													htmlFor={field.name}
+													variant="no-rounded"
+													border={true}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													disabled={updateEventMutation.isPending}
+												/>
+											)}
+										</form.Field>
+
+										<form.Field name="useSeatTicketing">
+											{(field) => (
+												<SwitchCardInput
+													label="Seat Ticketing & Seating Plans"
+													description="Enable table seating plans, seat maps, and reserved seat sessions for this event."
 													htmlFor={field.name}
 													variant="no-rounded"
 													border={true}

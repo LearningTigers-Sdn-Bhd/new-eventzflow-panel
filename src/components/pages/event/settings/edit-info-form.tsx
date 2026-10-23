@@ -878,6 +878,23 @@ export default function InfoForm({ eventId, onClose }: InfoFormProps) {
 										);
 									}}
 								</form.Field>
+
+								{canManageAdvancedEventOptions && (
+									<form.Field name="useSeatTicketing">
+										{(field) => (
+											<SwitchCardInput
+												label="Seat Ticketing & Seating Plans"
+												description="Enable table seating plans, seat maps, and reserved seat sessions for this event."
+												htmlFor={field.name}
+												variant="no-rounded"
+												border={true}
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
+												disabled={updateEventMutation.isPending}
+											/>
+										)}
+									</form.Field>
+								)}
 							</div>
 						</div>
 					</FormGroupContainer>
