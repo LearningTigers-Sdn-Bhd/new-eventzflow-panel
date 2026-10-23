@@ -35,7 +35,11 @@ export const upsertCertificateTemplateSchema = z.object({
 	require_feedback: z.boolean().optional(),
 	/** Auto-send only to guests whose registration answer is one of `values`. Empty = everyone. */
 	auto_send_filter: z
-		.object({ key: z.string(), values: z.array(z.string()) })
+		.object({
+			key: z.string(),
+			values: z.array(z.string()),
+			ticket_type_ids: z.array(z.number()).optional(),
+		})
 		.optional(),
 });
 

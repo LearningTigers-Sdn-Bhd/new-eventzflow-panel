@@ -107,6 +107,8 @@ export function SendCertificatesPanel({
 	// value set = no narrowing.
 	const [fieldKey, setFieldKey] = useState(NO_FIELD);
 	const [fieldValues, setFieldValues] = useState<Set<string>>(new Set());
+	// Narrow by ticket type (ids as strings for the multi-select). Empty = all.
+	const [typeIds, setTypeIds] = useState<string[]>([]);
 	const queryClient = useQueryClient();
 	const { openConfirm } = useConfirmDialog();
 
@@ -126,6 +128,16 @@ export function SendCertificatesPanel({
 		queryKey: ["event", eventId, "certificate-participants"],
 		queryFn: () => getCertificateParticipants(eventId),
 	});
+
+	const typeOptions = useMemo(() => {
+		const byId = new Map<string, string>();
+		for (const p of participants ?? []) {
+			if (p.ticket_type_id != null && p.ticket_type) {
+				byId.set(String(p.ticket_type_id), p.ticket_type);
+			}
+		}
+		return [...byId].sort((a, b) => a[1].localeCompare(b[1]));
+	}, [participants]);
 
 	// Eligible recipients per the chosen audience. Participants already only
 	// include ticket holders with an email.
@@ -151,6 +163,9 @@ export function SendCertificatesPanel({
 			) {
 				return false;
 			}
+			if (typeIds.length > 0 && !typeIds.includes(String(p.ticket_type_id))) {
+				return false;
+			}
 			if (
 				fieldKey !== NO_FIELD &&
 				fieldValues.size > 0 &&
@@ -160,7 +175,7 @@ export function SendCertificatesPanel({
 			}
 			return true;
 		});
-	}, [participants, audience, skipSent, fieldKey, fieldValues]);
+	}, [participants, audience, skipSent, fieldKey, fieldValues, typeIds]);
 
 	const visible = useMemo(() => {
 		if (!search.trim()) return eligible;
@@ -307,6 +322,24 @@ export function SendCertificatesPanel({
 						Skip people who already received a certificate
 					</label>
 				</div>
+
+				{typeOptions.length > 1 && (
+					<div className="space-y-2">
+						<Label>Ticket type (optional)</Label>
+						<MultiSelect value={typeIds} onValueChange={setTypeIds}>
+							<MultiSelectTrigger className="rounded-none">
+								<MultiSelectValue placeholder="All ticket types" />
+							</MultiSelectTrigger>
+							<MultiSelectContent>
+								{typeOptions.map(([id, name]) => (
+									<MultiSelectItem key={id} value={id}>
+										{name}
+									</MultiSelectItem>
+								))}
+							</MultiSelectContent>
+						</MultiSelect>
+					</div>
+				)}
 
 				{fields.length > 0 && (
 					<div className="space-y-2">

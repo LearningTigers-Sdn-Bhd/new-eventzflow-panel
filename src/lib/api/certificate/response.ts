@@ -49,7 +49,11 @@ export type CertificateTemplate = {
 	/** Auto-email the certificate when the attendee submits feedback. */
 	require_feedback: boolean;
 	/** Narrows the auto-send by one registration answer. `{}` = everyone. */
-	auto_send_filter: { key?: string; values?: string[] };
+	auto_send_filter: {
+		key?: string;
+		values?: string[];
+		ticket_type_ids?: number[];
+	};
 	background_image_url: string | null;
 	created_at: string;
 	updated_at: string;
@@ -89,6 +93,7 @@ export type CertificateParticipant = {
 	attendee_name: string;
 	attendee_email: string | null;
 	ticket_type: string | null;
+	ticket_type_id: number | null;
 	/** Name of the template this ticket's certificate is rendered from. */
 	certificate_template: string | null;
 	checked_in: boolean;

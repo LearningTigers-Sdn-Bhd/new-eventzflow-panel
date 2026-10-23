@@ -23,6 +23,7 @@ import {
 	updateCertificateTemplate,
 } from "@/lib/api/certificate";
 import { getRfidEligibilityFields } from "@/lib/api/rfid";
+import { getEventTicketTypes } from "@/lib/api/ticket-type";
 import { fieldLabel } from "./send-certificates-panel";
 
 const NO_FIELD = "none";
@@ -38,11 +39,20 @@ export function AutoSendFilter({ eventId, templates }: AutoSendFilterProps) {
 	const saved = templates[0]?.auto_send_filter ?? {};
 	const [key, setKey] = useState(saved.key || NO_FIELD);
 	const [values, setValues] = useState<string[]>(saved.values ?? []);
+	const [typeIds, setTypeIds] = useState<string[]>(
+		(saved.ticket_type_ids ?? []).map(String),
+	);
 
 	useEffect(() => {
 		setKey(saved.key || NO_FIELD);
 		setValues(saved.values ?? []);
-	}, [saved.key, saved.values]);
+		setTypeIds((saved.ticket_type_ids ?? []).map(String));
+	}, [saved.key, saved.values, saved.ticket_type_ids]);
+
+	const { data: ticketTypes = [] } = useQuery({
+		queryKey: ["event", eventId, "ticket-types"],
+		queryFn: () => getEventTicketTypes({ eventId }),
+	});
 
 	const { data } = useQuery({
 		queryKey: ["event", eventId, "rfid", "eligibility-fields"],
@@ -53,7 +63,11 @@ export function AutoSendFilter({ eventId, templates }: AutoSendFilterProps) {
 
 	const mutation = useMutation({
 		// One filter for the whole event, like the switch: every template follows it.
-		mutationFn: (filter: { key: string; values: string[] }) =>
+		mutationFn: (filter: {
+			key: string;
+			values: string[];
+			ticket_type_ids: number[];
+		}) =>
 			Promise.all(
 				templates.map((t) =>
 					updateCertificateTemplate(eventId, t.id, {
@@ -71,14 +85,19 @@ export function AutoSendFilter({ eventId, templates }: AutoSendFilterProps) {
 			toast.error(e instanceof Error ? e.message : "Failed to save filter"),
 	});
 
-	if (fields.length === 0) return null;
+	if (fields.length === 0 && ticketTypes.length < 2) return null;
 
-	const save = (nextKey: string, nextValues: string[]) =>
-		mutation.mutate(
-			nextKey === NO_FIELD
+	const save = (
+		nextKey: string,
+		nextValues: string[],
+		nextTypeIds: string[] = typeIds,
+	) =>
+		mutation.mutate({
+			...(nextKey === NO_FIELD
 				? { key: "", values: [] }
-				: { key: nextKey, values: nextValues },
-		);
+				: { key: nextKey, values: nextValues }),
+			ticket_type_ids: nextTypeIds.map(Number),
+		});
 
 	return (
 		<div className="space-y-2 border bg-card p-4">
@@ -87,47 +106,71 @@ export function AutoSendFilter({ eventId, templates }: AutoSendFilterProps) {
 				Everyone else still submits feedback but is not emailed automatically.
 				You can send to them manually.
 			</p>
-			<div className="grid gap-2 sm:grid-cols-2">
-				<Select
-					value={key}
-					disabled={mutation.isPending}
-					onValueChange={(next) => {
-						setKey(next);
-						setValues([]);
-						if (next === NO_FIELD) save(next, []);
-					}}
-				>
-					<SelectTrigger className="w-full rounded-none data-[size=default]:h-10">
-						<SelectValue />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value={NO_FIELD}>Everyone</SelectItem>
-						{fields.map((f) => (
-							<SelectItem key={f.key} value={f.key}>
-								{fieldLabel(f.key)}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-				{key !== NO_FIELD && (
+			<div className="grid gap-2 sm:grid-cols-3">
+				{ticketTypes.length > 1 && (
 					<MultiSelect
-						value={values}
+						value={typeIds}
 						onValueChange={(next) => {
-							setValues(next);
-							save(key, next);
+							setTypeIds(next);
+							save(key, values, next);
 						}}
 					>
 						<MultiSelectTrigger className="rounded-none">
-							<MultiSelectValue placeholder="Value (pick one or more)" />
+							<MultiSelectValue placeholder="All ticket types" />
 						</MultiSelectTrigger>
 						<MultiSelectContent>
-							{options.map((value) => (
-								<MultiSelectItem key={value} value={value}>
-									{value}
+							{ticketTypes.map((t) => (
+								<MultiSelectItem key={t.id} value={String(t.id)}>
+									{t.name}
 								</MultiSelectItem>
 							))}
 						</MultiSelectContent>
 					</MultiSelect>
+				)}
+				{fields.length > 0 && (
+					<>
+						<Select
+							value={key}
+							disabled={mutation.isPending}
+							onValueChange={(next) => {
+								setKey(next);
+								setValues([]);
+								if (next === NO_FIELD) save(next, []);
+							}}
+						>
+							<SelectTrigger className="w-full rounded-none data-[size=default]:h-10">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value={NO_FIELD}>Everyone</SelectItem>
+								{fields.map((f) => (
+									<SelectItem key={f.key} value={f.key}>
+										{fieldLabel(f.key)}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						{key !== NO_FIELD && (
+							<MultiSelect
+								value={values}
+								onValueChange={(next) => {
+									setValues(next);
+									save(key, next);
+								}}
+							>
+								<MultiSelectTrigger className="rounded-none">
+									<MultiSelectValue placeholder="Value (pick one or more)" />
+								</MultiSelectTrigger>
+								<MultiSelectContent>
+									{options.map((value) => (
+										<MultiSelectItem key={value} value={value}>
+											{value}
+										</MultiSelectItem>
+									))}
+								</MultiSelectContent>
+							</MultiSelect>
+						)}
+					</>
 				)}
 			</div>
 		</div>
