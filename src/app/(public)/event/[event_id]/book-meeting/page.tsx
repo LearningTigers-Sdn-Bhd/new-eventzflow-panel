@@ -58,6 +58,7 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 	const [description, setDescription] = useState("");
 	const [sourcingIntent, setSourcingIntent] = useState("");
 	const [capabilities, setCapabilities] = useState("");
+	const [showOptionalDetails, setShowOptionalDetails] = useState(false);
 	const [expandedHostId, setExpandedHostId] = useState<string | null>(null);
 
 	// Pre-fill user details
@@ -329,6 +330,7 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 									value={name}
 									onChange={(e) => setName(e.target.value)}
 									required
+									placeholder="e.g. John Doe"
 								/>
 							</div>
 							<div className="space-y-1">
@@ -339,101 +341,82 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 									required
+									placeholder="e.g. john@company.com"
 								/>
 							</div>
 							<div className="space-y-1">
-								<Label htmlFor="phone">Phone Number</Label>
+								<Label htmlFor="phone">Phone / WhatsApp Number</Label>
 								<Input
 									id="phone"
 									type="tel"
 									value={phone}
 									onChange={(e) => setPhone(e.target.value)}
 									required
-									placeholder="+1234567890"
+									placeholder="e.g. +60123456789"
 								/>
-							</div>
-							<div className="space-y-1">
-								<Label htmlFor="description">
-									Company Description / Bio (Optional)
-								</Label>
-								<textarea
-									id="description"
-									value={description}
-									onChange={(e) => setDescription(e.target.value)}
-									placeholder="Tell us about your business or yourself..."
-									maxLength={PROFILE_TEXT_FIELD_MAX_LENGTH}
-									className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-								/>
-								<span className="block text-right text-muted-foreground text-xs">
-									{description.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
-								</span>
-							</div>
-							<div className="space-y-1">
-								<Label htmlFor="sourcingIntent">
-									Sourcing Intent / Needs (Optional)
-								</Label>
-								<textarea
-									id="sourcingIntent"
-									value={sourcingIntent}
-									onChange={(e) => setSourcingIntent(e.target.value)}
-									placeholder="What products, solutions, or partnerships are you looking for?"
-									maxLength={PROFILE_TEXT_FIELD_MAX_LENGTH}
-									className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-								/>
-								<span className="block text-right text-muted-foreground text-xs">
-									{sourcingIntent.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
-								</span>
-							</div>
-							<div className="space-y-1">
-								<Label htmlFor="capabilities">
-									Capabilities / Offerings (Optional)
-								</Label>
-								<textarea
-									id="capabilities"
-									value={capabilities}
-									onChange={(e) => setCapabilities(e.target.value)}
-									placeholder="What products, solutions, or services do you provide?"
-									maxLength={PROFILE_TEXT_FIELD_MAX_LENGTH}
-									className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-								/>
-								<span className="block text-right text-muted-foreground text-xs">
-									{capabilities.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
-								</span>
 							</div>
 
-							{/* Only the tags actually assigned to this event's hosts — an
-						    interest the visitor can't be matched against is noise. */}
-							{allUniqueTags.length > 0 && (
-								<div className="space-y-2 pt-3">
-									<Label className="block font-semibold text-foreground text-sm">
-										What categories are you looking for? (Optional)
-									</Label>
-									<span className="-mt-1 block text-muted-foreground text-xs">
-										Select matching tags to automatically rank relevant hosts to
-										the top of your view!
-									</span>
-									<div className="flex flex-wrap gap-1.5 pt-1.5">
-										{allUniqueTags.map((tag) => {
-											const selected = visitorInterests.includes(tag);
-											return (
-												<Button
-													key={tag}
-													type="button"
-													variant={selected ? "default" : "outline"}
-													size="sm"
-													onClick={() => {
-														setVisitorInterests((prev) =>
-															prev.includes(tag)
-																? prev.filter((t) => t !== tag)
-																: [...prev, tag],
-														);
-													}}
-													className="rounded-full text-xs"
-												>
-													{tag}
-												</Button>
-											);
-										})}
+							<div className="pt-1">
+								<button
+									type="button"
+									onClick={() => setShowOptionalDetails((prev) => !prev)}
+									className="inline-flex cursor-pointer items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+								>
+									{showOptionalDetails
+										? "− Hide additional business details"
+										: "+ Add company & sourcing details (optional)"}
+								</button>
+							</div>
+
+							{showOptionalDetails && (
+								<div className="space-y-3 rounded-lg border border-dashed bg-muted/20 p-3.5 pt-3">
+									<div className="space-y-1">
+										<Label htmlFor="description">
+											Company Description / Bio (Optional)
+										</Label>
+										<textarea
+											id="description"
+											value={description}
+											onChange={(e) => setDescription(e.target.value)}
+											placeholder="Tell us about your business or yourself..."
+											maxLength={PROFILE_TEXT_FIELD_MAX_LENGTH}
+											className="flex min-h-[70px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+										/>
+										<span className="block text-right text-muted-foreground text-xs">
+											{description.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
+										</span>
+									</div>
+									<div className="space-y-1">
+										<Label htmlFor="sourcingIntent">
+											Sourcing Intent / Needs (Optional)
+										</Label>
+										<textarea
+											id="sourcingIntent"
+											value={sourcingIntent}
+											onChange={(e) => setSourcingIntent(e.target.value)}
+											placeholder="What products, solutions, or partnerships are you looking for?"
+											maxLength={PROFILE_TEXT_FIELD_MAX_LENGTH}
+											className="flex min-h-[70px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+										/>
+										<span className="block text-right text-muted-foreground text-xs">
+											{sourcingIntent.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
+										</span>
+									</div>
+									<div className="space-y-1">
+										<Label htmlFor="capabilities">
+											Capabilities / Offerings (Optional)
+										</Label>
+										<textarea
+											id="capabilities"
+											value={capabilities}
+											onChange={(e) => setCapabilities(e.target.value)}
+											placeholder="What products, solutions, or services do you provide?"
+											maxLength={PROFILE_TEXT_FIELD_MAX_LENGTH}
+											className="flex min-h-[70px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+										/>
+										<span className="block text-right text-muted-foreground text-xs">
+											{capabilities.length}/{PROFILE_TEXT_FIELD_MAX_LENGTH}
+										</span>
 									</div>
 								</div>
 							)}
@@ -478,19 +461,46 @@ export default function BookMeetingPage({ params }: BookMeetingPageProps) {
 									/>
 
 									{allUniqueTags.length > 0 && (
-										<div className="space-y-1">
-											<span className="block font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-												Filter by Category
-											</span>
-											<MultiSelectLegacy
-												options={allUniqueTags.map((tag) => ({
-													label: tag,
-													value: tag,
-												}))}
-												selected={selectedTags}
-												onChange={setSelectedTags}
-												placeholder="All Categories"
-											/>
+										<div className="space-y-1.5">
+											<div className="flex items-center justify-between">
+												<span className="block font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+													Filter by Category
+												</span>
+												{selectedTags.length > 0 && (
+													<button
+														type="button"
+														onClick={() => setSelectedTags([])}
+														className="text-xs text-primary hover:underline"
+													>
+														Clear filter
+													</button>
+												)}
+											</div>
+											<div className="flex flex-wrap gap-1.5 pt-0.5">
+												{allUniqueTags.map((tag) => {
+													const isSelected = selectedTags.includes(tag);
+													return (
+														<button
+															key={tag}
+															type="button"
+															onClick={() => {
+																setSelectedTags((prev) =>
+																	prev.includes(tag)
+																		? prev.filter((t) => t !== tag)
+																		: [...prev, tag],
+																);
+															}}
+															className={`cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+																isSelected
+																	? "bg-primary text-primary-foreground shadow-xs"
+																	: "border border-border bg-card text-muted-foreground hover:bg-accent"
+															}`}
+														>
+															{tag}
+														</button>
+													);
+												})}
+											</div>
 										</div>
 									)}
 								</div>

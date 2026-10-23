@@ -19,6 +19,8 @@ import {
 	getBusinessMatchingEvents,
 	getDetailedSlots, // Added import
 	getHostAvailability,
+	getHostInviteDetails,
+	type HostInviteDetails,
 	getPublicBookingById, // Added import
 	getPublicBusinessMatchingBookingStatus,
 	getPublicBusinessMatchingEvents, // Add this import
@@ -222,7 +224,26 @@ export const useJoinBusinessHost = () => {
  * session IDs pass through the client at all.
  */
 export const useAcceptHostInvite = () => {
-	return useMutation<void, Error, { token: string }>({
+	return useMutation<{ message: string }, Error, { token: string }>({
 		mutationFn: ({ token }) => acceptHostInvite(token),
+	});
+};
+
+/**
+ * Hook to preview business host invite details (table, event, claimed status).
+ */
+export const useHostInviteDetails = (
+	token: string | null,
+	options?: { enabled?: boolean },
+) => {
+	return useQuery<HostInviteDetails, Error>({
+		queryKey: ["host-invite-details", token],
+		queryFn: async () => {
+			if (!token) throw new Error("Missing token for invite details query.");
+			return getHostInviteDetails(token);
+		},
+		enabled: !!token && (options?.enabled ?? true),
+		staleTime: 15 * 1000,
+		retry: false,
 	});
 };

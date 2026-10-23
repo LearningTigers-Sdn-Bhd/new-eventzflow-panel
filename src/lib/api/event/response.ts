@@ -55,6 +55,10 @@ export type EventEmailSetting = {
 	business_matching_host_label?: string | null;
 	business_matching_host_invite_subject?: string | null;
 	business_matching_host_invite_message?: string | null;
+	business_matching_reminder_enabled?: boolean;
+	business_matching_reminder_2_day?: boolean;
+	business_matching_reminder_1_day?: boolean;
+	business_matching_reminder_1_hour?: boolean;
 };
 
 export type WishWallSetting = {

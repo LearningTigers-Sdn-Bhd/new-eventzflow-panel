@@ -1,3 +1,4 @@
+import { type User, useUserSessionStore } from "@/stores/new-auth-store";
 import { publicRestClient, restClient } from "@/utils/rest-api";
 
 export interface BusinessMatchingEvent {
@@ -339,6 +340,32 @@ export async function downloadBookingsReport(
 }
 
 /**
+ * Export sellers list with profiles and exhibitor details as XLSX
+ */
+export async function exportSellersWithProfiles(
+	eventId: string,
+): Promise<void> {
+	const url = `v1/business_matching/events/${eventId}/export_sellers`;
+	const { blob, headers } = await restClient.getBlob(url);
+
+	const disposition = headers.get("content-disposition") ?? "";
+	const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+	const quotedMatch = disposition.match(/filename="?([^"; ]+)"?/i);
+	const filename = utf8Match
+		? decodeURIComponent(utf8Match[1])
+		: (quotedMatch?.[1] ?? `sellers_with_profiles_${eventId}.xlsx`);
+
+	const downloadUrl = window.URL.createObjectURL(blob);
+	const link = document.createElement("a");
+	link.href = downloadUrl;
+	link.download = filename;
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+	window.URL.revokeObjectURL(downloadUrl);
+}
+
+/**
  * Join as a business host for a specific event
  */
 export async function joinBusinessHost(
@@ -372,10 +399,44 @@ export async function generateHostInviteToken(
 
 // Accepts a host invite using only the token — no event/session IDs in
 // the request at all, so a hand-typed URL can't be used to self-attach.
-export async function acceptHostInvite(token: string): Promise<void> {
-	return restClient.post<void>("v1/business_matching/host_invites/accept", {
-		token,
-	});
+export async function acceptHostInvite(
+	token: string,
+): Promise<{ message: string; user?: User }> {
+	const response = await restClient.post<{ message: string; user?: User }>(
+		"v1/business_matching/host_invites/accept",
+		{
+			token,
+		},
+	);
+	if (response?.user) {
+		useUserSessionStore.getState().setUser(response.user);
+	}
+	return response;
+}
+
+export interface HostInviteDetails {
+	event_id: string;
+	event_title: string;
+	event_slug: string;
+	event_logo_url: string | null;
+	session_id: string;
+	session_title: string;
+	session_location: string | null;
+	slot_duration: number;
+	current_host_name: string | null;
+	current_host_email: string | null;
+	is_assigned: boolean;
+	is_current_user_admin: boolean;
+	is_current_user_host: boolean;
+}
+
+// Retrieves public/preview details for an invite token before claiming
+export async function getHostInviteDetails(
+	token: string,
+): Promise<HostInviteDetails> {
+	return restClient.get<HostInviteDetails>(
+		`v1/business_matching/host_invites/${token}`,
+	);
 }
 
 export interface SendHostInviteEmailResponse {

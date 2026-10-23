@@ -2,7 +2,7 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Handshake, Heart, Mail } from "lucide-react";
+import { BellRing, Handshake, Heart, Mail } from "lucide-react";
 import * as React from "react";
 import { useId } from "react";
 import { toast } from "sonner";
@@ -83,6 +83,10 @@ const formSchema = z.object({
 	thankYouIncludeFeedback: z.boolean(),
 	thankYouExhibitors: z.boolean(),
 	thankYouDelayMinutes: z.number(),
+	businessMatchingReminderEnabled: z.boolean(),
+	businessMatchingReminder2Day: z.boolean(),
+	businessMatchingReminder1Day: z.boolean(),
+	businessMatchingReminder1Hour: z.boolean(),
 });
 
 interface EmailSettingsFormProps {
@@ -148,6 +152,10 @@ export default function EmailSettingsForm({
 			thankYouIncludeFeedback: false,
 			thankYouExhibitors: false,
 			thankYouDelayMinutes: 120,
+			businessMatchingReminderEnabled: true,
+			businessMatchingReminder2Day: true,
+			businessMatchingReminder1Day: true,
+			businessMatchingReminder1Hour: true,
 		},
 		validators: {
 			onSubmit: formSchema,
@@ -179,6 +187,14 @@ export default function EmailSettingsForm({
 									thank_you_include_feedback: value.thankYouIncludeFeedback,
 									thank_you_exhibitors: value.thankYouExhibitors,
 									thank_you_delay_minutes: value.thankYouDelayMinutes,
+									business_matching_reminder_enabled:
+										value.businessMatchingReminderEnabled,
+									business_matching_reminder_2_day:
+										value.businessMatchingReminder2Day,
+									business_matching_reminder_1_day:
+										value.businessMatchingReminder1Day,
+									business_matching_reminder_1_hour:
+										value.businessMatchingReminder1Hour,
 								}
 							: {}),
 					},
@@ -238,6 +254,22 @@ export default function EmailSettingsForm({
 				form.setFieldValue(
 					"thankYouDelayMinutes",
 					setting?.thank_you_delay_minutes ?? 120,
+				);
+				form.setFieldValue(
+					"businessMatchingReminderEnabled",
+					setting?.business_matching_reminder_enabled ?? true,
+				);
+				form.setFieldValue(
+					"businessMatchingReminder2Day",
+					setting?.business_matching_reminder_2_day ?? true,
+				);
+				form.setFieldValue(
+					"businessMatchingReminder1Day",
+					setting?.business_matching_reminder_1_day ?? true,
+				);
+				form.setFieldValue(
+					"businessMatchingReminder1Hour",
+					setting?.business_matching_reminder_1_hour ?? true,
 				);
 			}, 0);
 			hasInitialized.current = event.id;
@@ -814,6 +846,118 @@ export default function EmailSettingsForm({
 									)
 								}
 							</form.Field>
+						</FormGroupContainer>
+					)}
+
+					{canToggleEmails && event?.use_business_matching === true && (
+						<FormGroupContainer
+							title={{
+								icon: BellRing,
+								label: "Business Matching Reminders",
+								description:
+									"Automatically remind participants before their scheduled business matching sessions.",
+							}}
+						>
+							<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+								<form.Field name="emailsEnabled">
+									{(emailsEnabledField) => (
+										<form.Field name="businessMatchingReminderEnabled">
+											{(field) => (
+												<SwitchCardInput
+													variant="no-rounded"
+													label="Enable session reminders"
+													htmlFor={field.name}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													disabled={
+														updateEventMutation.isPending ||
+														!emailsEnabledField.state.value
+													}
+													description="Master switch for business matching session reminders."
+												/>
+											)}
+										</form.Field>
+									)}
+								</form.Field>
+
+								<form.Field name="emailsEnabled">
+									{(emailsEnabledField) => (
+										<form.Field name="businessMatchingReminderEnabled">
+											{(masterField) => (
+												<form.Field name="businessMatchingReminder2Day">
+													{(field) => (
+														<SwitchCardInput
+															variant="no-rounded"
+															label="2 days before session"
+															htmlFor={field.name}
+															checked={field.state.value}
+															onCheckedChange={field.handleChange}
+															disabled={
+																updateEventMutation.isPending ||
+																!emailsEnabledField.state.value ||
+																!masterField.state.value
+															}
+															description="Send reminder email 48 hours before the scheduled session."
+														/>
+													)}
+												</form.Field>
+											)}
+										</form.Field>
+									)}
+								</form.Field>
+
+								<form.Field name="emailsEnabled">
+									{(emailsEnabledField) => (
+										<form.Field name="businessMatchingReminderEnabled">
+											{(masterField) => (
+												<form.Field name="businessMatchingReminder1Day">
+													{(field) => (
+														<SwitchCardInput
+															variant="no-rounded"
+															label="1 day before session"
+															htmlFor={field.name}
+															checked={field.state.value}
+															onCheckedChange={field.handleChange}
+															disabled={
+																updateEventMutation.isPending ||
+																!emailsEnabledField.state.value ||
+																!masterField.state.value
+															}
+															description="Send reminder email 24 hours before the session (tomorrow)."
+														/>
+													)}
+												</form.Field>
+											)}
+										</form.Field>
+									)}
+								</form.Field>
+
+								<form.Field name="emailsEnabled">
+									{(emailsEnabledField) => (
+										<form.Field name="businessMatchingReminderEnabled">
+											{(masterField) => (
+												<form.Field name="businessMatchingReminder1Hour">
+													{(field) => (
+														<SwitchCardInput
+															variant="no-rounded"
+															label="1 hour before session"
+															htmlFor={field.name}
+															checked={field.state.value}
+															onCheckedChange={field.handleChange}
+															disabled={
+																updateEventMutation.isPending ||
+																!emailsEnabledField.state.value ||
+																!masterField.state.value
+															}
+															description="Send final reminder email 1 hour prior to session start."
+														/>
+													)}
+												</form.Field>
+											)}
+										</form.Field>
+									)}
+								</form.Field>
+							</div>
 						</FormGroupContainer>
 					)}
 				</FieldGroup>
