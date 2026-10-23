@@ -39,7 +39,7 @@ export function TimeSelect({
 			disabled={disabled}
 		>
 			<SelectTrigger className={cn("h-8 w-28 text-xs", className)}>
-				<SelectValue placeholder={placeholder} />
+				<SelectValue placeholder={placeholder}>{value || undefined}</SelectValue>
 			</SelectTrigger>
 			<SelectContent className="max-h-[240px]">
 				{options.map((t) => (

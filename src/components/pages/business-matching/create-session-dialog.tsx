@@ -198,17 +198,40 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 		});
 	};
 
-	const [title, setTitle] = useState("");
-	const [duration, setDuration] = useState(30);
-	const [location, setLocation] = useState("");
-	const [startTime, setStartTime] = useState("09:00");
-	const [endTime, setEndTime] = useState("17:00");
-	const [startDate, setStartDate] = useState(
-		eventStartDate?.slice(0, 10) || "",
+	const [title, setTitle] = useState(session?.title || "");
+	const [duration, setDuration] = useState(
+		Number(session?.duration) || eventDefaults?.default_slot_duration || 30,
 	);
-	const [endDate, setEndDate] = useState(eventEndDate?.slice(0, 10) || "");
-	const [tagsEditable, setTagsEditable] = useState(true);
-	const [hoursEditable, setHoursEditable] = useState(true);
+	const [location, setLocation] = useState(session?.location || "");
+	const [startTime, setStartTime] = useState(
+		session?.start_time?.slice(0, 5) ||
+			eventDefaults?.default_hours?.[0]?.start_time ||
+			"09:00",
+	);
+	const [endTime, setEndTime] = useState(
+		session?.end_time?.slice(0, 5) ||
+			eventDefaults?.default_hours?.[eventDefaults.default_hours.length - 1]
+				?.end_time ||
+			"17:00",
+	);
+	const [startDate, setStartDate] = useState(
+		session?.start_date?.slice(0, 10) ||
+			eventStartDate?.slice(0, 10) ||
+			eventDefaults?.default_start_date?.slice(0, 10) ||
+			"",
+	);
+	const [endDate, setEndDate] = useState(
+		session?.end_date?.slice(0, 10) ||
+			eventEndDate?.slice(0, 10) ||
+			eventDefaults?.default_end_date?.slice(0, 10) ||
+			"",
+	);
+	const [tagsEditable, setTagsEditable] = useState(
+		session?.tags_editable ?? true,
+	);
+	const [hoursEditable, setHoursEditable] = useState(
+		session?.hours_editable ?? eventDefaults?.hours_editable_default ?? true,
+	);
 	const [startTimeOpen, setStartTimeOpen] = useState(false);
 	const [endTimeOpen, setEndTimeOpen] = useState(false);
 	const [startDateOpen, setStartDateOpen] = useState(false);
@@ -257,8 +280,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({
 			setEndDate(session.end_date?.slice(0, 10) || "");
 			setTagsEditable(session.tags_editable ?? true);
 			setHoursEditable(session.hours_editable ?? true);
-			setStartTime(session.start_time || "09:00");
-			setEndTime(session.end_time || "17:00");
+			setStartTime(session.start_time?.slice(0, 5) || "09:00");
+			setEndTime(session.end_time?.slice(0, 5) || "17:00");
 		}
 	}, [session]);
 

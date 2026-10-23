@@ -44,6 +44,7 @@ import {
 import { useDialog } from "@/hooks/use-dialog";
 import {
 	downloadBookingsReport,
+	exportSellersWithProfiles,
 	getHostProfile,
 } from "@/lib/api/business-matching";
 import { getEventById } from "@/lib/api/event";
@@ -227,6 +228,20 @@ export default function BusinessMatchingPage() {
 		}
 	};
 
+	const handleExportSellers = async () => {
+		toast.info("Generating Sellers & Profiles export...", {
+			description:
+				"Compiling table schedules, host profiles, and exhibitor details.",
+		});
+		try {
+			await exportSellersWithProfiles(event_id);
+			toast.success("Sellers & Profiles exported successfully");
+		} catch (error) {
+			console.error("Seller export failed", error);
+			toast.error("Failed to export sellers and profiles");
+		}
+	};
+
 	const handleCopyPublicLink = () => {
 		const publicLink = `${window.location.origin}/event/${event_id}/book-meeting`;
 		navigator.clipboard
@@ -337,8 +352,14 @@ export default function BusinessMatchingPage() {
 							<>
 								<DropdownMenuItem onClick={() => handleGenerateReport("xlsx")}>
 									<Download className="h-4 w-4" />
-									Generate Report
+									Export Bookings (.xlsx)
 								</DropdownMenuItem>
+								{canManageSessions && (
+									<DropdownMenuItem onClick={handleExportSellers}>
+										<Download className="h-4 w-4" />
+										Export Sellers & Profiles (.xlsx)
+									</DropdownMenuItem>
+								)}
 								{!isBusinessHost && (
 									<DropdownMenuItem onClick={handleCopyPublicLink}>
 										<LinkIcon className="h-4 w-4" />

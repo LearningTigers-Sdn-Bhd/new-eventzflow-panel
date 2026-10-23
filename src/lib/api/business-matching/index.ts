@@ -340,6 +340,32 @@ export async function downloadBookingsReport(
 }
 
 /**
+ * Export sellers list with profiles and exhibitor details as XLSX
+ */
+export async function exportSellersWithProfiles(
+	eventId: string,
+): Promise<void> {
+	const url = `v1/business_matching/events/${eventId}/export_sellers`;
+	const { blob, headers } = await restClient.getBlob(url);
+
+	const disposition = headers.get("content-disposition") ?? "";
+	const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+	const quotedMatch = disposition.match(/filename="?([^"; ]+)"?/i);
+	const filename = utf8Match
+		? decodeURIComponent(utf8Match[1])
+		: (quotedMatch?.[1] ?? `sellers_with_profiles_${eventId}.xlsx`);
+
+	const downloadUrl = window.URL.createObjectURL(blob);
+	const link = document.createElement("a");
+	link.href = downloadUrl;
+	link.download = filename;
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+	window.URL.revokeObjectURL(downloadUrl);
+}
+
+/**
  * Join as a business host for a specific event
  */
 export async function joinBusinessHost(
