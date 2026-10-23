@@ -29,6 +29,7 @@ export const registerRequestSchema = z.object({
 			password_confirmation: passwordSchema,
 			full_name: nameSchema,
 			phone: phoneSchema,
+			invite_token: z.string().optional(),
 		})
 		.refine((data) => data.password === data.password_confirmation, {
 			message: "Passwords do not match",

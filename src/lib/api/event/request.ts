@@ -153,6 +153,10 @@ export const updateEventSchema = z.object({
 				.optional()
 				.or(z.literal(""))
 				.or(z.null()),
+			business_matching_reminder_enabled: z.boolean().optional(),
+			business_matching_reminder_2_day: z.boolean().optional(),
+			business_matching_reminder_1_day: z.boolean().optional(),
+			business_matching_reminder_1_hour: z.boolean().optional(),
 		})
 		.optional(),
 	wish_wall_setting_attributes: z

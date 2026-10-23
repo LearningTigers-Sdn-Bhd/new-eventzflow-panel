@@ -69,13 +69,26 @@ export function useAuthForm(): UseAuthFormReturn {
 		setLoading(true);
 
 		try {
-			await register(userData);
+			// Extract invite token if redirectPath is an invite link or searchParams has it
+			const inviteToken =
+				searchParams.get("invite_token") ||
+				redirectPath?.match(/\/invite\/host\/([^/?#]+)/)?.[1];
+
+			const payload = inviteToken
+				? { ...userData, invite_token: inviteToken }
+				: userData;
+
+			const response = await register(payload);
 			toast.success("Sign up successful");
-			router.push(
-				(redirectPath
-					? `/verify-email?redirect=${encodeURIComponent(redirectPath)}`
-					: "/verify-email") as Route,
-			);
+
+			// If redirected from an invite or specific return route, honor it directly!
+			if (redirectPath) {
+				router.push(redirectPath as Route);
+			} else if (response.data.user.email_verified) {
+				router.push("/dashboard" as Route);
+			} else {
+				router.push("/verify-email" as Route);
+			}
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error

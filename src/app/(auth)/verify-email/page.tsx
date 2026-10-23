@@ -22,6 +22,12 @@ export default function VerifyEmailLandingPage() {
 		return null;
 	}
 
+	// If user is already verified, immediately redirect to destination or dashboard
+	if (user.email_verified) {
+		router.replace((redirectPath ? redirectPath : "/dashboard") as Route);
+		return null;
+	}
+
 	const handleVerifyNow = () => {
 		router.push(
 			redirectPath
@@ -41,11 +47,22 @@ export default function VerifyEmailLandingPage() {
 					continue.
 				</CardDescription>
 			</CardHeader>
-			<CardContent>
+			<CardContent className="space-y-3">
 				<Button onClick={handleVerifyNow} className="w-full" size="lg">
 					Verify Now
 				</Button>
-				<div className="mt-4 text-center text-muted-foreground text-sm">
+
+				{redirectPath && (
+					<Button
+						variant="outline"
+						onClick={() => router.push(redirectPath as Route)}
+						className="w-full"
+					>
+						Return to Invitation
+					</Button>
+				)}
+
+				<div className="pt-2 text-center text-muted-foreground text-sm">
 					Need to change your email?{" "}
 					<button
 						type="button"
