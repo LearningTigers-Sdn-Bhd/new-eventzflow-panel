@@ -22,6 +22,7 @@ import {
 	getBusinessMatchingEventDefaults,
 	getBusinessMatchingEvents,
 	getBusinessMatchingTags,
+	getBuyerBookings,
 	getDetailedSlots,
 	getHostInvitations,
 	getHostInviteToken,
@@ -756,3 +757,12 @@ export const useUpdateSessionAvailabilities = (
 		},
 	});
 };
+
+// Bookings the current user made with other sellers. Shares the
+// "business-matching-bookings" prefix so the live-update channel refreshes it.
+export const useBuyerBookings = (eventId: string) =>
+	useQuery({
+		queryKey: ["business-matching-bookings", "buyer", eventId],
+		queryFn: () => getBuyerBookings(eventId),
+		enabled: !!eventId,
+	});

@@ -15,6 +15,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
+import BuyerBookingsSection from "@/components/pages/business-matching/buyer-bookings-section";
 import { columns } from "@/components/pages/business-matching/columns";
 import CreateSessionDialog from "@/components/pages/business-matching/create-session-dialog";
 import {
@@ -429,6 +430,9 @@ export default function BusinessMatchingPage() {
 					canManageSessions && hasArchivedData ? setSessionFilter : undefined
 				}
 			/>
+			{!isArchivedView && (
+				<BuyerBookingsSection eventId={event_id} alwaysShow={isBusinessHost} />
+			)}
 		</div>
 	);
 }
