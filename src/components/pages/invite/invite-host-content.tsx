@@ -170,6 +170,47 @@ export function InviteHostContent({
 		);
 	}
 
+	// Successful claim wins over any later state: accepting refreshes the
+	// session, which refetches the invite details, and a failure there must
+	// not replace the confirmation with the "expired" card.
+	if (isSuccess && inviteDetails) {
+		return (
+			<div className="container mx-auto max-w-md px-4 py-16">
+				<Card className="border-green-200 bg-green-50/20 text-center shadow-md dark:border-green-900 dark:bg-green-950/20">
+					<CardHeader>
+						<div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400">
+							<CheckCircle2 className="h-6 w-6" />
+						</div>
+						<CardTitle className="text-xl text-green-700 dark:text-green-300">
+							Invitation Accepted!
+						</CardTitle>
+						<CardDescription className="text-sm">
+							You are now the Business Host for{" "}
+							<strong>{inviteDetails.session_title}</strong> at{" "}
+							<strong>{inviteDetails.event_title}</strong>.
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="text-xs text-muted-foreground">
+						You can now set up your company bio, sourcing capabilities, and view
+						pre-scheduled buyer meetings.
+					</CardContent>
+					<CardFooter>
+						<Button
+							className="w-full"
+							onClick={() =>
+								router.push(
+									`/event/${inviteDetails.event_id}/business-matching`,
+								)
+							}
+						>
+							Go to Business Matching Dashboard
+						</Button>
+					</CardFooter>
+				</Card>
+			</div>
+		);
+	}
+
 	if (!token || isDetailsError || !inviteDetails) {
 		return (
 			<div className="container mx-auto max-w-md px-4 py-16">
@@ -313,45 +354,6 @@ export function InviteHostContent({
 								Create Account manually
 							</Link>
 						</div>
-					</CardFooter>
-				</Card>
-			</div>
-		);
-	}
-
-	// 2. Successful Claim State
-	if (isSuccess) {
-		return (
-			<div className="container mx-auto max-w-md px-4 py-16">
-				<Card className="border-green-200 bg-green-50/20 text-center shadow-md dark:border-green-900 dark:bg-green-950/20">
-					<CardHeader>
-						<div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400">
-							<CheckCircle2 className="h-6 w-6" />
-						</div>
-						<CardTitle className="text-xl text-green-700 dark:text-green-300">
-							Invitation Accepted!
-						</CardTitle>
-						<CardDescription className="text-sm">
-							You are now the Business Host for{" "}
-							<strong>{inviteDetails.session_title}</strong> at{" "}
-							<strong>{inviteDetails.event_title}</strong>.
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="text-xs text-muted-foreground">
-						You can now set up your company bio, sourcing capabilities, and view
-						pre-scheduled buyer meetings.
-					</CardContent>
-					<CardFooter>
-						<Button
-							className="w-full"
-							onClick={() =>
-								router.push(
-									`/event/${inviteDetails.event_id}/business-matching`,
-								)
-							}
-						>
-							Go to Business Matching Dashboard
-						</Button>
 					</CardFooter>
 				</Card>
 			</div>
