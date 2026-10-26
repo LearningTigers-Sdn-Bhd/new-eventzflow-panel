@@ -14,9 +14,10 @@ export type Gift = {
 	name: string;
 	order: number;
 	winner_counts: number;
+	draw_last: boolean; // Held back until every other gift is done (grand prize)
 	winner: Participant | null;
 	actual_winner_count?: number; // Actual number of winners assigned
-	allWinners?: Array<Participant & { id: number }>; // All winners for collapsible display
+	allWinners?: Array<Participant & { id: number; round: number | null }>; // All winners for collapsible display
 };
 
 export type DrawStyle = "wheel" | "slot" | "box";

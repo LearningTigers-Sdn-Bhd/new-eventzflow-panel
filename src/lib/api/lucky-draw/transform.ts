@@ -45,6 +45,7 @@ export function transformGift(
 		name: backendGift.name,
 		order: backendGift.order,
 		winner_counts: backendGift.winner_counts,
+		draw_last: backendGift.draw_last,
 		winner,
 		// Store actual winner count for logic
 		actual_winner_count: backendGift.winners.length,
@@ -60,6 +61,7 @@ export function transformGift(
 						`Participant ${participantId}`;
 					return {
 						id: w.id,
+						round: w.round,
 						name: participantName,
 						type: useTicket ? "ticket" : "visitor",
 						publicId: String(participantId),
@@ -67,7 +69,10 @@ export function transformGift(
 				}
 				return null;
 			})
-			.filter((w): w is Participant & { id: number } => w !== null),
+			.filter(
+				(w): w is Participant & { id: number; round: number | null } =>
+					w !== null,
+			),
 	};
 }
 

@@ -1,5 +1,7 @@
 // Response types for Lucky Draw API
 
+export type GiftPick = "in_order" | "random";
+
 /**
  * Lucky Draw Session
  */
@@ -23,6 +25,11 @@ export interface LuckyDrawSession {
 	scanned_from: string | null;
 	scanned_to: string | null;
 	scanned_source: "ticket" | "scan_log" | "entries";
+	winners_per_draw: number;
+	/** How the next gift is chosen when gifts are on */
+	gift_pick: GiftPick;
+	/** One click gives every open gift one winner (a round) */
+	round_sweep: boolean;
 	created_at: string;
 	updated_at: string;
 }
@@ -36,6 +43,8 @@ export interface GiftWinner {
 	ticket_id: number | null;
 	visitor_id: number | null;
 	participant_name: string | null;
+	/** Sweep round that drew this winner. null when drawn gift by gift */
+	round: number | null;
 	drawn_at: string;
 	created_at: string;
 	updated_at: string;
@@ -50,6 +59,8 @@ export interface Gift {
 	name: string;
 	order: number;
 	winner_counts: number;
+	/** Held back until every other gift is done (the grand prize) */
+	draw_last: boolean;
 	winners: GiftWinner[];
 	created_at: string;
 	updated_at: string;
@@ -73,6 +84,8 @@ export interface InvalidParticipant {
 		id: number;
 		name: string;
 	};
+	/** Draw this winner came from (gifts off). null for winners saved before rounds existed. */
+	round: number | null;
 	created_at: string;
 	updated_at: string;
 }

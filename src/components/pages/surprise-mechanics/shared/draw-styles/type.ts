@@ -29,4 +29,9 @@ export interface DrawProps {
 	theme?: string; // Add theme prop to interface since it's used
 	useGifts?: boolean; // Whether gift system is enabled
 	hasAvailableGift?: boolean; // Whether there's a gift available to assign
+	/**
+	 * Multi-winner draw: play a short spin per round and keep the winner's
+	 * name hidden (names are revealed together once every round is done)
+	 */
+	quick?: boolean;
 }

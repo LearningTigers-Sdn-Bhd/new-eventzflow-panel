@@ -67,7 +67,16 @@ export interface UseWheelReturn {
 	isVirtualMode: boolean; // Whether the wheel is in virtual mode
 	flashingName: string | null; // Currently flashing participant name during spin
 	participantCount: number; // Total number of participants
+	// Multi-winner (quick) draw: spin transition override and the slice to blink
+	quickSpinTransition: string | null;
+	highlightIndex: number | null;
+	pulseOn: boolean;
 }
+
+// Multi-winner draw: each round is a short spin, then the landing slice blinks
+const QUICK_SPIN_MS = 1300;
+const QUICK_HOLD_MS = 800; // blink time before the round reports its winner
+const QUICK_PULSE_MS = 130;
 
 export function useWheel(
 	{
@@ -76,10 +85,14 @@ export function useWheel(
 		mode = "participants",
 		onDrawComplete,
 		isDrawing,
+		quick = false,
 	}: DrawProps,
 	options?: UseWheelOptions,
 ): UseWheelReturn {
 	const [rotation, setRotation] = useState(0);
+	const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
+	const [pulseOn, setPulseOn] = useState(false);
+	const pulseIntervalRef = useRef<number | null>(null);
 	const [colorOffset, setColorOffset] = useState(0);
 	const [pointerRotation, setPointerRotation] = useState(0);
 	const [pointerTransition, setPointerTransition] = useState(
@@ -139,7 +152,9 @@ export function useWheel(
 	const virtualSegmentCount = options?.virtualSegmentCount ?? 10;
 
 	// Determine if we should use virtual mode (for large item counts)
-	const isVirtualMode = items.length > virtualThreshold;
+	// A multi-winner (quick) draw always keeps the wheel mysterious: no names on
+	// the slices, however few participants there are
+	const isVirtualMode = quick || items.length > virtualThreshold;
 	const participantCount = items.length;
 
 	// Sync items when IDLE to handle manual updates (e.g. adding names)
@@ -247,12 +262,23 @@ export function useWheel(
 						? selectedItem.prize
 						: selectedItem.participant;
 
-				// Start flashing random names during spin
-				setFlashingName(getRandomParticipantName());
-				flashingIntervalRef.current = window.setInterval(() => {
+				// Start flashing random names during spin (a quick multi-winner
+				// round keeps names hidden until every round is done)
+				if (!quick) {
 					setFlashingName(getRandomParticipantName());
-				}, 80); // Flash every 80ms for slot-machine effect
+					flashingIntervalRef.current = window.setInterval(() => {
+						setFlashingName(getRandomParticipantName());
+					}, 80); // Flash every 80ms for slot-machine effect
+				}
 			}
+
+			// New round: clear the previous round's blinking slice
+			if (pulseIntervalRef.current) {
+				clearInterval(pulseIntervalRef.current);
+				pulseIntervalRef.current = null;
+			}
+			setHighlightIndex(null);
+			setPulseOn(false);
 
 			// Nudge pointer counter-clockwise (left) while spinning
 			setPointerTransition("transform 0.2s ease-out");
@@ -260,7 +286,7 @@ export function useWheel(
 
 			// Calculate a new random rotation
 			// Minimum 5 full spins (1800 deg) + random segment
-			const minSpins = 5;
+			const minSpins = quick ? 2 : 5;
 			const randomDegrees = Math.floor(Math.random() * 360);
 			const newRotation = rotationRef.current + minSpins * 360 + randomDegrees;
 
@@ -268,7 +294,7 @@ export function useWheel(
 			setRotation(newRotation);
 
 			// Schedule pointer to ease back ~0.3s before the spin animation ends
-			const spinDurationMs = 4000; // matches wheel transition duration
+			const spinDurationMs = quick ? QUICK_SPIN_MS : 4000; // matches wheel transition duration
 			const returnDelay = Math.max(0, spinDurationMs - 300);
 			pointerTimeoutRef.current = window.setTimeout(() => {
 				setPointerTransition("transform 0.3s ease-out");
@@ -312,7 +338,38 @@ export function useWheel(
 		getRandomParticipantName,
 		isPrizesMode,
 		participants,
+		quick,
 	]);
+
+	useEffect(
+		() => () => {
+			if (pulseIntervalRef.current) clearInterval(pulseIntervalRef.current);
+		},
+		[],
+	);
+
+	// Quick round: the slice under the pointer blinks, then stays enlarged
+	const blinkSliceAtPointer = () => {
+		const pointerAngleDeg = options?.pointerAngle ?? 0;
+		const effectiveDeg =
+			(pointerAngleDeg - (rotationRef.current % 360) + 360) % 360;
+		const index =
+			arcs.length > 0
+				? Math.floor(effectiveDeg / (360 / arcs.length)) % arcs.length
+				: null;
+		setHighlightIndex(index);
+		let toggles = 0;
+		setPulseOn(true);
+		pulseIntervalRef.current = window.setInterval(() => {
+			toggles += 1;
+			setPulseOn(toggles % 2 === 1 ? false : true);
+			if (toggles >= 5 && pulseIntervalRef.current) {
+				clearInterval(pulseIntervalRef.current);
+				pulseIntervalRef.current = null;
+				setPulseOn(true);
+			}
+		}, QUICK_PULSE_MS);
+	};
 
 	const handleTransitionEnd = () => {
 		if (drawState !== DrawState.SPINNING) return;
@@ -326,6 +383,13 @@ export function useWheel(
 		// In virtual mode, use the pre-selected winner
 		if (isVirtualMode && preSelectedWinnerRef.current) {
 			const winner = preSelectedWinnerRef.current;
+			if (quick) {
+				// Multi-winner round: blink the landing slice, keep the name hidden
+				blinkSliceAtPointer();
+				setDrawState(DrawState.WON);
+				setTimeout(() => onDrawComplete(winner), QUICK_HOLD_MS);
+				return;
+			}
 			const winnerName = isPrizesMode
 				? (winner as Prize).name
 				: (winner as Participant).name;
@@ -396,9 +460,13 @@ export function useWheel(
 					winningItem.type === "prize"
 						? winningItem.prize
 						: winningItem.participant;
-				setTimeout(() => {
-					onDrawComplete(winner);
-				}, 500);
+				if (quick) blinkSliceAtPointer();
+				setTimeout(
+					() => {
+						onDrawComplete(winner);
+					},
+					quick ? QUICK_HOLD_MS : 500,
+				);
 			}
 		}
 	};
@@ -555,5 +623,11 @@ export function useWheel(
 		isVirtualMode,
 		flashingName,
 		participantCount,
+		// Multi-winner (quick) draw
+		quickSpinTransition: quick
+			? `transform ${QUICK_SPIN_MS}ms cubic-bezier(0.2, 0.7, 0.2, 1)`
+			: null,
+		highlightIndex,
+		pulseOn,
 	};
 }

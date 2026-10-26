@@ -12,6 +12,8 @@ interface SessionDrawAreaProps {
 	drawComponent: React.ReactNode;
 	className?: string;
 	fullscreenToggle?: React.ReactNode;
+	/** Rendered above everything in the draw area (results, progress) */
+	overlay?: React.ReactNode;
 }
 
 /**
@@ -24,6 +26,7 @@ export function SessionDrawArea({
 	drawComponent,
 	className = "flex h-[calc(100vh-200px)] flex-col items-center justify-center gap-10 overflow-hidden rounded-none border bg-card p-6",
 	fullscreenToggle,
+	overlay,
 }: SessionDrawAreaProps) {
 	// Separate background image if present
 	const { backgroundImage, ...otherStyles } = backgroundStyle;
@@ -56,6 +59,7 @@ export function SessionDrawArea({
 			<div className="z-10 flex h-full w-full flex-col items-center justify-center overflow-hidden">
 				{drawComponent}
 			</div>
+			{overlay}
 		</div>
 	);
 }

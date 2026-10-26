@@ -14,6 +14,7 @@ export const SlotDraw = ({
 	onDraw,
 	useGifts,
 	hasAvailableGift,
+	quick,
 }: DrawProps) => {
 	const {
 		state,
@@ -23,7 +24,14 @@ export const SlotDraw = ({
 		isEmpty,
 		spinDurationMs,
 		itemHeight,
-	} = useSlot({ participants, prizes, mode, onDrawComplete, isDrawing });
+	} = useSlot({
+		participants,
+		prizes,
+		mode,
+		onDrawComplete,
+		isDrawing,
+		quick,
+	});
 
 	const scaleContainerRef = useRef<HTMLDivElement>(null);
 

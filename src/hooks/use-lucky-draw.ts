@@ -1,8 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
+import {
+	type GiftPlan,
+	getBatchSize,
+	planGiftTargets,
+	seededRandom,
+} from "@/components/pages/surprise-mechanics/lucky-draw/batch-draw";
 import { getEventById } from "@/lib/api/event";
 import {
 	type AddInvalidParticipantRequest,
@@ -30,15 +36,20 @@ import {
 import {
 	useAddInvalidParticipant,
 	useAssignWinner,
+	useBulkAddInvalidParticipants,
+	useBulkAssignWinners,
 	useClearInvalidParticipants,
 	useClearWinner,
 	useCreateGift,
 	useDeleteGift,
 	useRemoveInvalidParticipant,
+	useSweepAssignWinners,
 	useUpdateGift,
 	useUpdateLuckyDrawSession,
 	useUpdateSessionBackground,
 } from "./use-lucky-draw-queries";
+
+const randomSeed = () => Math.floor(Math.random() * 2 ** 32);
 
 /**
  * Unified Lucky Draw Hook
@@ -209,30 +220,61 @@ export function useLuckyDraw(
 		return participants;
 	}, [participants]);
 
-	// Get next available gift that needs more winners
-	const nextAvailableGift = useMemo<Gift | null>(() => {
-		if (!useGifts) {
-			return null;
-		}
-		// Find gifts that need more winners
-		const giftsNeedingWinners = gifts.filter((gift) => {
-			const actualCount = gift.actual_winner_count ?? 0;
-			return actualCount < gift.winner_counts;
-		});
+	// Which gift each winner of the next click goes to (see planGiftTargets).
+	// The seed changes after every saved draw, so random mode re-rolls the gift
+	// but keeps it steady while the screen re-renders.
+	const winnersPerDraw = sessionData?.winners_per_draw ?? 1;
+	const giftPick = sessionData?.gift_pick ?? "in_order";
+	const roundSweep = useGifts && (sessionData?.round_sweep ?? false);
+	const [giftSeed, setGiftSeed] = useState(randomSeed);
+	const rerollGift = useCallback(() => setGiftSeed(randomSeed()), []);
 
-		if (giftsNeedingWinners.length === 0) {
-			return null;
-		}
+	const giftPlan = useMemo<GiftPlan>(
+		() =>
+			useGifts
+				? planGiftTargets({
+						gifts,
+						giftPick,
+						roundSweep,
+						winnersPerDraw,
+						available: availableParticipants.length,
+						random: seededRandom(giftSeed),
+					})
+				: { gift: null, targets: [] },
+		[
+			useGifts,
+			gifts,
+			giftPick,
+			roundSweep,
+			winnersPerDraw,
+			availableParticipants.length,
+			giftSeed,
+		],
+	);
+	const nextAvailableGift = giftPlan.gift;
+	const giftTargets = giftPlan.targets;
 
-		// Prioritize gifts with order == 1
-		const orderOneGift = giftsNeedingWinners.find((gift) => gift.order === 1);
-		if (orderOneGift) {
-			return orderOneGift;
-		}
+	// Multi-winner draw: one click picks `batchSize` winners (1 = classic draw).
+	// A round sweep always runs as one, even when only one gift is open.
+	const isBatchDraw = roundSweep || winnersPerDraw > 1;
+	const batchSize = useGifts
+		? giftTargets.length
+		: getBatchSize({
+				winnersPerDraw,
+				available: availableParticipants.length,
+				giftSlotsLeft: null,
+			});
 
-		// Otherwise, return the first gift that needs winners (sorted by order)
-		return giftsNeedingWinners.sort((a, b) => a.order - b.order)[0] || null;
-	}, [gifts, useGifts]);
+	// Round number the next sweep will get (the server numbers it the same way)
+	const nextRound = useMemo(
+		() =>
+			gifts.reduce(
+				(max, gift) =>
+					Math.max(max, ...(gift.allWinners ?? []).map((w) => w.round ?? 0)),
+				0,
+			) + 1,
+		[gifts],
+	);
 
 	// Can draw check
 	const canDraw = useMemo<boolean>(() => {
@@ -280,6 +322,12 @@ export function useLuckyDraw(
 		eventId,
 		sessionId,
 	);
+	const bulkAssignWinnersMutation = useBulkAssignWinners(eventId, sessionId);
+	const sweepAssignWinnersMutation = useSweepAssignWinners(eventId, sessionId);
+	const bulkAddInvalidParticipantsMutation = useBulkAddInvalidParticipants(
+		eventId,
+		sessionId,
+	);
 	const removeInvalidParticipantMutation = useRemoveInvalidParticipant(
 		eventId,
 		sessionId,
@@ -294,11 +342,12 @@ export function useLuckyDraw(
 	// ========================================
 
 	const addGift = useCallback(
-		async (giftName: string, winnerCounts?: number) => {
+		async (giftName: string, winnerCounts?: number, drawLast?: boolean) => {
 			try {
 				const payload: CreateGiftRequest = {
 					name: giftName,
 					winner_counts: winnerCounts,
+					draw_last: drawLast,
 				};
 				await createGiftMutation.mutateAsync(payload);
 				toast.success("Gift added successfully");
@@ -377,13 +426,14 @@ export function useLuckyDraw(
 					giftId: giftIdNum,
 					data: request,
 				});
+				rerollGift();
 			} catch (error) {
 				toast.error(
 					error instanceof Error ? error.message : "Failed to assign winner",
 				);
 			}
 		},
-		[assignWinnerMutation],
+		[assignWinnerMutation, rerollGift],
 	);
 
 	const clearWinner = useCallback(
@@ -503,6 +553,73 @@ export function useLuckyDraw(
 		[addInvalidParticipantMutation],
 	);
 
+	// Multi-winner saves: all-or-nothing on the server. Return whether it
+	// worked so the caller only reveals winners that were actually stored.
+	const assignWinners = useCallback(
+		async (giftId: string, winners: Participant[], useTicket: boolean) => {
+			try {
+				await bulkAssignWinnersMutation.mutateAsync({
+					giftId: Number.parseInt(giftId, 10),
+					data: {
+						winners: winners.map((w) =>
+							transformParticipantToAPI(w, useTicket),
+						),
+					},
+				});
+				rerollGift();
+				return true;
+			} catch (error) {
+				toast.error(
+					error instanceof Error ? error.message : "Failed to assign winners",
+				);
+				return false;
+			}
+		},
+		[bulkAssignWinnersMutation, rerollGift],
+	);
+
+	// One draw round: each winner is saved for its own gift, all or nothing.
+	const assignSweep = useCallback(
+		async (
+			picks: Array<{ gift: Gift; winner: Participant }>,
+			useTicket: boolean,
+		) => {
+			try {
+				await sweepAssignWinnersMutation.mutateAsync({
+					winners: picks.map(({ gift, winner }) => ({
+						gift_id: Number.parseInt(gift.id, 10),
+						...transformParticipantToAPI(winner, useTicket),
+					})),
+				});
+				rerollGift();
+				return true;
+			} catch (error) {
+				toast.error(
+					error instanceof Error ? error.message : "Failed to assign winners",
+				);
+				return false;
+			}
+		},
+		[sweepAssignWinnersMutation, rerollGift],
+	);
+
+	const addInvalidParticipants = useCallback(
+		async (winners: Participant[], useTicket: boolean) => {
+			try {
+				await bulkAddInvalidParticipantsMutation.mutateAsync({
+					winners: winners.map((w) => transformParticipantToAPI(w, useTicket)),
+				});
+				return true;
+			} catch (error) {
+				toast.error(
+					error instanceof Error ? error.message : "Failed to save winners",
+				);
+				return false;
+			}
+		},
+		[bulkAddInvalidParticipantsMutation],
+	);
+
 	const removeInvalidParticipant = useCallback(
 		async (invalidParticipantId: number) => {
 			try {
@@ -565,6 +682,12 @@ export function useLuckyDraw(
 		wrapperBackground,
 		useTicket,
 		canDraw,
+		winnersPerDraw,
+		batchSize,
+		giftTargets,
+		isBatchDraw,
+		roundSweep,
+		nextRound,
 
 		// Raw data for advanced use cases
 		giftsData,
@@ -607,6 +730,9 @@ export function useLuckyDraw(
 		stopDrawing,
 		resetDraw,
 		addInvalidParticipant,
+		assignWinners,
+		assignSweep,
+		addInvalidParticipants,
 		removeInvalidParticipant,
 		clearInvalidParticipants,
 	};

@@ -1,5 +1,7 @@
 // Request types for Lucky Draw API
 
+import type { GiftPick } from "./response";
+
 /**
  * Create Lucky Draw Session Request
  */
@@ -20,6 +22,9 @@ export interface CreateLuckyDrawSessionRequest {
 	scanned_from?: string | null;
 	scanned_to?: string | null;
 	scanned_source?: "ticket" | "scan_log" | "entries";
+	winners_per_draw?: number;
+	gift_pick?: GiftPick;
+	round_sweep?: boolean;
 	// Logo is handled via FormData
 }
 
@@ -43,6 +48,9 @@ export interface UpdateLuckyDrawSessionRequest {
 	scanned_from?: string | null;
 	scanned_to?: string | null;
 	scanned_source?: "ticket" | "scan_log" | "entries";
+	winners_per_draw?: number;
+	gift_pick?: GiftPick;
+	round_sweep?: boolean;
 	// Logo is handled via FormData
 }
 
@@ -53,6 +61,7 @@ export interface CreateGiftRequest {
 	name: string;
 	order?: number;
 	winner_counts?: number;
+	draw_last?: boolean;
 }
 
 /**
@@ -62,6 +71,18 @@ export interface UpdateGiftRequest {
 	name?: string;
 	order?: number;
 	winner_counts?: number;
+	draw_last?: boolean;
+}
+
+/**
+ * Sweep Assign Winners Request: one draw round, each winner for its own gift
+ */
+export interface SweepAssignWinnersRequest {
+	winners: Array<{
+		gift_id: number;
+		ticket_id?: number;
+		visitor_id?: number;
+	}>;
 }
 
 /**

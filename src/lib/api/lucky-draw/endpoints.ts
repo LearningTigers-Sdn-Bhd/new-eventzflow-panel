@@ -7,6 +7,7 @@ import type {
 	CreateGiftRequest,
 	CreateLuckyDrawSessionRequest,
 	GetParticipantsQuery,
+	SweepAssignWinnersRequest,
 	UpdateGiftRequest,
 	UpdateLuckyDrawSessionRequest,
 } from "./request";
@@ -113,6 +114,12 @@ export async function createLuckyDrawSession(
 		}
 		if (data.scanned_source !== undefined)
 			formData.append("scanned_source", data.scanned_source);
+		if (data.winners_per_draw !== undefined)
+			formData.append("winners_per_draw", String(data.winners_per_draw));
+		if (data.gift_pick !== undefined)
+			formData.append("gift_pick", data.gift_pick);
+		if (data.round_sweep !== undefined)
+			formData.append("round_sweep", String(data.round_sweep));
 		if (data.logo) formData.append("logo", data.logo);
 
 		const response = await restClient.postFormData<
@@ -176,6 +183,12 @@ export async function updateLuckyDrawSession(
 		}
 		if (data.scanned_source !== undefined)
 			formData.append("scanned_source", data.scanned_source);
+		if (data.winners_per_draw !== undefined)
+			formData.append("winners_per_draw", String(data.winners_per_draw));
+		if (data.gift_pick !== undefined)
+			formData.append("gift_pick", data.gift_pick);
+		if (data.round_sweep !== undefined)
+			formData.append("round_sweep", String(data.round_sweep));
 		if (data.logo) formData.append("logo", data.logo);
 		if (data.remove_logo) formData.append("remove_logo", "true");
 
@@ -365,6 +378,32 @@ export async function bulkAssignWinners(
 }
 
 /**
+ * Sweep Assign Winners: one draw round, each winner saved for its own gift
+ * POST /v1/events/:event_id/lucky_draw/sessions/:session_id/gift_winners/sweep
+ */
+export async function sweepAssignWinners(
+	eventId: string,
+	sessionId: number,
+	data: SweepAssignWinnersRequest,
+): Promise<GiftWinner[]> {
+	try {
+		const response = await restClient.post<ApiResponse<GiftWinner[]>>(
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/gift_winners/sweep`,
+			data,
+		);
+
+		if (!response.success || !response.data) {
+			throw new Error(response.message || "Failed to assign winners");
+		}
+
+		return response.data;
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
  * Clear Winner
  * DELETE /v1/events/:event_id/lucky_draw/sessions/:session_id/gifts/:gift_id/winners/:winner_id
  */
@@ -491,6 +530,32 @@ export async function addInvalidParticipant(
 
 		if (!response.success || !response.data) {
 			throw new Error(response.message || "Failed to add invalid participant");
+		}
+
+		return response.data;
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Bulk Add Invalid Participants (winners of a multi-winner draw, gifts off)
+ * POST /v1/events/:event_id/lucky_draw/sessions/:session_id/invalid_participants/bulk
+ */
+export async function bulkAddInvalidParticipants(
+	eventId: string,
+	sessionId: number,
+	data: BulkAssignWinnersRequest,
+): Promise<InvalidParticipant[]> {
+	try {
+		const response = await restClient.post<ApiResponse<InvalidParticipant[]>>(
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/invalid_participants/bulk`,
+			data,
+		);
+
+		if (!response.success || !response.data) {
+			throw new Error(response.message || "Failed to save winners");
 		}
 
 		return response.data;

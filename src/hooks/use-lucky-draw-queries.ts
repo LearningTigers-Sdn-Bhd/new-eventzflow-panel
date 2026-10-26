@@ -4,18 +4,21 @@ import type {
 	AssignWinnerRequest,
 	BulkAssignWinnersRequest,
 	CreateGiftRequest,
+	SweepAssignWinnersRequest,
 	UpdateGiftRequest,
 	UpdateLuckyDrawSessionRequest,
 } from "@/lib/api/lucky-draw";
 import {
 	addInvalidParticipant,
 	assignWinner,
+	bulkAddInvalidParticipants,
 	bulkAssignWinners,
 	clearInvalidParticipants,
 	clearWinner,
 	createGift,
 	deleteGift,
 	removeInvalidParticipant,
+	sweepAssignWinners,
 	updateGift,
 	updateLuckyDrawSession,
 	updateSessionBackground,
@@ -152,6 +155,27 @@ export function useAssignWinner(eventId: string, sessionId: number) {
 }
 
 /**
+ * Mutation Hook: Sweep Assign Winners
+ * One draw round: each winner is saved for its own gift
+ */
+export function useSweepAssignWinners(eventId: string, sessionId: number) {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (data: SweepAssignWinnersRequest) =>
+			sweepAssignWinners(eventId, sessionId, data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["lucky-draw", "gifts", eventId, sessionId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["lucky-draw", "participants", eventId, sessionId],
+			});
+		},
+	});
+}
+
+/**
  * Mutation Hook: Bulk Assign Winners
  * giftId is passed in the mutation function, not at hook creation
  */
@@ -208,6 +232,29 @@ export function useAddInvalidParticipant(eventId: string, sessionId: number) {
 	return useMutation({
 		mutationFn: (data: AddInvalidParticipantRequest) =>
 			addInvalidParticipant(eventId, sessionId, data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["lucky-draw", "invalid-participants", eventId, sessionId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["lucky-draw", "participants", eventId, sessionId],
+			});
+		},
+	});
+}
+
+/**
+ * Mutation Hook: Bulk Add Invalid Participants (multi-winner draw, gifts off)
+ */
+export function useBulkAddInvalidParticipants(
+	eventId: string,
+	sessionId: number,
+) {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (data: BulkAssignWinnersRequest) =>
+			bulkAddInvalidParticipants(eventId, sessionId, data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: ["lucky-draw", "invalid-participants", eventId, sessionId],

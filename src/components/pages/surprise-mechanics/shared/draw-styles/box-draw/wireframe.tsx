@@ -14,6 +14,7 @@ export function BoxDraw({
 	onDraw,
 	useGifts,
 	hasAvailableGift,
+	quick,
 }: DrawProps) {
 	const { containerRef, isEmpty, isOpen, isAnimating } = useColorfulBox({
 		participants,
@@ -22,6 +23,7 @@ export function BoxDraw({
 		onDrawComplete,
 		isDrawing,
 		isCelebrating,
+		quick,
 	});
 
 	if (isEmpty) {

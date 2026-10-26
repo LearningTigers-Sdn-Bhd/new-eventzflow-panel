@@ -15,6 +15,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 	onDraw,
 	useGifts,
 	hasAvailableGift,
+	quick,
 }) => {
 	// Wireframe theme: Clean pastel colors
 	const baseColors = useMemo(() => {
@@ -43,8 +44,11 @@ const SpinWheel: React.FC<DrawProps> = ({
 		isVirtualMode,
 		flashingName,
 		participantCount,
+		quickSpinTransition,
+		highlightIndex,
+		pulseOn,
 	} = useWheel(
-		{ participants, prizes, mode, onDrawComplete, isDrawing },
+		{ participants, prizes, mode, onDrawComplete, isDrawing, quick },
 		{
 			baseColors,
 			pointerVariant: "pointy",
@@ -105,7 +109,8 @@ const SpinWheel: React.FC<DrawProps> = ({
 					style={{
 						transform: `rotate(${rotation}deg)`,
 						transition: isDrawing
-							? "transform 6s cubic-bezier(0.15, 0.7, 0.1, 1)"
+							? (quickSpinTransition ??
+								"transform 6s cubic-bezier(0.15, 0.7, 0.1, 1)")
 							: "none",
 					}}
 					onTransitionEnd={handleTransitionEnd}
@@ -136,6 +141,9 @@ const SpinWheel: React.FC<DrawProps> = ({
 								<g
 									key={
 										isVirtualMode ? `segment-${i}` : participant?.publicId || i
+									}
+									transform={
+										highlightIndex === i && pulseOn ? "scale(1.07)" : undefined
 									}
 								>
 									{/* Slice fill */}

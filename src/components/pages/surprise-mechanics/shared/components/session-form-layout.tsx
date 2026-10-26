@@ -27,6 +27,8 @@ export interface SessionExtraField {
 	label: string;
 	description: string;
 	options?: { value: string; label: string }[];
+	/** Upper bound for number fields */
+	max?: number;
 	renderCondition?: (formValues: Record<string, unknown>) => boolean;
 	// biome-ignore lint/suspicious/noExplicitAny: TanStack Form API requires any type
 	onChangeCallback?: (checked: boolean, form: any) => void;
@@ -129,7 +131,9 @@ export function SessionFormLayout({
 									/>
 								);
 							}
-							if (field.type === "number") return <NumberOption {...common} />;
+							if (field.type === "number") {
+								return <NumberOption {...common} max={field.max} />;
+							}
 							if (field.type === "select") {
 								return (
 									<SelectOption {...common} options={field.options ?? []} />

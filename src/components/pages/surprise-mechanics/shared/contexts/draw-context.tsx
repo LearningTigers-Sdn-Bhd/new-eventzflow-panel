@@ -40,6 +40,8 @@ interface DrawContextValue {
 	// ============================================
 	useGifts?: boolean;
 	hasAvailableGift?: boolean;
+	/** Multi-winner draw: short spins, winner names hidden until the end */
+	quick?: boolean;
 
 	// ============================================
 	// Loading States

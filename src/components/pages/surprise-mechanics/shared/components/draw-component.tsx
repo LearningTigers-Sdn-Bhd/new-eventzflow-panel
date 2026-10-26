@@ -21,6 +21,7 @@ interface DrawComponentProps {
 	useGifts?: boolean;
 	hasAvailableGift?: boolean;
 	isLoading?: boolean;
+	quick?: boolean;
 }
 
 /**
@@ -55,6 +56,7 @@ export function DrawComponent(props?: DrawComponentProps) {
 	const hasAvailableGift =
 		props?.hasAvailableGift ?? context?.hasAvailableGift ?? false;
 	const isLoading = props?.isLoading ?? context?.isLoading ?? false;
+	const quick = props?.quick ?? context?.quick ?? false;
 
 	// Determine mode from data
 	// If participants are provided, use participants mode
@@ -116,6 +118,7 @@ export function DrawComponent(props?: DrawComponentProps) {
 		theme: drawTheme,
 		useGifts,
 		hasAvailableGift,
+		quick,
 	};
 
 	switch (drawStyle) {

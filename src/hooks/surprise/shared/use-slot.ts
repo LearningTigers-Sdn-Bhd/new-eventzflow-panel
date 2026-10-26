@@ -24,6 +24,10 @@ const VISIBLE_ITEMS = 3; // Show 3 items: Top, Center (Winner), Bottom
 export const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 const SPIN_DURATION_MS = 5500; // Even longer for maximum suspense
 const MIN_SPIN_CYCLES = 25;
+// Multi-winner draw: short spin per round, landing name hidden until the end
+const QUICK_SPIN_DURATION_MS = 1500;
+const QUICK_SPIN_CYCLES = 12;
+const HIDDEN_NAME = "★ ★ ★";
 
 export interface UseSlotReturn {
 	state: DrawState;
@@ -41,7 +45,9 @@ export function useSlot({
 	mode = "participants",
 	onDrawComplete,
 	isDrawing,
+	quick = false,
 }: DrawProps): UseSlotReturn {
+	const spinMs = quick ? QUICK_SPIN_DURATION_MS : SPIN_DURATION_MS;
 	const [state, setState] = useState<DrawState>(DrawState.IDLE);
 	const [reel, setReel] = useState<ReelItem[]>([]);
 	const [offsetY, setOffsetY] = useState<number>(0);
@@ -220,14 +226,19 @@ export function useSlot({
 
 		// Add noise sequence
 		// We generate noise sequence starting after 'startName'
-		const noiseSequence = generateReelSequence(MIN_SPIN_CYCLES, startName);
+		const noiseSequence = generateReelSequence(
+			quick ? QUICK_SPIN_CYCLES : MIN_SPIN_CYCLES,
+			startName,
+		);
 
 		noiseSequence.forEach((name) => {
 			newReel.push(createItem(name, "noise"));
 		});
 
 		// Add Winner
-		newReel.push(createItem(selectedWinner.name, "winner"));
+		newReel.push(
+			createItem(quick ? HIDDEN_NAME : selectedWinner.name, "winner"),
+		);
 
 		// Add one item AFTER winner to fill the bottom slot
 		// Ensure it's different from winner
@@ -257,7 +268,7 @@ export function useSlot({
 		// 5. Cleanup
 		setTimeout(() => {
 			setState(DrawState.WON);
-			lastWinnerRef.current = selectedItem.name;
+			lastWinnerRef.current = quick ? HIDDEN_NAME : selectedItem.name;
 			lastWinnerItemRef.current = selectedItem;
 			setIsTransitioning(false);
 
@@ -266,7 +277,7 @@ export function useSlot({
 			// For now, keeping it long is fine for simplicity.
 
 			onDrawComplete(selectedWinner);
-		}, SPIN_DURATION_MS);
+		}, spinMs);
 	}, [
 		state,
 		items,
@@ -275,6 +286,8 @@ export function useSlot({
 		onDrawComplete,
 		generateReelSequence,
 		reel,
+		quick,
+		spinMs,
 	]);
 
 	// Auto-trigger spin when wrapper toggles drawing state
@@ -293,7 +306,7 @@ export function useSlot({
 		offsetY,
 		isTransitioning,
 		isEmpty,
-		spinDurationMs: SPIN_DURATION_MS,
+		spinDurationMs: spinMs,
 		itemHeight: ITEM_HEIGHT,
 	};
 }

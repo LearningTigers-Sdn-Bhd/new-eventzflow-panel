@@ -4,7 +4,9 @@ import {
 	createContext,
 	useCallback,
 	useContext,
+	useEffect,
 	useMemo,
+	useRef,
 	useState,
 } from "react";
 import { toast } from "sonner";
@@ -18,7 +20,11 @@ import { useSessionBackground } from "@/hooks/surprise/shared/use-session-backgr
 import { useSessionSheets } from "@/hooks/surprise/shared/use-session-sheets";
 import { useLuckyDraw } from "@/hooks/use-lucky-draw";
 import type { LuckyDrawSession } from "@/lib/api/lucky-draw/response";
-import type { Participant } from "@/stores/lucky-draw-store";
+import type { Gift, Participant } from "@/stores/lucky-draw-store";
+import { pickRandomWinners } from "../batch-draw";
+
+// Pause between quick rounds so each stop reads clearly
+const NEXT_ROUND_DELAY_MS = 350;
 
 interface LuckyDrawSessionContextValue {
 	// Props (read-only)
@@ -50,9 +56,23 @@ interface LuckyDrawSessionContextValue {
 	useTicket: boolean;
 	isLoadingConfig: boolean;
 
+	winnersPerDraw: number;
+	batchSize: number;
+	// True when one click draws several winners (winners per draw > 1 or a round sweep)
+	isBatchDraw: boolean;
+
 	// Actions
 	handleDraw: () => void;
 	handleDrawComplete: (winner: Participant) => Promise<void>;
+	handleBatchComplete: (winner: Participant) => Promise<void>;
+	batchPicked: Participant[];
+	batchTotal: number;
+	batchSkipped: boolean;
+	skipBatch: () => Promise<void>;
+	batchWinners: Participant[] | null;
+	batchTitle: string;
+	batchGiftNames: string[] | null;
+	clearBatchWinners: () => void;
 	luckyDraw: ReturnType<typeof useLuckyDraw>;
 }
 
@@ -76,6 +96,23 @@ function LuckyDrawSessionProviderInner({
 	children,
 }: LuckyDrawSessionProviderProps) {
 	const [isDisplayMode, setIsDisplayMode] = useState(false);
+	const [batchWinners, setBatchWinners] = useState<Participant[] | null>(null);
+	// Round/gift the batch was drawn for (the next gift changes once it is saved)
+	const [batchTitle, setBatchTitle] = useState("Winners");
+	// True when the animation was skipped: the reveal then adds its own suspense
+	const [batchSkipped, setBatchSkipped] = useState(false);
+	// Multi-winner draw in progress: winners picked so far, one per quick round
+	const [batchPicked, setBatchPicked] = useState<Participant[]>([]);
+	const [batchTotal, setBatchTotal] = useState(0);
+	// Gift name per winner of the reveal (round sweep only)
+	const [batchGiftNames, setBatchGiftNames] = useState<string[] | null>(null);
+	const batchRunRef = useRef<{
+		total: number;
+		title: string;
+		picked: Participant[];
+		// Gift of each winner, in draw order (empty when gifts are off)
+		targets: Gift[];
+	} | null>(null);
 	const { showCelebration } = useCelebrationDialog();
 	const { isFullscreen, toggleFullscreen } = useFullscreen();
 
@@ -95,6 +132,12 @@ function LuckyDrawSessionProviderInner({
 		wrapperBackground,
 		useTicket,
 		canDraw,
+		winnersPerDraw,
+		batchSize,
+		giftTargets,
+		isBatchDraw,
+		roundSweep,
+		nextRound,
 
 		// UI State
 		isDrawing,
@@ -107,6 +150,9 @@ function LuckyDrawSessionProviderInner({
 		stopDrawing,
 		addInvalidParticipant,
 		assignWinner,
+		assignWinners,
+		assignSweep,
+		addInvalidParticipants,
 	} = luckyDraw;
 
 	// Get background style from custom hook
@@ -117,10 +163,46 @@ function LuckyDrawSessionProviderInner({
 
 	// Handle draw button click
 	const handleDraw = useCallback(() => {
+		if (batchRunRef.current) return; // a multi-winner draw is already running
 		if (canDraw && availableParticipants.length > 0) {
+			setBatchWinners(null);
+			if (isBatchDraw) {
+				const total = Math.max(batchSize, 1);
+				batchRunRef.current = {
+					total,
+					title: roundSweep
+						? `Round ${nextRound}`
+						: useGifts
+							? (nextAvailableGift?.name ?? "Winners")
+							: "Winners",
+					picked: [],
+					targets: giftTargets,
+				};
+				setBatchPicked([]);
+				setBatchTotal(total);
+			}
 			startDrawing();
 		}
-	}, [canDraw, availableParticipants.length, startDrawing]);
+	}, [
+		canDraw,
+		availableParticipants.length,
+		isBatchDraw,
+		batchSize,
+		roundSweep,
+		nextRound,
+		useGifts,
+		nextAvailableGift,
+		giftTargets,
+		startDrawing,
+	]);
+
+	// Leaving the page mid-draw must not restart a round afterwards
+	useEffect(
+		() => () => {
+			batchRunRef.current = null;
+		},
+		[],
+	);
 
 	// Handle draw completion
 	const handleDrawComplete = useCallback(
@@ -186,6 +268,105 @@ function LuckyDrawSessionProviderInner({
 		],
 	);
 
+	// Multi-winner draw, last step: save every winner in one request, then show
+	// the reveal. Used when all rounds finished and when the animation is skipped.
+	const finishBatch = useCallback(
+		async (
+			title: string,
+			winners: Participant[],
+			skipped: boolean,
+			targets: Gift[],
+		) => {
+			let saved = false;
+			try {
+				if (useGifts && roundSweep) {
+					// Winner i belongs to gift i; saved together as one round
+					saved = await assignSweep(
+						winners.map((winner, i) => ({ gift: targets[i], winner })),
+						useTicket,
+					);
+				} else if (useGifts) {
+					if (nextAvailableGift) {
+						saved = await assignWinners(
+							nextAvailableGift.id,
+							winners,
+							useTicket,
+						);
+					} else {
+						toast.error("No available gift to assign winners");
+					}
+				} else {
+					saved = await addInvalidParticipants(winners, useTicket);
+				}
+			} finally {
+				batchRunRef.current = null;
+				setBatchTotal(0);
+				setBatchPicked([]);
+				stopDrawing();
+			}
+
+			if (saved) {
+				startCelebration();
+				setBatchTitle(title);
+				setBatchSkipped(skipped);
+				setBatchGiftNames(
+					useGifts && roundSweep ? targets.map((gift) => gift.name) : null,
+				);
+				setBatchWinners(winners);
+			}
+		},
+		[
+			useGifts,
+			roundSweep,
+			nextAvailableGift,
+			assignSweep,
+			assignWinners,
+			addInvalidParticipants,
+			useTicket,
+			stopDrawing,
+			startCelebration,
+		],
+	);
+
+	// Multi-winner draw: the selected style plays one quick round per winner. Each
+	// round reports its winner here; once every round is done all winners are
+	// saved in one request and revealed one by one.
+	const handleBatchComplete = useCallback(
+		async (winner: Participant): Promise<void> => {
+			const run = batchRunRef.current;
+			if (!run) return; // a skipped or finished draw: ignore the round still in flight
+
+			run.picked = [...run.picked, winner];
+			setBatchPicked(run.picked);
+
+			if (run.picked.length < run.total) {
+				stopDrawing();
+				setTimeout(() => {
+					if (batchRunRef.current === run) startDrawing();
+				}, NEXT_ROUND_DELAY_MS);
+				return;
+			}
+
+			await finishBatch(run.title, run.picked, false, run.targets);
+		},
+		[startDrawing, stopDrawing, finishBatch],
+	);
+
+	// Skip the remaining rounds: pick the rest at random right away. Handy when
+	// the draw is large (100 winners would take minutes of animation).
+	const skipBatch = useCallback(async () => {
+		const run = batchRunRef.current;
+		if (!run) return;
+		batchRunRef.current = null; // the round in flight is ignored from here on
+
+		const taken = new Set(run.picked.map((p) => p.publicId));
+		const rest = pickRandomWinners(
+			availableParticipants.filter((p) => !taken.has(p.publicId)),
+			run.total - run.picked.length,
+		);
+		await finishBatch(run.title, [...run.picked, ...rest], true, run.targets);
+	}, [availableParticipants, finishBatch]);
+
 	// Celebration state: active when drawing is finished (starts immediately) and continues until modal closes
 	const isCelebrating = shouldCelebrate;
 
@@ -220,10 +401,22 @@ function LuckyDrawSessionProviderInner({
 			useGifts,
 			useTicket,
 			isLoadingConfig,
+			winnersPerDraw,
+			batchSize,
+			isBatchDraw,
 
 			// Actions
 			handleDraw,
 			handleDrawComplete,
+			handleBatchComplete,
+			batchWinners,
+			batchTitle,
+			batchGiftNames,
+			batchPicked,
+			batchTotal,
+			batchSkipped,
+			skipBatch,
+			clearBatchWinners: () => setBatchWinners(null),
 			luckyDraw,
 		}),
 		[
@@ -247,8 +440,19 @@ function LuckyDrawSessionProviderInner({
 			useGifts,
 			useTicket,
 			isLoadingConfig,
+			winnersPerDraw,
+			batchSize,
+			isBatchDraw,
 			handleDraw,
 			handleDrawComplete,
+			handleBatchComplete,
+			batchWinners,
+			batchTitle,
+			batchGiftNames,
+			batchPicked,
+			batchTotal,
+			batchSkipped,
+			skipBatch,
 			luckyDraw,
 		],
 	);

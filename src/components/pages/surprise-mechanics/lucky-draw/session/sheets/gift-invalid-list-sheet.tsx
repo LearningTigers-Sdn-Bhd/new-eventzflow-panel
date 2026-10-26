@@ -33,6 +33,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -55,6 +56,36 @@ import type { useLuckyDraw } from "@/hooks/use-lucky-draw";
 import { notifyInvalidParticipant } from "@/lib/api/lucky-draw";
 import { cn } from "@/lib/utils";
 import type { Gift as GiftType } from "@/stores/lucky-draw-store";
+import { buildWinnerGroups } from "../../export-winners";
+import { ExportWinnersMenu } from "./export-winners-menu";
+
+function DrawLastField({
+	id,
+	checked,
+	onChange,
+}: {
+	id: string;
+	checked: boolean;
+	onChange: (checked: boolean) => void;
+}) {
+	return (
+		<div className="flex items-start gap-3">
+			<Checkbox
+				id={id}
+				checked={checked}
+				onCheckedChange={(value) => onChange(value === true)}
+				className="mt-0.5"
+			/>
+			<div className="flex flex-col gap-1">
+				<Label htmlFor={id}>Draw last</Label>
+				<p className="text-balance text-muted-foreground text-sm">
+					Hold this gift until every other gift is done, like a grand prize.
+					Works when the session picks gifts at random.
+				</p>
+			</div>
+		</div>
+	);
+}
 
 interface SortableGiftCardProps {
 	gift: GiftType;
@@ -63,7 +94,7 @@ interface SortableGiftCardProps {
 	onRemoveGift: (giftId: string) => void;
 	onUpdateGift: (
 		giftId: string,
-		data: { name?: string; winner_counts?: number },
+		data: { name?: string; winner_counts?: number; draw_last?: boolean },
 	) => void;
 	winnerId?: number;
 	allWinners?: Array<{
@@ -88,6 +119,7 @@ function SortableGiftCard({
 	const [isEditing, setIsEditing] = useState(false);
 	const [editName, setEditName] = useState(gift.name);
 	const [editWinnerCounts, setEditWinnerCounts] = useState(gift.winner_counts);
+	const [editDrawLast, setEditDrawLast] = useState(gift.draw_last);
 	const [isWinnersOpen, setIsWinnersOpen] = useState(false);
 
 	const {
@@ -118,6 +150,7 @@ function SortableGiftCard({
 		onUpdateGift(gift.id, {
 			name: editName,
 			winner_counts: editWinnerCounts,
+			draw_last: editDrawLast,
 		});
 		setIsEditing(false);
 	};
@@ -125,6 +158,7 @@ function SortableGiftCard({
 	const handleCancel = () => {
 		setEditName(gift.name);
 		setEditWinnerCounts(gift.winner_counts);
+		setEditDrawLast(gift.draw_last);
 		setIsEditing(false);
 	};
 
@@ -178,6 +212,11 @@ function SortableGiftCard({
 								/>
 							</div>
 						</div>
+						<DrawLastField
+							id={`edit-draw-last-${gift.id}`}
+							checked={editDrawLast}
+							onChange={setEditDrawLast}
+						/>
 					</CardContent>
 					<CardFooter className="flex justify-end gap-2 border-t px-4 pb-4">
 						<Button
@@ -215,6 +254,7 @@ function SortableGiftCard({
 								</Label>
 								<Label className="font-normal text-muted-foreground text-sm">
 									Remaining: {remaining}
+									{gift.draw_last && " · Draw last"}
 								</Label>
 							</div>
 						</div>
@@ -390,6 +430,7 @@ export function GiftInvalidListSheet({
 }: GiftInvalidListSheetProps) {
 	const [newGiftName, setNewGiftName] = useState("");
 	const [newGiftWinnerCounts, setNewGiftWinnerCounts] = useState(1);
+	const [newGiftDrawLast, setNewGiftDrawLast] = useState(false);
 	const [isAddGiftCardOpen, setIsAddGiftCardOpen] = useState(false);
 	const [notifyingIds, setNotifyingIds] = useState<Set<number>>(new Set());
 
@@ -466,15 +507,16 @@ export function GiftInvalidListSheet({
 			toast.error("Winner count must be greater than 0");
 			return;
 		}
-		addGift(newGiftName.trim(), newGiftWinnerCounts);
+		addGift(newGiftName.trim(), newGiftWinnerCounts, newGiftDrawLast);
 		setNewGiftName("");
 		setNewGiftWinnerCounts(1);
+		setNewGiftDrawLast(false);
 		setIsAddGiftCardOpen(false);
 	};
 
 	const handleUpdateGift = async (
 		giftId: string,
-		data: { name?: string; winner_counts?: number },
+		data: { name?: string; winner_counts?: number; draw_last?: boolean },
 	) => {
 		updateGift(giftId, data);
 	};
@@ -616,6 +658,11 @@ export function GiftInvalidListSheet({
 										/>
 									</div>
 								</div>
+								<DrawLastField
+									id="new-gift-draw-last"
+									checked={newGiftDrawLast}
+									onChange={setNewGiftDrawLast}
+								/>
 							</CardContent>
 							<CardFooter className="flex justify-end gap-2 border-t">
 								<Button
@@ -625,6 +672,7 @@ export function GiftInvalidListSheet({
 										setIsAddGiftCardOpen(false);
 										setNewGiftName("");
 										setNewGiftWinnerCounts(1);
+										setNewGiftDrawLast(false);
 									}}
 									className="gap-2 rounded-none"
 								>
@@ -691,6 +739,11 @@ export function GiftInvalidListSheet({
 									<div className="col-span-2 flex h-full items-center">
 										<div className="text-balance font-medium text-sm">
 											{participant.name}
+											{backendInvalid?.round != null && (
+												<span className="ml-2 font-normal text-muted-foreground text-xs">
+													Round {backendInvalid.round}
+												</span>
+											)}
 										</div>
 									</div>
 									<div className="col-span-1 flex items-center justify-end gap-2">
@@ -788,6 +841,16 @@ export function GiftInvalidListSheet({
 							? "Manage prizes and their winners."
 							: "Winners stored here will be skipped in future draws."}
 					</SheetDescription>
+					<div className="pt-3">
+						<ExportWinnersMenu
+							groups={buildWinnerGroups(
+								useGifts,
+								gifts,
+								invalidParticipantsData ?? [],
+							)}
+							filenameBase={luckyDraw.eventName ?? "lucky-draw"}
+						/>
+					</div>
 				</SheetHeader>
 				<div className="flex flex-col gap-6 px-4 pb-4">
 					<Card className="flex border-0 p-0! shadow-none">

@@ -45,6 +45,41 @@ const entryScanField = {
 		"Only people scanned into this draw can win. Staff scan each ticket QR using Scan Participants in the session menu",
 };
 
+// A number setting normally only shows with gifts on; this one works either way.
+const winnersPerDrawField = {
+	type: "number" as const,
+	name: "winners_per_draw",
+	label: "Winners per draw",
+	description:
+		"How many winners one click of Draw picks (1 to 200). Use 1 for the classic one-by-one draw. With gifts on, a draw never goes past the gift's open slots",
+	max: 200,
+	renderCondition: () => true,
+};
+
+const GIFTS_ON = (values: Record<string, unknown>) => values.use_gifts === true;
+
+const giftPickField = {
+	type: "select" as const,
+	name: "gift_pick",
+	label: "Pick the next gift",
+	description:
+		"In order follows the gift list. Random picks any gift that still has a slot each draw; gifts marked Draw last wait until the rest are done",
+	options: [
+		{ value: "in_order", label: "In order (gift list)" },
+		{ value: "random", label: "Random" },
+	],
+	renderCondition: GIFTS_ON,
+};
+
+const roundSweepField = {
+	type: "boolean" as const,
+	name: "round_sweep",
+	label: "One winner per gift each draw",
+	description:
+		"One click draws a winner for every gift that still has a slot (a round), then the next click starts the next round. A gift with 2 winners joins 2 rounds. Winners per draw is not used",
+	renderCondition: GIFTS_ON,
+};
+
 const SCANNED_SOURCE_OPTIONS = [
 	{ value: "ticket", label: "Ticket check-in (first scan)" },
 	{ value: "scan_log", label: "Scan log (every scan)" },
@@ -138,6 +173,9 @@ export function CreateForm() {
 						description: "Allow winners to receive gift items",
 						defaultValue: false,
 					},
+					{ ...winnersPerDrawField, defaultValue: 1 },
+					{ ...giftPickField, defaultValue: "in_order" },
+					{ ...roundSweepField, defaultValue: false },
 					{ ...entryScanField, defaultValue: false },
 					{
 						type: "boolean",
@@ -213,6 +251,21 @@ export function EditForm({ session }: { session: LuckyDrawSession }) {
 						description: "Allow winners to receive gift items",
 						getValue: (session: BaseSession) =>
 							(session as LuckyDrawSession).use_gifts,
+					},
+					{
+						...winnersPerDrawField,
+						getValue: (session: BaseSession) =>
+							(session as LuckyDrawSession).winners_per_draw ?? 1,
+					},
+					{
+						...giftPickField,
+						getValue: (session: BaseSession) =>
+							(session as LuckyDrawSession).gift_pick ?? "in_order",
+					},
+					{
+						...roundSweepField,
+						getValue: (session: BaseSession) =>
+							(session as LuckyDrawSession).round_sweep ?? false,
 					},
 					{
 						...entryScanField,

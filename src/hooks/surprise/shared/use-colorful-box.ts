@@ -5,6 +5,9 @@ import type { DrawProps } from "@/components/pages/surprise-mechanics/shared/dra
 
 const SHAKE_DURATION_MS = 4000;
 const OPEN_DELAY_MS = 500;
+// Multi-winner draw: a short shake per round
+const QUICK_SHAKE_DURATION_MS = 1000;
+const QUICK_OPEN_DELAY_MS = 250;
 
 export interface UseColorfulBoxReturn {
 	isEmpty: boolean;
@@ -20,6 +23,7 @@ export function useColorfulBox({
 	onDrawComplete,
 	isDrawing,
 	isCelebrating,
+	quick = false,
 }: DrawProps): UseColorfulBoxReturn {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [isOpen, setIsOpen] = useState(false);
@@ -45,20 +49,26 @@ export function useColorfulBox({
 		setIsOpen(false);
 
 		// Shake for a duration, then open
-		shakeTimeoutRef.current = setTimeout(() => {
-			setIsAnimating(false);
+		shakeTimeoutRef.current = setTimeout(
+			() => {
+				setIsAnimating(false);
 
-			// Select random winner
-			const randomIndex = Math.floor(Math.random() * items.length);
-			const selectedWinner = items[randomIndex];
+				// Select random winner
+				const randomIndex = Math.floor(Math.random() * items.length);
+				const selectedWinner = items[randomIndex];
 
-			// Open lid after short delay
-			openTimeoutRef.current = setTimeout(() => {
-				setIsOpen(true);
-				onDrawComplete(selectedWinner);
-			}, OPEN_DELAY_MS);
-		}, SHAKE_DURATION_MS);
-	}, [items, onDrawComplete]);
+				// Open lid after short delay
+				openTimeoutRef.current = setTimeout(
+					() => {
+						setIsOpen(true);
+						onDrawComplete(selectedWinner);
+					},
+					quick ? QUICK_OPEN_DELAY_MS : OPEN_DELAY_MS,
+				);
+			},
+			quick ? QUICK_SHAKE_DURATION_MS : SHAKE_DURATION_MS,
+		);
+	}, [items, onDrawComplete, quick]);
 
 	// Handle drawing state changes
 	useEffect(() => {
