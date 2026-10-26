@@ -758,11 +758,17 @@ export const useUpdateSessionAvailabilities = (
 	});
 };
 
-// Bookings the current user made with other sellers. Shares the
-// "business-matching-bookings" prefix so the live-update channel refreshes it.
-export const useBuyerBookings = (eventId: string) =>
+// Bookings a seller (default: the current user) made with other sellers.
+// Shares the "business-matching-bookings" prefix so the live-update channel
+// refreshes it.
+export const useBuyerBookings = (eventId: string, hostUserId?: string) =>
 	useQuery({
-		queryKey: ["business-matching-bookings", "buyer", eventId],
-		queryFn: () => getBuyerBookings(eventId),
+		queryKey: [
+			"business-matching-bookings",
+			"buyer",
+			eventId,
+			hostUserId ?? "me",
+		],
+		queryFn: () => getBuyerBookings(eventId, hostUserId),
 		enabled: !!eventId,
 	});

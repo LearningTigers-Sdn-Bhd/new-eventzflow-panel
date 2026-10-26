@@ -214,14 +214,19 @@ export interface BuyerBooking extends Booking {
 }
 
 /**
- * Bookings the current user made with other sellers as a buyer — a seller
- * can also book meetings. Matched on the account email by the backend.
+ * Bookings a seller made with other sellers as a buyer — a seller can also
+ * book meetings. Defaults to the current user; matched on account email.
  */
 export async function getBuyerBookings(
 	eventId: string,
+	hostUserId?: string,
 ): Promise<{ bookings: BuyerBooking[] }> {
+	// Staff can pass a seller's user id to see that seller's bookings.
+	const query = hostUserId
+		? `?host_user_id=${encodeURIComponent(hostUserId)}`
+		: "";
 	return restClient.get<{ bookings: BuyerBooking[] }>(
-		`v1/business_matching/events/${eventId}/buyer_bookings`,
+		`v1/business_matching/events/${eventId}/buyer_bookings${query}`,
 	);
 }
 

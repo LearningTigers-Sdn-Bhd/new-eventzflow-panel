@@ -3,17 +3,23 @@
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDialog } from "@/hooks/use-dialog";
+import { cn } from "@/lib/utils";
 import AvailabilitySlotsPanel from "./availability-slots-panel";
 import BookingsDialog from "./bookings-dialog";
+import { BuyerBookingsList } from "./buyer-bookings-section";
 
 interface SessionActivityDialogProps {
 	bmEventId: string;
 	eventId: string;
+	// Set for staff: the session's seller, whose bookings with other sellers
+	// (as a buyer) get their own tab.
+	sellerUserId?: string;
 }
 
 export default function SessionActivityDialog({
 	bmEventId,
 	eventId,
+	sellerUserId,
 }: SessionActivityDialogProps) {
 	const { closeDialog } = useDialog();
 
@@ -28,13 +34,23 @@ export default function SessionActivityDialog({
 				defaultValue="bookings"
 				className="flex h-full min-h-0 w-full flex-1 flex-col gap-3"
 			>
-				<TabsList className="grid w-full shrink-0 grid-cols-2 rounded-none">
+				<TabsList
+					className={cn(
+						"grid w-full shrink-0 rounded-none",
+						sellerUserId ? "grid-cols-3" : "grid-cols-2",
+					)}
+				>
 					<TabsTrigger value="bookings" className="rounded-none">
 						Bookings
 					</TabsTrigger>
 					<TabsTrigger value="availability" className="rounded-none">
 						Availability
 					</TabsTrigger>
+					{sellerUserId && (
+						<TabsTrigger value="as-buyer" className="rounded-none">
+							As Buyer
+						</TabsTrigger>
+					)}
 				</TabsList>
 
 				<TabsContent
@@ -50,6 +66,22 @@ export default function SessionActivityDialog({
 				>
 					<AvailabilitySlotsPanel bmEventId={bmEventId} eventId={eventId} />
 				</TabsContent>
+
+				{sellerUserId && (
+					<TabsContent
+						value="as-buyer"
+						className="min-h-0 flex-1 space-y-2 overflow-y-auto px-1"
+					>
+						<p className="text-muted-foreground text-sm">
+							Meetings this seller booked with other sellers.
+						</p>
+						<BuyerBookingsList
+							eventId={eventId}
+							hostUserId={sellerUserId}
+							emptyText="This seller hasn't booked any meetings with other sellers."
+						/>
+					</TabsContent>
+				)}
 			</Tabs>
 
 			{/* Bottom bar with Cancel/Close button for mobile view */}
