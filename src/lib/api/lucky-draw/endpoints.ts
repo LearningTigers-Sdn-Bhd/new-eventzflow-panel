@@ -120,6 +120,13 @@ export async function createLuckyDrawSession(
 			formData.append("gift_pick", data.gift_pick);
 		if (data.round_sweep !== undefined)
 			formData.append("round_sweep", String(data.round_sweep));
+		// An empty list still sends one blank entry so the server clears it
+		for (const id of data.excluded_ticket_type_ids?.length
+			? data.excluded_ticket_type_ids
+			: data.excluded_ticket_type_ids
+				? [""]
+				: [])
+			formData.append("excluded_ticket_type_ids[]", id);
 		if (data.logo) formData.append("logo", data.logo);
 
 		const response = await restClient.postFormData<
@@ -189,6 +196,13 @@ export async function updateLuckyDrawSession(
 			formData.append("gift_pick", data.gift_pick);
 		if (data.round_sweep !== undefined)
 			formData.append("round_sweep", String(data.round_sweep));
+		// An empty list still sends one blank entry so the server clears it
+		for (const id of data.excluded_ticket_type_ids?.length
+			? data.excluded_ticket_type_ids
+			: data.excluded_ticket_type_ids
+				? [""]
+				: [])
+			formData.append("excluded_ticket_type_ids[]", id);
 		if (data.logo) formData.append("logo", data.logo);
 		if (data.remove_logo) formData.append("remove_logo", "true");
 

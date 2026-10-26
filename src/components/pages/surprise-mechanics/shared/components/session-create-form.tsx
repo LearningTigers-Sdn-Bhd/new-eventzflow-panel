@@ -12,7 +12,7 @@ import {
 } from "./session-form-layout";
 
 export interface AdditionalFieldConfig extends SessionExtraField {
-	defaultValue: boolean | number | string;
+	defaultValue: boolean | number | string | string[];
 }
 
 export interface SessionCreateFormConfig {
@@ -57,6 +57,8 @@ export function SessionCreateForm({
 			schemaFields[field.name] = z.boolean();
 		} else if (field.type === "number") {
 			schemaFields[field.name] = z.number().min(1, "Must be at least 1");
+		} else if (field.type === "ticket-types") {
+			schemaFields[field.name] = z.array(z.string());
 		} else {
 			schemaFields[field.name] = z.string();
 		}

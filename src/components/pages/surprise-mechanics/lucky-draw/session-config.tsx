@@ -80,6 +80,14 @@ const roundSweepField = {
 	renderCondition: GIFTS_ON,
 };
 
+const excludedTicketTypesField = {
+	type: "ticket-types" as const,
+	name: "excluded_ticket_type_ids",
+	label: "Exclude ticket types",
+	description:
+		"Tickets of these types are left out of the draw and can never win. Leave empty to include every ticket type",
+};
+
 const SCANNED_SOURCE_OPTIONS = [
 	{ value: "ticket", label: "Ticket check-in (first scan)" },
 	{ value: "scan_log", label: "Scan log (every scan)" },
@@ -176,6 +184,7 @@ export function CreateForm() {
 					{ ...winnersPerDrawField, defaultValue: 1 },
 					{ ...giftPickField, defaultValue: "in_order" },
 					{ ...roundSweepField, defaultValue: false },
+					{ ...excludedTicketTypesField, defaultValue: [] },
 					{ ...entryScanField, defaultValue: false },
 					{
 						type: "boolean",
@@ -266,6 +275,13 @@ export function EditForm({ session }: { session: LuckyDrawSession }) {
 						...roundSweepField,
 						getValue: (session: BaseSession) =>
 							(session as LuckyDrawSession).round_sweep ?? false,
+					},
+					{
+						...excludedTicketTypesField,
+						getValue: (session: BaseSession) =>
+							(session as LuckyDrawSession).excluded_ticket_type_ids?.map(
+								String,
+							) ?? [],
 					},
 					{
 						...entryScanField,

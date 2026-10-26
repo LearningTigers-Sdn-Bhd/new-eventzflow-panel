@@ -30,6 +30,8 @@ export interface LuckyDrawSession {
 	gift_pick: GiftPick;
 	/** One click gives every open gift one winner (a round) */
 	round_sweep: boolean;
+	/** Ticket types left out of the draw pool */
+	excluded_ticket_type_ids: number[];
 	created_at: string;
 	updated_at: string;
 }

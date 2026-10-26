@@ -58,7 +58,8 @@ export function useUpdateLuckyDrawSession(eventId: string, sessionId: number) {
 				variables.scanned_only !== undefined ||
 				variables.scanned_from !== undefined ||
 				variables.scanned_to !== undefined ||
-				variables.scanned_source !== undefined
+				variables.scanned_source !== undefined ||
+				variables.excluded_ticket_type_ids !== undefined
 			) {
 				queryClient.invalidateQueries({
 					queryKey: ["lucky-draw", "participants", eventId, sessionId],

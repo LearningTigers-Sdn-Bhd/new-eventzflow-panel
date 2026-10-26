@@ -19,10 +19,11 @@ import {
 	LogoField,
 	TitleField,
 } from "./form-fields/session-basic-fields";
+import { TicketTypesField } from "./form-fields/ticket-types-field";
 
 /** A session setting beyond the common ones; rendered by type */
 export interface SessionExtraField {
-	type: "boolean" | "number" | "event-day" | "select";
+	type: "boolean" | "number" | "event-day" | "select" | "ticket-types";
 	name: string;
 	label: string;
 	description: string;
@@ -84,7 +85,8 @@ export function SessionFormLayout({
 	onCancel,
 }: SessionFormLayoutProps) {
 	const rows = fields.filter(
-		(f) => f.type === "boolean" || f.type === "number",
+		(f) =>
+			f.type === "boolean" || f.type === "number" || f.type === "ticket-types",
 	);
 	const dependents = fields.filter(
 		(f) => f.type === "event-day" || f.type === "select",
@@ -138,6 +140,9 @@ export function SessionFormLayout({
 								return (
 									<SelectOption {...common} options={field.options ?? []} />
 								);
+							}
+							if (field.type === "ticket-types") {
+								return <TicketTypesField {...common} />;
 							}
 							return <EventDayField {...common} />;
 						}}

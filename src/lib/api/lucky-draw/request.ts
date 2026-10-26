@@ -25,6 +25,8 @@ export interface CreateLuckyDrawSessionRequest {
 	winners_per_draw?: number;
 	gift_pick?: GiftPick;
 	round_sweep?: boolean;
+	/** Ticket type ids left out of the draw pool */
+	excluded_ticket_type_ids?: string[];
 	// Logo is handled via FormData
 }
 
@@ -51,6 +53,8 @@ export interface UpdateLuckyDrawSessionRequest {
 	winners_per_draw?: number;
 	gift_pick?: GiftPick;
 	round_sweep?: boolean;
+	/** Ticket type ids left out of the draw pool */
+	excluded_ticket_type_ids?: string[];
 	// Logo is handled via FormData
 }
 
