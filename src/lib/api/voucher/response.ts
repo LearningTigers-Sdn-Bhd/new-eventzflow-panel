@@ -21,6 +21,7 @@ export type BackendVoucher = {
 	voucher_value: string;
 	voucher_category: string | null;
 	image_url: string | null; // Active Storage URL
+	deleted_at?: string | null; // set when archived
 	created_at: string;
 	updated_at: string;
 	vendor?: {
@@ -54,6 +55,7 @@ export type Voucher = {
 	voucherValue: number;
 	voucherCategory: string | null;
 	imageUrl: string | null; // Active Storage URL
+	deletedAt: string | null; // set when archived
 	createdAt: string;
 	updatedAt: string;
 	vendor?: {

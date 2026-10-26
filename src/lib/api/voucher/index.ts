@@ -1,13 +1,15 @@
 // Request types and schemas
 export {
+	archiveVoucher,
 	createVoucher,
-	deleteVoucher,
+	forceDeleteVoucher,
 	getPublicVoucher,
 	// Public endpoints (no auth required)
 	getPublicVouchers,
 	getVoucher,
 	getVoucherByUuid,
 	getVouchers,
+	restoreVoucher,
 	updateVoucher,
 } from "./endpoints";
 export {

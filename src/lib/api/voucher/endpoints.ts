@@ -42,6 +42,7 @@ function transformVoucher(backendVoucher: BackendVoucher): Voucher {
 		voucherValue: Number.parseFloat(backendVoucher.voucher_value),
 		voucherCategory: backendVoucher.voucher_category,
 		imageUrl: backendVoucher.image_url,
+		deletedAt: backendVoucher.deleted_at ?? null,
 		createdAt: backendVoucher.created_at,
 		updatedAt: backendVoucher.updated_at,
 		vendor: backendVoucher.vendor
@@ -61,6 +62,7 @@ function transformVoucher(backendVoucher: BackendVoucher): Voucher {
 export async function getVouchers(params?: {
 	vendor_id?: number;
 	event_id?: number;
+	archived?: boolean;
 }): Promise<Voucher[]> {
 	try {
 		const queryParams = new URLSearchParams();
@@ -69,6 +71,10 @@ export async function getVouchers(params?: {
 		}
 		if (params?.event_id) {
 			queryParams.append("event_id", params.event_id.toString());
+		}
+
+		if (params?.archived) {
+			queryParams.append("archived", "true");
 		}
 
 		const url = queryParams.toString()
@@ -324,20 +330,51 @@ export async function updateVoucher(
 }
 
 /**
- * Delete a voucher
+ * Archive a voucher (soft delete, can be restored)
  */
-export async function deleteVoucher(
+export async function archiveVoucher(
 	data: DeleteVoucherRequest,
 ): Promise<DeleteVoucherResponse> {
 	try {
 		const validated = deleteVoucherSchema.parse(data);
-
-		// Note: Backend returns 204 No Content for delete, so no response body
 		await restClient.delete(`v1/vouchers/${validated.id}`);
+		return { success: true };
+	} catch (error: unknown) {
+		console.error("Error archiving voucher:", error);
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to archive voucher";
+		throw new Error(errorMessage);
+	}
+}
 
-		return {
-			success: true,
-		};
+/**
+ * Restore an archived voucher
+ */
+export async function restoreVoucher(
+	data: DeleteVoucherRequest,
+): Promise<DeleteVoucherResponse> {
+	try {
+		const validated = deleteVoucherSchema.parse(data);
+		await restClient.patch(`v1/vouchers/${validated.id}/restore`);
+		return { success: true };
+	} catch (error: unknown) {
+		console.error("Error restoring voucher:", error);
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to restore voucher";
+		throw new Error(errorMessage);
+	}
+}
+
+/**
+ * Permanently delete a voucher and its redemption history (org owner only)
+ */
+export async function forceDeleteVoucher(
+	data: DeleteVoucherRequest,
+): Promise<DeleteVoucherResponse> {
+	try {
+		const validated = deleteVoucherSchema.parse(data);
+		await restClient.delete(`v1/vouchers/${validated.id}/force_delete`);
+		return { success: true };
 	} catch (error: unknown) {
 		console.error("Error deleting voucher:", error);
 		const errorMessage =

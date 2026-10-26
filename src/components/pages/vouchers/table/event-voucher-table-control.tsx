@@ -4,11 +4,19 @@ import type { Table } from "@tanstack/react-table";
 import { BaseTableControl } from "@/components/admin-ui/table/control/base-table-control";
 import type { ControlConfig } from "@/components/admin-ui/table/control/type";
 
+type VoucherFilter = "active" | "archived";
+
 interface DataControlProps<TData> {
 	table: Table<TData>;
+	voucherFilter?: VoucherFilter;
+	onVoucherFilterChange?: (filter: VoucherFilter) => void;
 }
 
-export function DataControl<TData>({ table }: DataControlProps<TData>) {
+export function DataControl<TData>({
+	table,
+	voucherFilter = "active",
+	onVoucherFilterChange,
+}: DataControlProps<TData>) {
 	const getStatusFilterValue = () => {
 		const statusFilter = table.getColumn("status")?.getFilterValue() as
 			| string
@@ -35,7 +43,25 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 		},
 	};
 
+	const viewFilterControl: ControlConfig | null = onVoucherFilterChange
+		? {
+				label: "View",
+				columnId: "voucherFilter",
+				type: "filter",
+				data: [
+					{ label: "Active", value: "active" },
+					{ label: "Archived", value: "archived" },
+				],
+				customFilter: {
+					value: voucherFilter,
+					onChange: (value: string) =>
+						onVoucherFilterChange(value as VoucherFilter),
+				},
+			}
+		: null;
+
 	const desktopControlConfigs: ControlConfig[] = [
+		...(viewFilterControl ? [viewFilterControl] : []),
 		statusFilterControl,
 		{
 			label: "Columns",
@@ -45,6 +71,7 @@ export function DataControl<TData>({ table }: DataControlProps<TData>) {
 	];
 
 	const mobileControlConfigs: ControlConfig[] = [
+		...(viewFilterControl ? [{ ...viewFilterControl, topPriority: true }] : []),
 		{ ...statusFilterControl, topPriority: true },
 		{ label: "Title", columnId: "title", type: "sort" },
 		{ label: "Validity", columnId: "validity", type: "sort" },

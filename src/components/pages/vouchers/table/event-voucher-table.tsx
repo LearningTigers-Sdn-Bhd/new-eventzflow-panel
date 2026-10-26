@@ -30,12 +30,21 @@ import type { BaseVoucher } from "./event-voucher-table-columns";
 import { DataControl } from "./event-voucher-table-control";
 import { VoucherItem } from "./voucher-item";
 
+export type VoucherFilter = "active" | "archived";
+
 interface DataTableProps<TData> {
 	columns: ColumnDef<TData>[];
 	data: TData[];
+	voucherFilter?: VoucherFilter;
+	onVoucherFilterChange?: (filter: VoucherFilter) => void;
 }
 
-export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
+export function DataTable<TData>({
+	columns,
+	data,
+	voucherFilter = "active",
+	onVoucherFilterChange,
+}: DataTableProps<TData>) {
 	const params = useParams();
 	const eventId = params.event_id as string;
 	const { openDialog, closeDialog } = useDialog();
@@ -81,7 +90,11 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 
 	return (
 		<div className="w-full">
-			<DataControl table={table} />
+			<DataControl
+				table={table}
+				voucherFilter={voucherFilter}
+				onVoucherFilterChange={onVoucherFilterChange}
+			/>
 
 			{/* Data Table */}
 			<div className="min-h-[calc(100vh-320px)]">

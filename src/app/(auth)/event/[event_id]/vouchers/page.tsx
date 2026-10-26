@@ -2,11 +2,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Ticket } from "lucide-react";
-import { use, useMemo } from "react";
+import { use, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { FeatureLockedState } from "@/components/feature-locked-state";
 import { VouchersPageButton } from "@/components/pages/vouchers/page-action/button";
-import { DataTable } from "@/components/pages/vouchers/table/event-voucher-table";
+import {
+	DataTable,
+	type VoucherFilter,
+} from "@/components/pages/vouchers/table/event-voucher-table";
 import { getVoucherColumns } from "@/components/pages/vouchers/table/event-voucher-table-columns";
 import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
@@ -22,6 +25,7 @@ export default function VouchersPage({
 }) {
 	const { event_id } = use(params);
 	const { user } = useAuth();
+	const [voucherFilter, setVoucherFilter] = useState<VoucherFilter>("active");
 
 	// Check permissions
 	const { permissions } = useEventSidebarContext();
@@ -46,8 +50,12 @@ export default function VouchersPage({
 		error,
 		refetch,
 	} = useQuery({
-		queryKey: ["event", event_id, "vouchers"],
-		queryFn: () => getVouchers({ event_id: Number(event_id) }),
+		queryKey: ["event", event_id, "vouchers", voucherFilter],
+		queryFn: () =>
+			getVouchers({
+				event_id: Number(event_id),
+				archived: voucherFilter === "archived",
+			}),
 		enabled: event?.use_voucher === true,
 	});
 
@@ -90,7 +98,12 @@ export default function VouchersPage({
 					action={<Button onClick={() => refetch()}>Retry</Button>}
 				/>
 			) : (
-				<DataTable columns={columns} data={filteredVouchers || []} />
+				<DataTable
+					columns={columns}
+					data={filteredVouchers || []}
+					voucherFilter={voucherFilter}
+					onVoucherFilterChange={setVoucherFilter}
+				/>
 			)}
 		</div>
 	);
