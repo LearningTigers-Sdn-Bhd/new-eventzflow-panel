@@ -23,6 +23,7 @@ import { BaseTableControl } from "@/components/admin-ui/table/control/base-table
 import type { ControlConfig } from "@/components/admin-ui/table/control/type";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { useDialog } from "@/hooks/use-dialog";
 import type { BusinessMatchingEvent } from "@/lib/api/business-matching";
 import { BusinessMatchingItem } from "./business-matching-item";
@@ -51,6 +52,10 @@ export function DataTable({
 	onSessionFilterChange,
 }: DataTableProps) {
 	const { openDialog } = useDialog();
+	const { permissions } = useEventSidebarContext();
+	// Staff who manage sessions also get the seller's "As Buyer" tab.
+	const canManageSession =
+		permissions.canManageEvent || permissions.isBusinessMatchingAdmin;
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [selectedTag, setSelectedTag] = React.useState("all");
 	const [columnVisibility, setColumnVisibility] =
@@ -73,14 +78,18 @@ export function DataTable({
 		(session: BusinessMatchingEvent) => {
 			openDialog({
 				component: SessionActivityDialog,
-				props: { bmEventId: session.id, eventId: session.event_id },
+				props: {
+					bmEventId: session.id,
+					eventId: session.event_id,
+					sellerUserId: canManageSession ? session.host?.id : undefined,
+				},
 				config: {
 					title: `Bookings & Availability for ${session.title}`,
 					size: "full",
 				},
 			});
 		},
-		[openDialog],
+		[openDialog, canManageSession],
 	);
 
 	const table = useReactTable({

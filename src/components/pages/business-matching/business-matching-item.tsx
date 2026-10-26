@@ -104,6 +104,7 @@ export function BusinessMatchingItem({ event }: BusinessMatchingItemProps) {
 					props: {
 						bmEventId: event.id,
 						eventId: event.event_id,
+						sellerUserId: canManageSession ? host?.id : undefined,
 					},
 					config: {
 						title: `Bookings & Availability for ${event.title}`,
