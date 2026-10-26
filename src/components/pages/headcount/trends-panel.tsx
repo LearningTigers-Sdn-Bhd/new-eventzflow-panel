@@ -53,6 +53,7 @@ import {
 } from "@/lib/api/event/hall";
 import { cn } from "@/lib/utils";
 import { downloadBlob } from "../feedback-form/responses/export/download";
+import { CompareCharts } from "./compare-charts";
 import { DayByDay } from "./day-by-day";
 import { StatTile } from "./stat-tile";
 import {
@@ -78,6 +79,14 @@ const EMPTY_DAY = Array.from({ length: 12 }, (_, i) => ({
 const occupancyConfig = {
 	occupancy: { label: "People inside", color: "var(--chart-1)" },
 } satisfies ChartConfig;
+
+const COMPARE_COLORS = [
+	"var(--chart-1)",
+	"var(--chart-2)",
+	"var(--chart-3)",
+	"var(--chart-4)",
+	"var(--chart-5)",
+];
 
 const flowConfig = {
 	entries: { label: "Entries", color: "var(--chart-2)" },
@@ -173,7 +182,16 @@ export function TrendsPanel({
 	const selected: ScopeOption =
 		options.find((o) => o.value === scopeValue) ?? options[0];
 	const { points, stats } = selected.scope;
-	const hasMovement = points.some((p) => p.entries + p.exits > 0);
+	const series = selected.series;
+	const compareConfig: ChartConfig = Object.fromEntries(
+		(series ?? []).map((src, i) => [
+			src.key,
+			{ label: src.name, color: COMPARE_COLORS[i % COMPARE_COLORS.length] },
+		]),
+	);
+	const hasMovement = (series ?? [{ points }]).some((src) =>
+		src.points.some((p) => p.entries + p.exits > 0),
+	);
 	// With nothing counted yet, draw a flat zero line across a typical day so the axes and grid still show.
 	const chartData = hasMovement
 		? points.map((p) => ({ ...p, label: timeLabel(p.time) }))
@@ -217,20 +235,22 @@ export function TrendsPanel({
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								{(["Event", "Levels", "Halls"] as const).map((group) => {
-									const items = options.filter((o) => o.group === group);
-									if (items.length === 0) return null;
-									return (
-										<SelectGroup key={group}>
-											<SelectLabel>{group}</SelectLabel>
-											{items.map((o) => (
-												<SelectItem key={o.value} value={o.value}>
-													{o.label}
-												</SelectItem>
-											))}
-										</SelectGroup>
-									);
-								})}
+								{(["Event", "Compare", "Levels", "Halls"] as const).map(
+									(group) => {
+										const items = options.filter((o) => o.group === group);
+										if (items.length === 0) return null;
+										return (
+											<SelectGroup key={group}>
+												<SelectLabel>{group}</SelectLabel>
+												{items.map((o) => (
+													<SelectItem key={o.value} value={o.value}>
+														{o.label}
+													</SelectItem>
+												))}
+											</SelectGroup>
+										);
+									},
+								)}
 							</SelectContent>
 						</Select>
 					</div>
@@ -292,115 +312,129 @@ export function TrendsPanel({
 					These fill in as people are counted.
 				</p>
 			)}
-			<div className="grid @3xl:grid-cols-3 grid-cols-1 gap-2">
-				<StatTile
-					label="Peak crowd"
-					value={stats?.peak.occupancy ?? null}
-					hint={stats ? `at ${timeLabel(stats.peak.at)}` : "No movement yet"}
-					accent="border-l-emerald-500"
+			{series ? (
+				<CompareCharts
+					series={series}
+					config={compareConfig}
+					bucket={bucket}
+					subtitle={`${selected.label} · ${dayLabel(data.date)}`}
+					hasMovement={hasMovement}
 				/>
-				<StatTile
-					label="Busiest hour for arrivals"
-					value={stats?.busiestEntryHour.entries ?? null}
-					hint={
-						stats
-							? `entries ${hourRange(stats.busiestEntryHour.at)}`
-							: "No movement yet"
-					}
-					accent="border-l-sky-500"
-				/>
-				<StatTile
-					label="Net flow · latest movement"
-					value={stats?.recentFlow?.net ?? null}
-					hint={
-						stats?.recentFlow
-							? `${stats.recentFlow.entries} in · ${stats.recentFlow.exits} out at ${timeLabel(stats.recentFlow.at)}`
-							: "No movement yet"
-					}
-					accent="border-l-amber-500"
-				/>
-			</div>
+			) : (
+				<>
+					<div className="grid @3xl:grid-cols-3 grid-cols-1 gap-2">
+						<StatTile
+							label="Peak crowd"
+							value={stats?.peak.occupancy ?? null}
+							hint={
+								stats ? `at ${timeLabel(stats.peak.at)}` : "No movement yet"
+							}
+							accent="border-l-emerald-500"
+						/>
+						<StatTile
+							label="Busiest hour for arrivals"
+							value={stats?.busiestEntryHour.entries ?? null}
+							hint={
+								stats
+									? `entries ${hourRange(stats.busiestEntryHour.at)}`
+									: "No movement yet"
+							}
+							accent="border-l-sky-500"
+						/>
+						<StatTile
+							label="Net flow · latest movement"
+							value={stats?.recentFlow?.net ?? null}
+							hint={
+								stats?.recentFlow
+									? `${stats.recentFlow.entries} in · ${stats.recentFlow.exits} out at ${timeLabel(stats.recentFlow.at)}`
+									: "No movement yet"
+							}
+							accent="border-l-amber-500"
+						/>
+					</div>
 
-			<Card className="gap-0 rounded-none shadow-none">
-				<CardHeader className="border-b pb-3">
-					<CardTitle className="text-sm">People inside</CardTitle>
-					<CardDescription className="text-xs">
-						{selected.label} · {dayLabel(data.date)}
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="pt-4">
-					<ChartContainer
-						config={occupancyConfig}
-						className="aspect-auto h-64 w-full"
-					>
-						<AreaChart data={chartData} margin={{ left: 4, right: 12 }}>
-							<CartesianGrid vertical={false} />
-							<XAxis
-								dataKey="label"
-								tickLine={false}
-								axisLine={false}
-								tickMargin={8}
-								minTickGap={24}
-							/>
-							<YAxis
-								tickLine={false}
-								axisLine={false}
-								width={40}
-								allowDecimals={false}
-								domain={yDomain}
-							/>
-							<ChartTooltip
-								content={<ChartTooltipContent indicator="line" />}
-							/>
-							<Area
-								dataKey="occupancy"
-								type="monotone"
-								stroke="var(--color-occupancy)"
-								fill="var(--color-occupancy)"
-								fillOpacity={0.2}
-							/>
-						</AreaChart>
-					</ChartContainer>
-				</CardContent>
-			</Card>
+					<Card className="gap-0 rounded-none shadow-none">
+						<CardHeader className="border-b pb-3">
+							<CardTitle className="text-sm">People inside</CardTitle>
+							<CardDescription className="text-xs">
+								{selected.label} · {dayLabel(data.date)}
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="pt-4">
+							<ChartContainer
+								config={occupancyConfig}
+								className="aspect-auto h-64 w-full"
+							>
+								<AreaChart data={chartData} margin={{ left: 4, right: 12 }}>
+									<CartesianGrid vertical={false} />
+									<XAxis
+										dataKey="label"
+										tickLine={false}
+										axisLine={false}
+										tickMargin={8}
+										minTickGap={24}
+									/>
+									<YAxis
+										tickLine={false}
+										axisLine={false}
+										width={40}
+										allowDecimals={false}
+										domain={yDomain}
+									/>
+									<ChartTooltip
+										content={<ChartTooltipContent indicator="line" />}
+									/>
+									<Area
+										dataKey="occupancy"
+										type="monotone"
+										stroke="var(--color-occupancy)"
+										fill="var(--color-occupancy)"
+										fillOpacity={0.2}
+									/>
+								</AreaChart>
+							</ChartContainer>
+						</CardContent>
+					</Card>
 
-			<Card className="gap-0 rounded-none shadow-none">
-				<CardHeader className="border-b pb-3">
-					<CardTitle className="text-sm">Entries and exits</CardTitle>
-					<CardDescription className="text-xs">
-						How many people came in and left in each{" "}
-						{bucket === 15 ? "15 minutes" : "hour"}
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="pt-4">
-					<ChartContainer
-						config={flowConfig}
-						className="aspect-auto h-64 w-full"
-					>
-						<BarChart data={chartData} margin={{ left: 4, right: 12 }}>
-							<CartesianGrid vertical={false} />
-							<XAxis
-								dataKey="label"
-								tickLine={false}
-								axisLine={false}
-								tickMargin={8}
-								minTickGap={24}
-							/>
-							<YAxis
-								tickLine={false}
-								axisLine={false}
-								width={40}
-								allowDecimals={false}
-								domain={yDomain}
-							/>
-							<ChartTooltip content={<ChartTooltipContent />} />
-							<ChartLegend content={<ChartLegendContent />} />
-							<Bar dataKey="entries" fill="var(--color-entries)" />
-							<Bar dataKey="exits" fill="var(--color-exits)" />
-						</BarChart>
-					</ChartContainer>
-				</CardContent>
-			</Card>
+					<Card className="gap-0 rounded-none shadow-none">
+						<CardHeader className="border-b pb-3">
+							<CardTitle className="text-sm">Entries and exits</CardTitle>
+							<CardDescription className="text-xs">
+								How many people came in and left in each{" "}
+								{bucket === 15 ? "15 minutes" : "hour"}
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="pt-4">
+							<ChartContainer
+								config={flowConfig}
+								className="aspect-auto h-64 w-full"
+							>
+								<BarChart data={chartData} margin={{ left: 4, right: 12 }}>
+									<CartesianGrid vertical={false} />
+									<XAxis
+										dataKey="label"
+										tickLine={false}
+										axisLine={false}
+										tickMargin={8}
+										minTickGap={24}
+									/>
+									<YAxis
+										tickLine={false}
+										axisLine={false}
+										width={40}
+										allowDecimals={false}
+										domain={yDomain}
+									/>
+									<ChartTooltip content={<ChartTooltipContent />} />
+									<ChartLegend content={<ChartLegendContent />} />
+									<Bar dataKey="entries" fill="var(--color-entries)" />
+									<Bar dataKey="exits" fill="var(--color-exits)" />
+								</BarChart>
+							</ChartContainer>
+						</CardContent>
+					</Card>
+				</>
+			)}
 		</div>
 	);
 }

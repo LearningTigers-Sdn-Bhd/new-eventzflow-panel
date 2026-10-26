@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { HeadcountHall, HeadcountTrends } from "@/lib/api/event/hall";
 import { capacityAlerts } from "./alerts";
 import {
+	compareRows,
 	dayLabel,
 	hourRange,
 	scopeOptions,
@@ -91,9 +92,33 @@ describe("scopeOptions", () => {
 	test("lists the event, each level and only halls with a working counter", () => {
 		expect(scopeOptions(trends).map((o) => [o.value, o.label])).toEqual([
 			["event", "Whole event"],
+			["compare:levels", "Compare levels"],
 			["level:Level 1", "Level 1"],
 			["level:", "No level set"],
 			["hall:1", "Hall A"],
+		]);
+	});
+});
+
+describe("compareRows", () => {
+	test("puts each source in its own column on a shared time axis", () => {
+		const pt = (time: string, occupancy: number) => ({
+			time,
+			occupancy,
+			entries: 0,
+			exits: 0,
+		});
+		const rows = compareRows([
+			{
+				key: "h1",
+				name: "KH",
+				points: [pt("2026-10-30T09:00:00", 5), pt("2026-10-30T10:00:00", 8)],
+			},
+			{ key: "h2", name: "SH", points: [pt("2026-10-30T09:00:00", 2)] },
+		]);
+		expect(rows).toEqual([
+			{ time: "2026-10-30T09:00:00", label: "09:00", h1: 5, h2: 2 },
+			{ time: "2026-10-30T10:00:00", label: "10:00", h1: 8 },
 		]);
 	});
 });

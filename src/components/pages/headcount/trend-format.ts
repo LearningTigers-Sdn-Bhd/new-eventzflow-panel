@@ -1,4 +1,8 @@
-import type { HeadcountTrends, TrendScope } from "@/lib/api/event/hall";
+import type {
+	HeadcountTrends,
+	TrendPoint,
+	TrendScope,
+} from "@/lib/api/event/hall";
 import { floorLabel } from "./format";
 
 /** "2026-09-11T14:15:00" -> "14:15". Strings are sliced, never parsed, so no timezone can shift them. */
@@ -54,12 +58,69 @@ export interface ScopeOption {
 	/** "event", "level:<floor>" or "hall:<id>". */
 	value: string;
 	label: string;
-	group: "Event" | "Levels" | "Halls";
+	group: "Event" | "Compare" | "Levels" | "Halls";
 	scope: TrendScope;
+	/** Set on compare options: one line per hall / level, drawn on the same chart. */
+	series?: CompareSource[];
+}
+
+export interface CompareSource {
+	key: string;
+	name: string;
+	points: TrendPoint[];
+}
+
+/** One chart row per time slot, with a `<key>` column per source so each hall / level gets its own line. */
+export function compareRows(
+	sources: CompareSource[],
+	metric: "occupancy" | "entries" | "exits" = "occupancy",
+): Record<string, string | number>[] {
+	const rows = new Map<string, Record<string, string | number>>();
+	for (const source of sources) {
+		for (const p of source.points) {
+			const row = rows.get(p.time) ?? {
+				time: p.time,
+				label: timeLabel(p.time),
+			};
+			row[source.key] = p[metric];
+			rows.set(p.time, row);
+		}
+	}
+	return [...rows.values()].sort((a, b) =>
+		String(a.time).localeCompare(String(b.time)),
+	);
 }
 
 /** Everything the chart can be pointed at: the whole event, each level, each linked hall. */
 export function scopeOptions(trends: HeadcountTrends): ScopeOption[] {
+	const linked = trends.halls.filter((hall) => hall.status === "ok");
+	const compare: ScopeOption[] = [];
+	if (linked.length > 1) {
+		compare.push({
+			value: "compare:halls",
+			label: "Compare halls",
+			group: "Compare",
+			scope: trends.event,
+			series: linked.map((h) => ({
+				key: `h${h.id}`,
+				name: h.name,
+				points: h.points,
+			})),
+		});
+	}
+	if (trends.levels.length > 1) {
+		compare.push({
+			value: "compare:levels",
+			label: "Compare levels",
+			group: "Compare",
+			scope: trends.event,
+			series: trends.levels.map((l) => ({
+				key: `l${l.floor ?? ""}`,
+				name: floorLabel(l.floor),
+				points: l.points,
+			})),
+		});
+	}
 	return [
 		{
 			value: "event",
@@ -67,6 +128,7 @@ export function scopeOptions(trends: HeadcountTrends): ScopeOption[] {
 			group: "Event",
 			scope: trends.event,
 		},
+		...compare,
 		...trends.levels.map((level) => ({
 			value: `level:${level.floor ?? ""}`,
 			label: floorLabel(level.floor),
