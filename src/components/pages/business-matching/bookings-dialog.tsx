@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { isSameDay } from "date-fns";
 import { Calendar, LayoutGrid, List, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -17,6 +17,10 @@ import {
 	useBusinessMatchingBookings,
 	useForceRefreshBookings,
 } from "@/hooks/use-business-matching";
+import {
+	compareBookingsByTime,
+	parseBookingDateTime,
+} from "@/lib/business-matching-dates";
 import { cn } from "@/lib/utils";
 import { BookingCardItem } from "./booking-card-item";
 
@@ -41,9 +45,6 @@ export default function BookingsDialog({
 	const _queryClient = useQueryClient();
 	const { mutate: forceRefreshBookings, isPending: isRefreshingBookings } =
 		useForceRefreshBookings(bmEventId, eventId);
-
-	// Format today's date to match the "dd MMMM" format (e.g., "03 November")
-	const todayString = format(new Date(), "dd MMMM");
 
 	const _handleRefreshBookings = () => {
 		forceRefreshBookings();
@@ -90,16 +91,6 @@ export default function BookingsDialog({
 	// Cancelled bookings are dead entries — nothing left to action on them.
 	const bookings = data.bookings.filter((b) => b.status !== "Cancelled");
 
-	// Helper function to create a sortable Date object from booking details
-	const getSortableDate = (booking: (typeof bookings)[0]) => {
-		// e.g., "03 November" and "10:00 AM" -> "03 November 2024 10:00"
-		const year = new Date().getFullYear();
-		const dateTimeString = `${booking.booking_date} ${year} ${booking.booking_time}`;
-		// Adjust for AM/PM if present, otherwise assume 24h
-		const parsableString = dateTimeString.replace(/ (AM|PM)$/, "M");
-		return new Date(parsableString);
-	};
-
 	const filteredBookings = bookings
 		.filter((booking) => {
 			const query = searchQuery.toLowerCase();
@@ -117,24 +108,15 @@ export default function BookingsDialog({
 				booking.booking_time.toLowerCase().includes(query)
 			);
 		})
-		.sort(
-			(a, b) => getSortableDate(a).getTime() - getSortableDate(b).getTime(),
-		);
+		.sort(compareBookingsByTime);
 
-	const todayBookings = filteredBookings
-		.filter((b) => b.booking_date?.includes(todayString))
-		.sort((a, b) => {
-			const now = new Date();
-			const dateA = getSortableDate(a);
-			const dateB = getSortableDate(b);
-
-			// If a booking is in the past, push it to the bottom
-			if (dateA < now && dateB >= now) return 1;
-			if (dateB < now && dateA >= now) return -1;
-
-			// Otherwise, sort by time
-			return dateA.getTime() - dateB.getTime();
-		});
+	// Compared by calendar day — the API's date has no zero-padded day
+	// ("3 November 2026"), so string matching misses the 1st–9th.
+	const now = new Date();
+	const todayBookings = filteredBookings.filter((b) => {
+		const at = parseBookingDateTime(b.booking_date, b.booking_time);
+		return at !== null && isSameDay(at, now);
+	});
 
 	const stats = [
 		{ label: "Total", value: bookings.length, className: "" },

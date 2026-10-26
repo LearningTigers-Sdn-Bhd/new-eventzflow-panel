@@ -209,6 +209,22 @@ export async function getBookings(
 	return restClient.get<BookingsResponse>(url);
 }
 
+export interface BuyerBooking extends Booking {
+	host_name: string;
+}
+
+/**
+ * Bookings the current user made with other sellers as a buyer — a seller
+ * can also book meetings. Matched on the account email by the backend.
+ */
+export async function getBuyerBookings(
+	eventId: string,
+): Promise<{ bookings: BuyerBooking[] }> {
+	return restClient.get<{ bookings: BuyerBooking[] }>(
+		`v1/business_matching/events/${eventId}/buyer_bookings`,
+	);
+}
+
 export interface PublicBookingStatus {
 	enabled: boolean;
 	cutoff_date: string | null;
