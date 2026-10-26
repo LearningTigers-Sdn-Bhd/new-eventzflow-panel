@@ -51,7 +51,7 @@ const winnersPerDrawField = {
 	name: "winners_per_draw",
 	label: "Winners per draw",
 	description:
-		"How many winners one click of Draw picks (1 to 200). Use 1 for the classic one-by-one draw. With gifts on, a draw never goes past the gift's open slots",
+		"How many winners one click of Draw picks (1 to 200). Use 1 for the classic one-by-one draw. With gifts on, a draw never goes past the gift's open slots. Not used when drawing a round",
 	max: 200,
 	renderCondition: () => true,
 };
@@ -61,9 +61,9 @@ const GIFTS_ON = (values: Record<string, unknown>) => values.use_gifts === true;
 const giftPickField = {
 	type: "select" as const,
 	name: "gift_pick",
-	label: "Pick the next gift",
+	label: "Gift order",
 	description:
-		"In order follows the gift list. Random picks any gift that still has a slot each draw; gifts marked Draw last wait until the rest are done",
+		"In order: follows the gift list, top gift first. Random: picks a random gift that still has a slot each draw. Tick Draw last on a gift (like the grand prize) to hold it until the rest are done",
 	options: [
 		{ value: "in_order", label: "In order (gift list)" },
 		{ value: "random", label: "Random" },
@@ -74,9 +74,9 @@ const giftPickField = {
 const roundSweepField = {
 	type: "boolean" as const,
 	name: "round_sweep",
-	label: "One winner per gift each draw",
+	label: "Draw a round: one winner for every gift",
 	description:
-		"One click draws a winner for every gift that still has a slot (a round), then the next click starts the next round. A gift with 2 winners joins 2 rounds. Winners per draw is not used",
+		"Off: a click fills one gift at a time (uses Winners per draw). On: each click gives every gift that still has a slot one winner, and the next click is the next round. A gift needing 2 winners joins 2 rounds. Winners per draw is not used",
 	renderCondition: GIFTS_ON,
 };
 

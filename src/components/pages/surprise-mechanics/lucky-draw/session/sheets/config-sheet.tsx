@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
 	Select,
@@ -35,7 +36,9 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import type { useLuckyDraw } from "@/hooks/use-lucky-draw";
+import { cn } from "@/lib/utils";
 import type { DrawStyle } from "@/stores/lucky-draw-store";
+import { GiftDrawingSettings } from "./gift-drawing-settings";
 
 interface ConfigSheetProps {
 	open: boolean;
@@ -53,8 +56,12 @@ export function ConfigSheet({
 		drawStyle,
 		drawTheme,
 		wrapperBackground,
+		winnersPerDraw,
+		giftPick,
+		roundSweepSetting,
 		isLoadingConfig,
 		setUseGifts,
+		setDrawOptions,
 		setDrawStyle,
 		setDrawTheme,
 		setWrapperBackground,
@@ -73,6 +80,9 @@ export function ConfigSheet({
 		drawStyle,
 		drawTheme,
 		useGifts,
+		winnersPerDraw,
+		giftPick,
+		roundSweep: roundSweepSetting,
 		wrapperBackground: {
 			useImage: initialUseImage,
 			backgroundImage: null as File | null,
@@ -85,6 +95,9 @@ export function ConfigSheet({
 			drawStyle,
 			drawTheme,
 			useGifts,
+			winnersPerDraw,
+			giftPick,
+			roundSweep: roundSweepSetting,
 			wrapperBackground: {
 				useImage: initialUseImage,
 				backgroundImage: null as File | null,
@@ -104,6 +117,19 @@ export function ConfigSheet({
 
 				if (value.useGifts !== initialValuesRef.current.useGifts) {
 					promises.push(setUseGifts(value.useGifts));
+				}
+
+				// Draw behavior: send only what changed, in one request
+				const initial = initialValuesRef.current;
+				const options: Parameters<typeof setDrawOptions>[0] = {};
+				if (value.winnersPerDraw !== initial.winnersPerDraw)
+					options.winners_per_draw = value.winnersPerDraw;
+				if (value.giftPick !== initial.giftPick)
+					options.gift_pick = value.giftPick;
+				if (value.roundSweep !== initial.roundSweep)
+					options.round_sweep = value.roundSweep;
+				if (Object.keys(options).length > 0) {
+					promises.push(setDrawOptions(options));
 				}
 
 				// Check if wrapperBackground changed
@@ -144,6 +170,9 @@ export function ConfigSheet({
 					drawStyle: value.drawStyle,
 					drawTheme: value.drawTheme,
 					useGifts: value.useGifts,
+					winnersPerDraw: value.winnersPerDraw,
+					giftPick: value.giftPick,
+					roundSweep: value.roundSweep,
 					wrapperBackground: value.wrapperBackground,
 				};
 			} catch (error) {
@@ -169,12 +198,18 @@ export function ConfigSheet({
 				drawStyle,
 				drawTheme,
 				useGifts,
+				winnersPerDraw,
+				giftPick,
+				roundSweep: roundSweepSetting,
 				wrapperBackground: defaultWrapperBackground,
 			};
 			form.reset({
 				drawStyle,
 				drawTheme,
 				useGifts,
+				winnersPerDraw,
+				giftPick,
+				roundSweep: roundSweepSetting,
 				wrapperBackground: defaultWrapperBackground,
 			});
 		}
@@ -183,6 +218,9 @@ export function ConfigSheet({
 		drawStyle,
 		drawTheme,
 		useGifts,
+		winnersPerDraw,
+		giftPick,
+		roundSweepSetting,
 		wrapperBackground,
 		isLoadingConfig,
 		form,
@@ -206,6 +244,9 @@ export function ConfigSheet({
 			currentValues.drawStyle !== initial.drawStyle ||
 			currentValues.drawTheme !== initial.drawTheme ||
 			currentValues.useGifts !== initial.useGifts ||
+			currentValues.winnersPerDraw !== initial.winnersPerDraw ||
+			currentValues.giftPick !== initial.giftPick ||
+			currentValues.roundSweep !== initial.roundSweep ||
 			bgChanged
 		);
 	};
@@ -263,11 +304,6 @@ export function ConfigSheet({
 														onValueChange={(value) => {
 															const newStyle = value as DrawStyle;
 															field.handleChange(newStyle);
-															// Reset theme to wireframe when switching to box style if current theme is colorful or cartoon
-															const currentTheme = form.state.values.drawTheme;
-															if (false) {
-																// Box now supports all themes - no reset needed
-															}
 														}}
 														disabled={isLoadingConfig}
 													>
@@ -376,8 +412,74 @@ export function ConfigSheet({
 											</div>
 										)}
 									</form.Field>
+									<form.Subscribe
+										selector={(state) =>
+											state.values.useGifts && state.values.roundSweep
+										}
+									>
+										{(inRounds) => (
+											<form.Field name="winnersPerDraw">
+												{(field) => (
+													<div
+														className={cn(
+															"grid grid-cols-3 gap-4",
+															inRounds && "opacity-60",
+														)}
+													>
+														<div className="col-span-2">
+															<p className="font-semibold">Winners per draw</p>
+															<p className="text-balance text-muted-foreground text-sm">
+																{inRounds
+																	? "Not used while each click draws a round: a round gives one winner to every gift."
+																	: "How many winners one click picks (1 to 200). With gifts on, a draw never goes past the gift's open slots."}
+															</p>
+														</div>
+														<div className="col-span-1 flex items-center justify-end">
+															<NumberInput
+																value={field.state.value}
+																onChange={field.handleChange}
+																min={1}
+																max={200}
+																disabled={inRounds}
+															/>
+														</div>
+													</div>
+												)}
+											</form.Field>
+										)}
+									</form.Subscribe>
 								</CardContent>
 							</Card>
+							<form.Subscribe selector={(state) => state.values}>
+								{(values) =>
+									values.useGifts && (
+										<Card className="gap-0 rounded-none border-primary/20 px-0 pt-4 pb-0 shadow-none">
+											<CardHeader className="gap-0! border-b px-4 pt-0! pb-2!">
+												<CardTitle className="text-base">
+													Gift Drawing
+												</CardTitle>
+												<CardDescription className="text-sm">
+													Choose how gifts are given out when you draw.
+												</CardDescription>
+											</CardHeader>
+											<CardContent className="bg-background py-4">
+												<GiftDrawingSettings
+													roundSweep={values.roundSweep}
+													onRoundSweepChange={(value) =>
+														form.setFieldValue("roundSweep", value)
+													}
+													giftPick={values.giftPick}
+													onGiftPickChange={(value) =>
+														form.setFieldValue("giftPick", value)
+													}
+													winnersPerDraw={values.winnersPerDraw}
+													disabled={isLoadingConfig}
+												/>
+											</CardContent>
+										</Card>
+									)
+								}
+							</form.Subscribe>
 							<Card className="gap-0 rounded-none border-primary/20 px-0 pt-4 pb-0 shadow-none">
 								<CardHeader className="gap-0! border-b px-4 pt-0! pb-2!">
 									<CardTitle className="text-base">

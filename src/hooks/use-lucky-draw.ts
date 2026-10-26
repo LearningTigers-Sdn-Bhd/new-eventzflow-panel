@@ -510,6 +510,28 @@ export function useLuckyDraw(
 		[updateConfigMutation],
 	);
 
+	// Draw behavior settings, saved together in one request
+	const setDrawOptions = useCallback(
+		async (
+			options: Pick<
+				UpdateLuckyDrawSessionRequest,
+				"winners_per_draw" | "gift_pick" | "round_sweep"
+			>,
+		) => {
+			try {
+				await updateConfigMutation.mutateAsync(options);
+				toast.success("Draw options updated successfully");
+			} catch (error) {
+				toast.error(
+					error instanceof Error
+						? error.message
+						: "Failed to update draw options",
+				);
+			}
+		},
+		[updateConfigMutation],
+	);
+
 	const setWrapperBackground = useCallback(
 		async (value: {
 			useImage: boolean;
@@ -687,6 +709,9 @@ export function useLuckyDraw(
 		giftTargets,
 		isBatchDraw,
 		roundSweep,
+		giftPick,
+		// The saved setting, unlike roundSweep which is also off when gifts are off
+		roundSweepSetting: sessionData?.round_sweep ?? false,
 		nextRound,
 
 		// Raw data for advanced use cases
@@ -725,6 +750,7 @@ export function useLuckyDraw(
 		setDrawStyle,
 		setDrawTheme,
 		setUseGifts,
+		setDrawOptions,
 		setWrapperBackground,
 		startDrawing,
 		stopDrawing,

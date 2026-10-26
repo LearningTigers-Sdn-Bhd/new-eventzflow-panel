@@ -7,6 +7,7 @@ import {
 	planGiftTargets,
 	seededRandom,
 } from "./batch-draw";
+import { describeDraw } from "./draw-summary";
 import {
 	buildWinnerGroups,
 	buildWinnersCsv,
@@ -283,4 +284,33 @@ test("gift winners from a sweep export per round with their gift", () => {
 	const csv = buildWinnersCsv(groups);
 	expect(csv).toContain("Round,No.,Name,Gift");
 	expect(csv).toContain("Round 1,2,Bo,Voucher");
+});
+
+test("draw summary says what one click does in each mode", () => {
+	const base = { winnersPerDraw: 5 };
+	expect(
+		describeDraw({ ...base, giftPick: "in_order", roundSweep: false }),
+	).toContain("up to 5 winners for the first gift in the list");
+	expect(
+		describeDraw({
+			winnersPerDraw: 1,
+			giftPick: "in_order",
+			roundSweep: false,
+		}),
+	).toContain("1 winner for the first gift");
+	expect(
+		describeDraw({ ...base, giftPick: "random", roundSweep: false }),
+	).toContain("one random gift");
+	expect(
+		describeDraw({ ...base, giftPick: "in_order", roundSweep: true }),
+	).toContain("one winner for every gift");
+	const random = describeDraw({
+		...base,
+		giftPick: "random",
+		roundSweep: true,
+	});
+	expect(random).toContain("random order");
+	expect(random).toContain("Draw last");
+	// A round never mentions winners per draw: it is not used
+	expect(random).not.toContain("5");
 });
