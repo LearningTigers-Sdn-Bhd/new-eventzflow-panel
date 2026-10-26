@@ -41,3 +41,36 @@ export function isAvailableDate(
 		return parsed !== null && isSameDay(day, parsed);
 	});
 }
+
+/**
+ * Parse a booking's `booking_date` ("31 October 2026") and `booking_time`
+ * ("02:20 PM") into one Date, for ordering bookings by when they happen. The
+ * API returns bookings unordered (roughly creation order), so callers must
+ * sort with this rather than trust the response order.
+ */
+export function parseBookingDateTime(
+	bookingDate: string,
+	bookingTime: string,
+): Date | null {
+	const day = parseAvailabilityDate(bookingDate);
+	if (!day) return null;
+
+	const withTime = parse(bookingTime.trim(), "hh:mm a", day);
+	return isValid(withTime) ? withTime : day;
+}
+
+/**
+ * Comparator: earliest booking first. Bookings whose date can't be parsed go
+ * last so they never scramble the parsed ones.
+ */
+export function compareBookingsByTime(
+	a: { booking_date: string; booking_time: string },
+	b: { booking_date: string; booking_time: string },
+): number {
+	const timeA = parseBookingDateTime(a.booking_date, a.booking_time)?.getTime();
+	const timeB = parseBookingDateTime(b.booking_date, b.booking_time)?.getTime();
+	if (timeA === undefined && timeB === undefined) return 0;
+	if (timeA === undefined) return 1;
+	if (timeB === undefined) return -1;
+	return timeA - timeB;
+}
