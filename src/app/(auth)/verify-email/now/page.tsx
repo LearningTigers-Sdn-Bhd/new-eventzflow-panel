@@ -30,11 +30,12 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { sendVerificationCode, verifyEmail } from "@/lib/api/auth";
+import { safeRedirect } from "@/utils/safe-redirect";
 
 export default function VerifyEmailPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams(); // Get search params
-	const redirectPath = searchParams.get("redirect"); // Get redirect path
+	const redirectPath = safeRedirect(searchParams.get("redirect"));
 	const { user } = useAuth();
 	const [isResending, setIsResending] = useState(false);
 	const [cooldown, setCooldown] = useState(0);

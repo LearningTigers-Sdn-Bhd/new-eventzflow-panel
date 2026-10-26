@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { login, type RegisterRequestData, register } from "@/lib/api/auth";
+import { safeRedirect } from "@/utils/safe-redirect";
 
 interface AuthFormState {
 	isLoading: boolean;
@@ -21,7 +22,7 @@ interface UseAuthFormReturn {
 export function useAuthForm(): UseAuthFormReturn {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const redirectPath = searchParams.get("redirect");
+	const redirectPath = safeRedirect(searchParams.get("redirect"));
 
 	const [state, setState] = useState<AuthFormState>({
 		isLoading: false,

@@ -11,11 +11,12 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { safeRedirect } from "@/utils/safe-redirect";
 
 export default function VerifyEmailLandingPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const redirectPath = searchParams.get("redirect");
+	const redirectPath = safeRedirect(searchParams.get("redirect"));
 	const { user } = useAuth();
 
 	if (!user) {
