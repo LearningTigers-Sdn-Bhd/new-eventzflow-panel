@@ -5,9 +5,7 @@ import {
 	type ColumnFiltersState,
 	flexRender,
 	getCoreRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
+	type OnChangeFn,
 	type RowSelectionState,
 	type SortingState,
 	useReactTable,
@@ -43,12 +41,30 @@ import { DataControl } from "./data-control";
 import { ExhibitorItem } from "./exhibitor-item";
 import { KitDetailsRow } from "./kit-details-row";
 
+interface ServerPagination {
+	pageIndex: number;
+	pageSize: number;
+	pageCount: number;
+	totalCount: number;
+	onPageChange: (pageIndex: number) => void;
+	onPageSizeChange: (size: number) => void;
+}
+
+// Search, filters, sorting and paging all happen server-side (see
+// exhibitor-list-view.tsx), so `data` is always exactly one page.
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 	canManageVendors?: boolean;
 	configuredPricingLabels?: string[];
 	configuredZones?: string[];
+	search: string;
+	onSearchChange: (value: string) => void;
+	columnFilters: ColumnFiltersState;
+	onColumnFiltersChange: OnChangeFn<ColumnFiltersState>;
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
+	pagination: ServerPagination;
 }
 
 type StickyColumnMeta = {
@@ -60,12 +76,15 @@ export function DataTable<TData, TValue>({
 	data,
 	configuredPricingLabels,
 	configuredZones,
+	search,
+	onSearchChange,
+	columnFilters,
+	onColumnFiltersChange,
+	sorting,
+	onSortingChange,
+	pagination,
 }: DataTableProps<TData, TValue>) {
 	const isTablet = useIsTablet();
-	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[],
-	);
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({
 			booth_pricing: false,
@@ -79,12 +98,23 @@ export function DataTable<TData, TValue>({
 	const table = useReactTable({
 		data,
 		columns,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
+		onSortingChange,
+		onColumnFiltersChange,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
+		manualPagination: true,
+		manualSorting: true,
+		manualFiltering: true,
+		pageCount: pagination.pageCount,
+		onPaginationChange: (updater) => {
+			const next =
+				typeof updater === "function"
+					? updater({
+							pageIndex: pagination.pageIndex,
+							pageSize: pagination.pageSize,
+						})
+					: updater;
+			pagination.onPageChange(next.pageIndex);
+		},
 		onColumnVisibilityChange: setColumnVisibility,
 		onRowSelectionChange: setRowSelection,
 		enableRowSelection: true,
@@ -93,18 +123,34 @@ export function DataTable<TData, TValue>({
 			columnFilters,
 			columnVisibility,
 			rowSelection,
+			pagination: {
+				pageIndex: pagination.pageIndex,
+				pageSize: pagination.pageSize,
+			},
 		},
 		getRowId: (row) => String((row as ExhibitorMember).kit.id),
 	});
 
+	// Selection only ever covers the visible page; drop it when the page changes.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: reset on page/filter change only
+	React.useEffect(() => {
+		setRowSelection({});
+	}, [
+		pagination.pageIndex,
+		pagination.pageSize,
+		search,
+		columnFilters,
+		sorting,
+	]);
+
 	const detailsMember = table
-		.getFilteredRowModel()
+		.getCoreRowModel()
 		.rows.find((row) => row.id === detailsRowId)?.original as
 		| ExhibitorMember
 		| undefined;
 
 	const selectedKits = table
-		.getFilteredSelectedRowModel()
+		.getSelectedRowModel()
 		.rows.map((row) => (row.original as ExhibitorMember).kit);
 
 	const handleBulkPaymentClick = () => {
@@ -129,6 +175,8 @@ export function DataTable<TData, TValue>({
 		<div className="w-full">
 			<DataControl
 				table={table}
+				search={search}
+				onSearchChange={onSearchChange}
 				configuredPricingLabels={configuredPricingLabels}
 				configuredZones={configuredZones}
 			/>
@@ -291,7 +339,12 @@ export function DataTable<TData, TValue>({
 				)}
 			</div>
 
-			<DataPagination table={table} />
+			<DataPagination
+				table={table}
+				totalRows={pagination.totalCount}
+				pageSize={pagination.pageSize}
+				onPageSizeChange={pagination.onPageSizeChange}
+			/>
 
 			<Sheet
 				open={!!detailsMember}
@@ -318,7 +371,7 @@ export function DataTable<TData, TValue>({
 								kit={detailsMember.kit}
 								batchSize={
 									table
-										.getFilteredRowModel()
+										.getCoreRowModel()
 										.rows.filter(
 											(other) =>
 												(other.original as ExhibitorMember).kit

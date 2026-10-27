@@ -16,8 +16,6 @@ describe("event exhibitor table filters", () => {
 		expect(dataControlSource).toContain('"Zone"');
 		expect(dataControlSource).toContain("pricingLabels.length > 0");
 		expect(dataControlSource).toContain("zones.length > 0");
-		expect(dataControlSource).toContain("exhibitor_booth_price_label");
-		expect(dataControlSource).toContain("exhibitor_booth_price_zone");
 	});
 
 	test("includes configured catalog options in the filters", () => {

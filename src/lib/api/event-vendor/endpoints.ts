@@ -1,3 +1,4 @@
+import type { ExhibitorKit } from "@/lib/api/exhibitor-kit";
 import { restClient } from "@/utils/rest-api";
 import {
 	type CreateEventVendorBatchRequest,
@@ -33,6 +34,73 @@ export async function getEventVendors(eventId: number): Promise<EventVendor[]> {
 		`v1/events/${eventId}/vendors`,
 	);
 	return vendors.map(normalizeEventVendor);
+}
+
+export interface ExhibitorKitRow {
+	vendor: EventVendor;
+	kit: ExhibitorKit;
+}
+
+export interface GetExhibitorKitsPagedOptions {
+	page: number;
+	perPage: number;
+	q?: string;
+	paymentStatus?: string;
+	boothType?: string;
+	boothPricing?: string;
+	/** Zone name, or "__unassigned__" for kits without a zone. */
+	zone?: string;
+	sortBy?: "booth_number" | "company_name" | "created_at";
+	sortDir?: "asc" | "desc";
+}
+
+export interface PagedExhibitorKits {
+	data: ExhibitorKitRow[];
+	pagination: {
+		currentPage: number;
+		totalPages: number;
+		totalCount: number;
+		perPage: number;
+	};
+}
+
+/**
+ * One server-paginated page of exhibitor kits (a row per kit, with its vendor) for the
+ * Exhibitors table. Search, filters, sort and paging run server-side so large events
+ * don't ship every kit to the browser — see event_vendors_controller.rb#exhibitor_kits.
+ */
+export async function getExhibitorKitsPaged(
+	eventId: number | string,
+	options: GetExhibitorKitsPagedOptions,
+): Promise<PagedExhibitorKits> {
+	const params = new URLSearchParams();
+	params.set("page", String(options.page));
+	params.set("per_page", String(options.perPage));
+	if (options.q) params.set("q", options.q);
+	if (options.paymentStatus)
+		params.set("payment_status", options.paymentStatus);
+	if (options.boothType) params.set("booth_type", options.boothType);
+	if (options.boothPricing) params.set("booth_pricing", options.boothPricing);
+	if (options.zone) params.set("zone", options.zone);
+	if (options.sortBy) params.set("sort_by", options.sortBy);
+	if (options.sortDir) params.set("sort_dir", options.sortDir);
+
+	const { data, headers } = await restClient.getWithHeaders<
+		{ vendor: EventVendorResponse; kit: ExhibitorKit }[]
+	>(`v1/events/${eventId}/vendors/exhibitor_kits?${params.toString()}`);
+
+	return {
+		data: data.map(({ vendor, kit }) => ({
+			vendor: { ...normalizeEventVendor(vendor), exhibitor_kits: [kit] },
+			kit,
+		})),
+		pagination: {
+			currentPage: Number(headers.get("X-Page")) || options.page,
+			totalPages: Number(headers.get("X-Total-Pages")) || 0,
+			totalCount: Number(headers.get("X-Total-Count")) || 0,
+			perPage: Number(headers.get("X-Per-Page")) || options.perPage,
+		},
+	};
 }
 
 /**

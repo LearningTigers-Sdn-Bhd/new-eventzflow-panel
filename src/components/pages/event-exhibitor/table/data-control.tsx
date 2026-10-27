@@ -19,33 +19,40 @@ import {
 } from "@/components/ui/select";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
-import type { ExhibitorMember } from "./columns";
 import { getExhibitorFilterOptions } from "./filter-options";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
+	search: string;
+	onSearchChange: (value: string) => void;
 	configuredPricingLabels?: string[];
 	configuredZones?: string[];
 }
 
 export function DataControl<TData>({
 	table,
+	search,
+	onSearchChange,
 	configuredPricingLabels = [],
 	configuredZones = [],
 }: DataControlProps<TData>) {
 	const _isTablet = useIsTablet();
 
 	const searchColumns = ["company_name", "booth_number"];
-	const rows = table.getPreFilteredRowModel().rows;
-	const { pricingLabels, zones, hasUnassignedZone } = getExhibitorFilterOptions(
-		rows.map((row) => ({
-			boothPricingLabel: (row.original as ExhibitorMember).kit
-				.exhibitor_booth_price_label,
-			zone: (row.original as ExhibitorMember).kit.exhibitor_booth_price_zone,
-		})),
+	// Only one page of rows is loaded, so options come from the event's configured
+	// prices/zones rather than from the rows themselves.
+	const { pricingLabels, zones } = getExhibitorFilterOptions(
+		[],
 		configuredPricingLabels,
 		configuredZones,
 	);
+	const hasUnassignedZone = zones.length > 0;
+	const searchProps = {
+		table,
+		columns: searchColumns,
+		placeholder: "Search exhibitors...",
+		controlled: { value: search, onChange: onSearchChange },
+	};
 
 	const renderFilterSelect = (
 		label: string,
@@ -103,11 +110,7 @@ export function DataControl<TData>({
 			{!_isTablet ? (
 				<div className="hidden min-w-0 items-center gap-2 lg:flex">
 					<div className="min-w-0 flex-1">
-						<QuerySearchField
-							table={table}
-							columns={searchColumns}
-							placeholder="Search exhibitors..."
-						/>
+						<QuerySearchField {...searchProps} />
 					</div>
 					{pricingLabels.length > 0 &&
 						renderFilterSelect(
@@ -153,11 +156,7 @@ export function DataControl<TData>({
 				</div>
 			) : (
 				<div className="flex flex-col gap-2 lg:hidden">
-					<QuerySearchField
-						table={table}
-						columns={searchColumns}
-						placeholder="Search exhibitors..."
-					/>
+					<QuerySearchField {...searchProps} />
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
 						{pricingLabels.length > 0 &&
 							renderFilterSelect(

@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 import {
 	ArrowRight,
 	CreditCard,
@@ -22,11 +23,12 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getEventVendors } from "@/lib/api/event-vendor";
+import { usePersistedState } from "@/hooks/use-persisted-state";
+import { getExhibitorKitsPaged } from "@/lib/api/event-vendor";
 import { getExhibitorBoothPrices } from "@/lib/api/exhibitor-booth-price";
 import { getExhibitorZones } from "@/lib/api/exhibitor-zone";
-import { flattenExhibitorKits } from "@/lib/exhibitor-kits";
 import { CustomRequestsView } from "./custom-requests-view";
 import { ExtraTeamMemberPaymentsView } from "./extra-team-member-payments-view";
 import { OrderedItemsView } from "./ordered-items-view";
@@ -51,6 +53,8 @@ const TAB_OPTIONS = [
 	// { value: "custom-requests", label: "Custom Requests", icon: FileQuestion },
 ];
 
+const DEFAULT_PAGE_SIZE = 10;
+
 export function ExhibitorListView({
 	eventId,
 	canManageVendors,
@@ -58,13 +62,60 @@ export function ExhibitorListView({
 	const [activeTab, setActiveTab] = useState("exhibitors");
 	const isMobile = useIsMobile();
 
+	const [page, setPage] = useState(1);
+	const [pageSize, setPageSize] = usePersistedState(
+		`event-${eventId}-exhibitors-page-size`,
+		DEFAULT_PAGE_SIZE,
+	);
+	const [search, setSearch] = useState("");
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+	const [sorting, setSorting] = useState<SortingState>([]);
+	const debouncedSearch = useDebounce(search, 300);
+
+	const filterValue = (id: string) =>
+		columnFilters.find((filter) => filter.id === id)?.value as
+			| string
+			| undefined;
+	const sort = sorting[0];
+	const sortBy = sort?.id as
+		| "booth_number"
+		| "company_name"
+		| "created_at"
+		| undefined;
+	const sortDir = sort ? (sort.desc ? "desc" : "asc") : undefined;
+
+	// Prefix ["event", id, "vendors"] so existing invalidations of the vendors
+	// list also refresh this table.
 	const {
-		data: vendors,
+		data: result,
 		isLoading,
 		error,
 	} = useQuery({
-		queryKey: ["event", eventId, "vendors"],
-		queryFn: () => getEventVendors(Number(eventId)),
+		queryKey: [
+			"event",
+			eventId,
+			"vendors",
+			"exhibitor-kits",
+			page,
+			pageSize,
+			debouncedSearch,
+			columnFilters,
+			sortBy,
+			sortDir,
+		],
+		queryFn: () =>
+			getExhibitorKitsPaged(eventId, {
+				page,
+				perPage: pageSize,
+				q: debouncedSearch || undefined,
+				paymentStatus: filterValue("payment_status"),
+				boothType: filterValue("booth_type"),
+				boothPricing: filterValue("booth_pricing"),
+				zone: filterValue("zone"),
+				sortBy,
+				sortDir,
+			}),
+		placeholderData: (previous) => previous,
 	});
 	const { data: boothPrices = [] } = useQuery({
 		queryKey: ["exhibitor-booth-prices", Number(eventId)],
@@ -75,7 +126,7 @@ export function ExhibitorListView({
 		queryFn: () => getExhibitorZones(Number(eventId)),
 	});
 
-	if (isLoading) {
+	if (isLoading && !result) {
 		return (
 			<LoadingState
 				title="Loading exhibitors..."
@@ -205,7 +256,37 @@ export function ExhibitorListView({
 							</div>
 							<DataTable
 								columns={columns}
-								data={flattenExhibitorKits(vendors || [])}
+								data={result?.data ?? []}
+								search={search}
+								onSearchChange={(value) => {
+									setSearch(value);
+									setPage(1);
+								}}
+								columnFilters={columnFilters}
+								onColumnFiltersChange={(updater) => {
+									setColumnFilters((prev) =>
+										typeof updater === "function" ? updater(prev) : updater,
+									);
+									setPage(1);
+								}}
+								sorting={sorting}
+								onSortingChange={(updater) => {
+									setSorting((prev) =>
+										typeof updater === "function" ? updater(prev) : updater,
+									);
+									setPage(1);
+								}}
+								pagination={{
+									pageIndex: page - 1,
+									pageSize,
+									pageCount: result?.pagination.totalPages ?? 0,
+									totalCount: result?.pagination.totalCount ?? 0,
+									onPageChange: (pageIndex) => setPage(pageIndex + 1),
+									onPageSizeChange: (size) => {
+										setPageSize(size);
+										setPage(1);
+									},
+								}}
 								canManageVendors={canManageVendors}
 								configuredPricingLabels={boothPrices.map(
 									(boothPrice) => boothPrice.label,
