@@ -211,7 +211,15 @@ export function DataTable({
 					</div>
 				</TabletView>
 			</ResponsiveLayout>
-			<DataPagination table={table} />
+			{/* Not the last block on the page (buyer bookings follow), so no
+			    edge-bleed margins; hidden entirely when there's only one page. */}
+			{table.getPageCount() > 1 && (
+				<DataPagination
+					table={table}
+					showTotal={false}
+					className="mx-0 mt-4 mb-0 border py-3 lg:py-3"
+				/>
+			)}
 		</div>
 	);
 }

@@ -9,6 +9,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 interface DataPaginationProps<TData> {
 	table: Table<TData>;
@@ -20,6 +21,9 @@ interface DataPaginationProps<TData> {
 	pageSize?: number;
 	onPageSizeChange?: (size: number) => void;
 	pageSizeOptions?: number[];
+	// Hide the "N row(s) total" label (e.g. compact card lists on mobile).
+	showTotal?: boolean;
+	className?: string;
 }
 
 export function DataPagination<TData>({
@@ -28,6 +32,8 @@ export function DataPagination<TData>({
 	pageSize,
 	onPageSizeChange,
 	pageSizeOptions = [10, 25, 50, 100],
+	showTotal = true,
+	className,
 }: DataPaginationProps<TData>) {
 	const currentPage = table.getState().pagination.pageIndex;
 	const pageCount = table.getPageCount();
@@ -71,14 +77,21 @@ export function DataPagination<TData>({
 	};
 
 	return (
-		<div className="-mx-4 -mb-8 flex flex-col items-center justify-center gap-4 border-y border-dashed bg-accent py-12 lg:mx-0 lg:mb-0 lg:flex-row lg:px-4 lg:py-9">
-			<div className="flex flex-1 flex-wrap items-center gap-4 text-muted-foreground text-sm">
-				<span className="whitespace-nowrap">
-					<span className="font-medium text-foreground">
-						{totalRows ?? table.getFilteredRowModel().rows.length}
-					</span>{" "}
-					row(s) total
-				</span>
+		<div
+			className={cn(
+				"-mx-4 -mb-8 flex flex-col items-center justify-center gap-4 border-y border-dashed bg-accent py-12 lg:mx-0 lg:mb-0 lg:flex-row lg:px-4 lg:py-9",
+				className,
+			)}
+		>
+			<div className="flex flex-1 flex-wrap items-center gap-4 text-muted-foreground text-sm empty:hidden">
+				{showTotal && (
+					<span className="whitespace-nowrap">
+						<span className="font-medium text-foreground">
+							{totalRows ?? table.getFilteredRowModel().rows.length}
+						</span>{" "}
+						row(s) total
+					</span>
+				)}
 				{pageSize !== undefined && onPageSizeChange && (
 					<div className="flex items-center gap-2 whitespace-nowrap border-border/60 border-l pl-4">
 						<span>Rows per page</span>

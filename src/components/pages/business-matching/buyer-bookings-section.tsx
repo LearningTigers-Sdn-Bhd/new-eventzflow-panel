@@ -33,9 +33,9 @@ export default function BuyerBookingsSection({
 	const bookMeetingHref = `/event/${eventId}/book-meeting` as Route;
 
 	return (
-		<section className="space-y-3 border bg-card p-3 md:p-4">
-			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-				<div>
+		<section className="space-y-3 border bg-card p-4">
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div className="space-y-1">
 					<h2 className="flex items-center gap-2 font-semibold text-base">
 						<ShoppingBag className="h-4 w-4" />
 						My Bookings as a Buyer
@@ -49,7 +49,7 @@ export default function BuyerBookingsSection({
 					asChild
 					variant="outline"
 					size="sm"
-					className="h-8 shrink-0 self-start rounded-none sm:self-center"
+					className="h-9 w-full shrink-0 rounded-none sm:h-8 sm:w-auto"
 				>
 					<Link href={bookMeetingHref} target="_blank">
 						Book a Meeting
@@ -87,7 +87,9 @@ export function BuyerBookingsList({
 			Could not load bookings. Please try again later.
 		</p>
 	) : bookings.length === 0 ? (
-		<p className="text-muted-foreground text-sm">{emptyText}</p>
+		<p className="border border-dashed px-3 py-6 text-center text-muted-foreground text-sm">
+			{emptyText}
+		</p>
 	) : (
 		<ul className="divide-y border">
 			{bookings.map((booking) => {
@@ -131,12 +133,12 @@ export function BuyerBookingsList({
 							</div>
 						</div>
 						{!isCancelled && (
-							<div className="flex shrink-0 gap-2">
+							<div className="grid shrink-0 grid-cols-2 gap-2 sm:flex">
 								<Button
 									asChild
 									variant="outline"
 									size="sm"
-									className="h-7 rounded-none"
+									className="h-9 rounded-none sm:h-7"
 								>
 									<Link href={booking.reschedule_link as Route} target="_blank">
 										Reschedule
@@ -146,7 +148,7 @@ export function BuyerBookingsList({
 									asChild
 									variant="ghost"
 									size="sm"
-									className="h-7 rounded-none text-destructive hover:text-destructive"
+									className="h-9 rounded-none text-destructive hover:text-destructive sm:h-7"
 								>
 									<Link href={booking.cancel_link as Route} target="_blank">
 										Cancel
