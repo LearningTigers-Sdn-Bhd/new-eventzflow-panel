@@ -294,3 +294,82 @@ export async function rejectExhibitorKitPaymentProof(
 		{ note: note || undefined },
 	);
 }
+
+export interface UpdateExhibitorKitTagsRequest {
+	tags_collected: number;
+}
+
+/** Records how many tags a kit has collected; taking more than included counts as extra. */
+export async function updateExhibitorKitTags(
+	eventId: number,
+	kitId: number,
+	data: UpdateExhibitorKitTagsRequest,
+): Promise<ExhibitorKit> {
+	return restClient.patch<ExhibitorKit>(
+		`v1/events/${eventId}/exhibitor_kits/${kitId}/tags`,
+		{ exhibitor_kit: data },
+	);
+}
+
+/** The Exhibitors table filters, as the server understands them. */
+export interface ExhibitorKitFilters {
+	q?: string;
+	payment_status?: string;
+	booth_type?: string;
+	booth_pricing?: string;
+	zone?: string;
+	tags_status?: string;
+}
+
+export interface BulkCollectTagsResult {
+	updated: number;
+	already_complete: number;
+	skipped_cancelled: number;
+	unpaid: number;
+	/** Counts before the change, handed back to restoreExhibitorKitTags to undo. */
+	previous: { id: number; tags_collected: number }[];
+}
+
+/**
+ * Marks every targeted kit's tags as fully collected. Target the ticked rows with
+ * `kitIds`, or every kit matching `filters` (spans pages) when kitIds is omitted.
+ */
+export async function bulkCollectExhibitorKitTags(
+	eventId: number,
+	target: { kitIds?: number[]; filters?: ExhibitorKitFilters },
+): Promise<BulkCollectTagsResult> {
+	return restClient.post<BulkCollectTagsResult>(
+		`v1/events/${eventId}/exhibitor_kits/bulk_tags`,
+		{
+			operation: "collect",
+			kit_ids: target.kitIds,
+			filters: target.kitIds ? undefined : (target.filters ?? {}),
+		},
+	);
+}
+
+/** Sets every targeted kit back to 0 tags collected; same targeting as collect. */
+export async function bulkResetExhibitorKitTags(
+	eventId: number,
+	target: { kitIds?: number[]; filters?: ExhibitorKitFilters },
+): Promise<Pick<BulkCollectTagsResult, "updated" | "previous">> {
+	return restClient.post<Pick<BulkCollectTagsResult, "updated" | "previous">>(
+		`v1/events/${eventId}/exhibitor_kits/bulk_tags`,
+		{
+			operation: "reset",
+			kit_ids: target.kitIds,
+			filters: target.kitIds ? undefined : (target.filters ?? {}),
+		},
+	);
+}
+
+/** Undoes a bulk collect or reset by putting the previous counts back. */
+export async function restoreExhibitorKitTags(
+	eventId: number,
+	items: BulkCollectTagsResult["previous"],
+): Promise<{ restored: number }> {
+	return restClient.post<{ restored: number }>(
+		`v1/events/${eventId}/exhibitor_kits/bulk_tags`,
+		{ operation: "restore", items },
+	);
+}

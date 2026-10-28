@@ -1,4 +1,7 @@
-import type { ExhibitorKit } from "@/lib/api/exhibitor-kit";
+import type {
+	ExhibitorKit,
+	ExhibitorKitFilters,
+} from "@/lib/api/exhibitor-kit";
 import { restClient } from "@/utils/rest-api";
 import {
 	type CreateEventVendorBatchRequest,
@@ -44,14 +47,18 @@ export interface ExhibitorKitRow {
 export interface GetExhibitorKitsPagedOptions {
 	page: number;
 	perPage: number;
-	q?: string;
-	paymentStatus?: string;
-	boothType?: string;
-	boothPricing?: string;
-	/** Zone name, or "__unassigned__" for kits without a zone. */
-	zone?: string;
+	/** Search and filters; `zone` is a zone name or "__unassigned__". */
+	filters: ExhibitorKitFilters;
 	sortBy?: "booth_number" | "company_name" | "created_at";
 	sortDir?: "asc" | "desc";
+}
+
+/** Tags over every matching kit, not just one page: collected (capped at the included
+ * count per kit), included in total, and taken beyond the included count. */
+export interface TagTotals {
+	collected: number;
+	entitled: number;
+	extra: number;
 }
 
 export interface PagedExhibitorKits {
@@ -62,6 +69,7 @@ export interface PagedExhibitorKits {
 		totalCount: number;
 		perPage: number;
 	};
+	tagTotals: TagTotals;
 }
 
 /**
@@ -76,12 +84,9 @@ export async function getExhibitorKitsPaged(
 	const params = new URLSearchParams();
 	params.set("page", String(options.page));
 	params.set("per_page", String(options.perPage));
-	if (options.q) params.set("q", options.q);
-	if (options.paymentStatus)
-		params.set("payment_status", options.paymentStatus);
-	if (options.boothType) params.set("booth_type", options.boothType);
-	if (options.boothPricing) params.set("booth_pricing", options.boothPricing);
-	if (options.zone) params.set("zone", options.zone);
+	for (const [key, value] of Object.entries(options.filters)) {
+		if (value) params.set(key, value);
+	}
 	if (options.sortBy) params.set("sort_by", options.sortBy);
 	if (options.sortDir) params.set("sort_dir", options.sortDir);
 
@@ -99,6 +104,11 @@ export async function getExhibitorKitsPaged(
 			totalPages: Number(headers.get("X-Total-Pages")) || 0,
 			totalCount: Number(headers.get("X-Total-Count")) || 0,
 			perPage: Number(headers.get("X-Per-Page")) || options.perPage,
+		},
+		tagTotals: {
+			collected: Number(headers.get("X-Tags-Collected")) || 0,
+			entitled: Number(headers.get("X-Tags-Entitled")) || 0,
+			extra: Number(headers.get("X-Tags-Extra")) || 0,
 		},
 	};
 }

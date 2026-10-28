@@ -7,6 +7,7 @@ import {
 	FileText,
 	Package,
 	Printer,
+	Tag,
 	Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -281,6 +282,31 @@ export function KitDetailsRow({ vendor, kit, batchSize }: KitDetailsRowProps) {
 							</div>
 						))}
 					</div>
+				)}
+			</Section>
+
+			{/* Exhibitor tags */}
+			<Section icon={<Tag className="size-4" />} title="Tags">
+				<Field label="Collected">
+					{kit.tags_collected ?? 0} of {kit.tags_included ?? 0}
+				</Field>
+				{(kit.extra_tags ?? 0) > 0 && (
+					<Field label="Extra tags">
+						<span className="font-medium text-amber-600">
+							+{kit.extra_tags}
+						</span>
+					</Field>
+				)}
+				{kit.tags_collected_at && (
+					<Field label="Last updated">
+						{new Date(kit.tags_collected_at).toLocaleString("en-US", {
+							dateStyle: "medium",
+							timeStyle: "short",
+						})}
+						{kit.tags_collected_by_name
+							? ` by ${kit.tags_collected_by_name}`
+							: ""}
+					</Field>
 				)}
 			</Section>
 

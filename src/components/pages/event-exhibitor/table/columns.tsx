@@ -19,6 +19,7 @@ import {
 import type { ExhibitorKitWithVendor } from "@/lib/exhibitor-kits";
 import { cn } from "@/lib/utils";
 import { ExhibitorActionsMenu } from "./action-menu";
+import { TagsCell } from "./tags-cell";
 
 export type ExhibitorMember = ExhibitorKitWithVendor;
 
@@ -364,6 +365,61 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 				</Badge>
 			);
 		},
+	},
+	{
+		accessorKey: "kit.tags_collected",
+		id: "tags_status",
+		size: 130,
+		header: ({ column }) => {
+			const filterStatus = column.getFilterValue() as string | undefined;
+			const labels: Record<string, string> = {
+				none: "Not collected",
+				partial: "Partial",
+				complete: "Collected",
+			};
+			return (
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<div className="flex cursor-pointer items-center gap-2">
+							<p className="font-medium">
+								Tags
+								{filterStatus && (
+									<Badge
+										variant="secondary"
+										className="ml-2 bg-transparent text-xs underline"
+									>
+										{labels[filterStatus]}
+									</Badge>
+								)}
+							</p>
+							<ChevronDown className="size-4" />
+						</div>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="start"
+						side="bottom"
+						className="rounded-none bg-background"
+					>
+						<DropdownMenuItem
+							className="rounded-none"
+							onClick={() => column.setFilterValue(undefined)}
+						>
+							All
+						</DropdownMenuItem>
+						{Object.entries(labels).map(([value, label]) => (
+							<DropdownMenuItem
+								key={value}
+								className="rounded-none"
+								onClick={() => column.setFilterValue(value)}
+							>
+								{label}
+							</DropdownMenuItem>
+						))}
+					</DropdownMenuContent>
+				</DropdownMenu>
+			);
+		},
+		cell: ({ row }) => <TagsCell kit={row.original.kit} />,
 	},
 	{
 		accessorKey: "kit.exhibitor_team_members",

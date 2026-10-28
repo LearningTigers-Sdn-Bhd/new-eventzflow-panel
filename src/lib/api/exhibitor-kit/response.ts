@@ -126,6 +126,13 @@ export interface ExhibitorKit {
 	 * pre-fill amount_paid when settling payments in bulk. */
 	booking_value?: string | number | null;
 	booth_quantity?: number;
+	/** Exhibitor tags: how many were collected, how many the event includes per kit,
+	 * and how many were taken beyond that (derived, never typed in). */
+	tags_collected?: number;
+	tags_included?: number;
+	extra_tags?: number;
+	tags_collected_at?: string | null;
+	tags_collected_by_name?: string | null;
 	price_snapshot?: string | number | null;
 	payment_note?: string;
 	indemnity_link?: string;

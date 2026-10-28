@@ -12,6 +12,7 @@ import {
 	PackageOpen,
 	Plus,
 	Settings2,
+	Tag,
 	Tags,
 	TicketPercent,
 	Users,
@@ -38,6 +39,7 @@ import { BoothPlanDialog } from "../dialogs/booth-plan-dialog";
 import { BoothPricingDialog } from "../dialogs/booth-pricing-dialog";
 import { BoothTypesDialog } from "../dialogs/booth-types-dialog";
 import { PackageDialog } from "../dialogs/package-dialog";
+import { TagsSettingsDialog } from "../dialogs/tags-settings-dialog";
 import { TeamLimitsDialog } from "../dialogs/team-limits-dialog";
 import { VoucherDialog } from "../dialogs/voucher-dialog";
 import { ZonePricingDialog } from "../dialogs/zone-pricing-dialog";
@@ -194,6 +196,19 @@ export function ExhibitorPageButton() {
 					/>
 					{event?.use_exhibitor_kit === true && (
 						<>
+							<DropdownMenuSeparator />
+							<TagsSettingsDialog
+								eventId={Number(eventId)}
+								trigger={
+									<DropdownMenuItem
+										onSelect={(e) => e.preventDefault()}
+										className="rounded-none"
+									>
+										<Tag className="h-4 w-4" />
+										Tags
+									</DropdownMenuItem>
+								}
+							/>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								onSelect={() =>

@@ -28,6 +28,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { getExhibitorKitsPaged } from "@/lib/api/event-vendor";
 import { getExhibitorBoothPrices } from "@/lib/api/exhibitor-booth-price";
+import type { ExhibitorKitFilters } from "@/lib/api/exhibitor-kit";
 import { getExhibitorZones } from "@/lib/api/exhibitor-zone";
 import { CustomRequestsView } from "./custom-requests-view";
 import { ExtraTeamMemberPaymentsView } from "./extra-team-member-payments-view";
@@ -84,6 +85,16 @@ export function ExhibitorListView({
 		| undefined;
 	const sortDir = sort ? (sort.desc ? "desc" : "asc") : undefined;
 
+	// The same filters drive the table query and "apply to all matching" bulk actions.
+	const filters: ExhibitorKitFilters = {
+		q: debouncedSearch || undefined,
+		payment_status: filterValue("payment_status"),
+		booth_type: filterValue("booth_type"),
+		booth_pricing: filterValue("booth_pricing"),
+		zone: filterValue("zone"),
+		tags_status: filterValue("tags_status"),
+	};
+
 	// Prefix ["event", id, "vendors"] so existing invalidations of the vendors
 	// list also refresh this table.
 	const {
@@ -98,8 +109,7 @@ export function ExhibitorListView({
 			"exhibitor-kits",
 			page,
 			pageSize,
-			debouncedSearch,
-			columnFilters,
+			filters,
 			sortBy,
 			sortDir,
 		],
@@ -107,11 +117,7 @@ export function ExhibitorListView({
 			getExhibitorKitsPaged(eventId, {
 				page,
 				perPage: pageSize,
-				q: debouncedSearch || undefined,
-				paymentStatus: filterValue("payment_status"),
-				boothType: filterValue("booth_type"),
-				boothPricing: filterValue("booth_pricing"),
-				zone: filterValue("zone"),
+				filters,
 				sortBy,
 				sortDir,
 			}),
@@ -257,6 +263,8 @@ export function ExhibitorListView({
 							<DataTable
 								columns={columns}
 								data={result?.data ?? []}
+								filters={filters}
+								tagTotals={result?.tagTotals}
 								search={search}
 								onSearchChange={(value) => {
 									setSearch(value);

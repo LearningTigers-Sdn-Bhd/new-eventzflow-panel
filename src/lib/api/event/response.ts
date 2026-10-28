@@ -92,6 +92,7 @@ export type Event = {
 	use_exhibitor_kit: boolean;
 	enable_exhibitor_management: boolean;
 	exhibitor_reservation_ttl_hours: number | null;
+	exhibitor_tags_per_kit: number;
 	allow_contractor_printing_services: boolean;
 	use_business_matching: boolean;
 	use_voucher: boolean;

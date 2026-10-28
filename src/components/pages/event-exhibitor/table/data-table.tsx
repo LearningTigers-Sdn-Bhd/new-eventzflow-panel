@@ -13,6 +13,7 @@ import {
 } from "@tanstack/react-table";
 import { Building2 } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import * as React from "react";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
@@ -33,9 +34,12 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useIsTablet } from "@/hooks/use-tablet";
+import type { TagTotals } from "@/lib/api/event-vendor";
+import type { ExhibitorKitFilters } from "@/lib/api/exhibitor-kit";
 import { cn } from "@/lib/utils";
 import { useDialogStore } from "@/stores/dialog-store";
 import { BulkPaymentForm } from "../forms/bulk-payment-form";
+import { BulkSelectionBar, TagTotalsSummary } from "./bulk-selection-bar";
 import type { ExhibitorMember } from "./columns";
 import { DataControl } from "./data-control";
 import { ExhibitorItem } from "./exhibitor-item";
@@ -65,6 +69,9 @@ interface DataTableProps<TData, TValue> {
 	sorting: SortingState;
 	onSortingChange: OnChangeFn<SortingState>;
 	pagination: ServerPagination;
+	/** The server-side filters currently applied, reused by "apply to all matching". */
+	filters: ExhibitorKitFilters;
+	tagTotals?: TagTotals;
 }
 
 type StickyColumnMeta = {
@@ -83,8 +90,13 @@ export function DataTable<TData, TValue>({
 	sorting,
 	onSortingChange,
 	pagination,
+	filters,
+	tagTotals,
 }: DataTableProps<TData, TValue>) {
 	const isTablet = useIsTablet();
+	const params = useParams();
+	const eventId = Number(params.event_id);
+	const [allMatching, setAllMatching] = React.useState(false);
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({
 			booth_pricing: false,
@@ -135,6 +147,7 @@ export function DataTable<TData, TValue>({
 	// biome-ignore lint/correctness/useExhaustiveDependencies: reset on page/filter change only
 	React.useEffect(() => {
 		setRowSelection({});
+		setAllMatching(false);
 	}, [
 		pagination.pageIndex,
 		pagination.pageSize,
@@ -173,6 +186,7 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div className="w-full">
+			<TagTotalsSummary totals={tagTotals} />
 			<DataControl
 				table={table}
 				search={search}
@@ -181,31 +195,22 @@ export function DataTable<TData, TValue>({
 				configuredZones={configuredZones}
 			/>
 
-			{selectedKits.length > 0 && (
-				<div className="mb-2 flex flex-wrap items-center justify-between gap-2 border bg-muted/40 px-3 py-2">
-					<p className="text-sm">
-						<span className="font-medium">{selectedKits.length}</span>{" "}
-						{selectedKits.length === 1 ? "kit" : "kits"} selected
-					</p>
-					<div className="flex gap-2">
-						<Button
-							variant="ghost"
-							size="sm"
-							className="rounded-none"
-							onClick={() => table.resetRowSelection()}
-						>
-							Clear
-						</Button>
-						<Button
-							size="sm"
-							className="rounded-none"
-							onClick={handleBulkPaymentClick}
-						>
-							Update Payment
-						</Button>
-					</div>
-				</div>
-			)}
+			<BulkSelectionBar
+				eventId={eventId}
+				selectedKits={selectedKits}
+				pageRowCount={data.length}
+				totalCount={pagination.totalCount}
+				pageAllSelected={table.getIsAllPageRowsSelected()}
+				allMatching={allMatching}
+				onAllMatchingChange={setAllMatching}
+				filters={filters}
+				tagTotals={tagTotals}
+				onClear={() => {
+					table.resetRowSelection();
+					setAllMatching(false);
+				}}
+				onUpdatePayment={handleBulkPaymentClick}
+			/>
 
 			<div className="min-h-[45vh]">
 				{!isTablet ? (
