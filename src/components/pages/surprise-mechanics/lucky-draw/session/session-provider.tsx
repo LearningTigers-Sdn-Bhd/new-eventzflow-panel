@@ -69,6 +69,8 @@ interface LuckyDrawSessionContextValue {
 	batchTotal: number;
 	batchSkipped: boolean;
 	skipBatch: () => Promise<void>;
+	// A winner of the reveal did not show up: void them and redraw just that slot
+	redrawBatchSlot: (index: number) => Promise<void>;
 	batchWinners: Participant[] | null;
 	batchTitle: string;
 	batchGiftNames: string[] | null;
@@ -113,7 +115,7 @@ function LuckyDrawSessionProviderInner({
 		// Gift of each winner, in draw order (empty when gifts are off)
 		targets: Gift[];
 	} | null>(null);
-	const { showCelebration } = useCelebrationDialog();
+	const { showCelebration, closeCelebration } = useCelebrationDialog();
 	const { isFullscreen, toggleFullscreen } = useFullscreen();
 
 	// Sheet state management
@@ -196,6 +198,35 @@ function LuckyDrawSessionProviderInner({
 		startDrawing,
 	]);
 
+	// The celebration dialog outlives the render that opened it, so it reaches the
+	// latest values through this ref
+	const latest = useRef({ handleDraw, availableParticipants, luckyDraw });
+	latest.current = { handleDraw, availableParticipants, luckyDraw };
+
+	// The winner on the celebration dialog did not show up: void them, draw again
+	const redrawWinner = useCallback(
+		async (winner: Participant) => {
+			closeCelebration();
+			if (!(await latest.current.luckyDraw.voidWinner(winner))) return;
+			// Let the refreshed lists reach the screen before drawing again
+			setTimeout(() => latest.current.handleDraw(), 150);
+		},
+		[closeCelebration],
+	);
+
+	// F toggles fullscreen, since the on-screen toggle is hidden until hovered
+	useEffect(() => {
+		const onKey = (e: KeyboardEvent) => {
+			const typing = (e.target as HTMLElement | null)?.closest(
+				"input, textarea, select, [contenteditable]",
+			);
+			const plain = !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey;
+			if (plain && !typing && e.key.toLowerCase() === "f") toggleFullscreen();
+		};
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+	}, [toggleFullscreen]);
+
 	// Leaving the page mid-draw must not restart a round afterwards
 	useEffect(
 		() => () => {
@@ -253,6 +284,7 @@ function LuckyDrawSessionProviderInner({
 						? { type: "gift", name: assignedGift.name }
 						: null,
 					effectType: "side-cannons",
+					onRedraw: () => redrawWinner(winner),
 				});
 			}
 		},
@@ -265,6 +297,7 @@ function LuckyDrawSessionProviderInner({
 			stopDrawing,
 			startCelebration,
 			showCelebration,
+			redrawWinner,
 		],
 	);
 
@@ -367,6 +400,39 @@ function LuckyDrawSessionProviderInner({
 		await finishBatch(run.title, [...run.picked, ...rest], true, run.targets);
 	}, [availableParticipants, finishBatch]);
 
+	// A winner of the multi-winner reveal did not show up: void them and fill just
+	// that slot with a new pick (same gift when gifts are on). The new pick is
+	// saved on its own, not as part of the original draw's round.
+	const redrawBatchSlot = useCallback(
+		async (index: number) => {
+			const absent = batchWinners?.[index];
+			if (!batchWinners || !absent) return;
+			const voided = await luckyDraw.voidWinner(absent);
+			if (!voided) return;
+
+			const taken = new Set(batchWinners.map((w) => w.publicId));
+			const [pick] = pickRandomWinners(
+				latest.current.availableParticipants.filter(
+					(p) => !taken.has(p.publicId),
+				),
+				1,
+			);
+			if (!pick) {
+				toast.error("No one left to draw");
+				return;
+			}
+			const saved = voided.giftId
+				? await assignWinners(String(voided.giftId), [pick], useTicket)
+				: await addInvalidParticipants([pick], useTicket);
+			if (saved) {
+				setBatchWinners(
+					(current) => current?.map((w, i) => (i === index ? pick : w)) ?? null,
+				);
+			}
+		},
+		[batchWinners, luckyDraw, assignWinners, addInvalidParticipants, useTicket],
+	);
+
 	// Celebration state: active when drawing is finished (starts immediately) and continues until modal closes
 	const isCelebrating = shouldCelebrate;
 
@@ -416,6 +482,7 @@ function LuckyDrawSessionProviderInner({
 			batchTotal,
 			batchSkipped,
 			skipBatch,
+			redrawBatchSlot,
 			clearBatchWinners: () => setBatchWinners(null),
 			luckyDraw,
 		}),
@@ -453,6 +520,7 @@ function LuckyDrawSessionProviderInner({
 			batchTotal,
 			batchSkipped,
 			skipBatch,
+			redrawBatchSlot,
 			luckyDraw,
 		],
 	);

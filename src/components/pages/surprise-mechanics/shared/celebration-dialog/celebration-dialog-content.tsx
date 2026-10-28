@@ -1,10 +1,12 @@
 import type { Options as ConfettiOptions } from "canvas-confetti";
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
-import { Medal, Trophy } from "lucide-react";
+import { Medal, RefreshCw, Trophy } from "lucide-react";
 import { useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useRecentPointer } from "@/hooks/surprise/shared/use-recent-pointer";
+import { cn } from "@/lib/utils";
 import type { Participant } from "@/stores/lucky-draw-store";
 
 type ConfettiEffectType = "side-cannons" | "fireworks";
@@ -19,6 +21,8 @@ interface CelebrationDialogContentProps {
 	prizeOrGift?: PrizeOrGift | null;
 	onClose: () => void;
 	effectType?: ConfettiEffectType;
+	/** The winner did not show up. Offered as a hidden control and the R key. */
+	onRedraw?: () => void;
 }
 
 const CONFETTI_DURATION_MS = 3_000;
@@ -91,7 +95,21 @@ export function CelebrationDialogContent({
 	prizeOrGift,
 	onClose,
 	effectType = "side-cannons",
+	onRedraw,
 }: CelebrationDialogContentProps) {
+	const pointerActive = useRecentPointer();
+
+	// R redraws, so the operator never has to show a button on the big screen
+	useEffect(() => {
+		if (!onRedraw) return;
+		const onKey = (e: KeyboardEvent) => {
+			const plain = !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey;
+			if (plain && e.key.toLowerCase() === "r") onRedraw();
+		};
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+	}, [onRedraw]);
+
 	useEffect(() => {
 		if (typeof window === "undefined") return;
 
@@ -129,6 +147,23 @@ export function CelebrationDialogContent({
 			onClick={onClose}
 		>
 			<div className="relative flex flex-1 flex-col items-center justify-center p-8 sm:p-12">
+				{onRedraw && (
+					<button
+						type="button"
+						onClick={(e) => {
+							e.stopPropagation();
+							onRedraw();
+						}}
+						className={cn(
+							"absolute top-3 left-3 z-20 flex items-center gap-1.5 text-muted-foreground text-xs transition-opacity duration-300 hover:text-foreground",
+							pointerActive ? "opacity-70" : "pointer-events-none opacity-0",
+						)}
+					>
+						<RefreshCw className="size-3" />
+						Redraw
+						<kbd className="border px-1 font-mono text-[10px]">R</kbd>
+					</button>
+				)}
 				<div className="relative z-10 flex w-full max-w-md flex-col items-center gap-8 text-center">
 					{/* Trophy/Prize Section */}
 					<div className="relative">

@@ -22,6 +22,7 @@ import {
 	deleteRouletteWinner,
 	getRoulettePrizes,
 	notifyRouletteWinner,
+	setRouletteWinnerVoided,
 	updateRoulettePrize,
 } from "@/lib/api/roulette";
 import type { RoulettePrize } from "@/lib/api/roulette/response";
@@ -140,6 +141,24 @@ export function PrizeConfigSheet({
 		},
 	});
 
+	// Unclaimed prize: the winner stays on record and the prize goes back in stock
+	const voidWinnerMutation = useMutation({
+		mutationFn: ({ winnerId, voided }: { winnerId: number; voided: boolean }) =>
+			setRouletteWinnerVoided(eventId, sessionId, winnerId, voided),
+		onSuccess: (_data, { voided }) => {
+			toast.success(voided ? "Prize put back in stock" : "Winner restored");
+			queryClient.invalidateQueries({
+				queryKey: ["roulette-prizes", eventId, sessionId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["roulette-winners", eventId, sessionId],
+			});
+		},
+		onError: (err: unknown) => {
+			toast.error(getErrorMessage(err) || "Failed to update winner");
+		},
+	});
+
 	const notifyWinnerMutation = useMutation({
 		mutationFn: (winnerId: number) =>
 			notifyRouletteWinner(eventId, sessionId, winnerId),
@@ -241,6 +260,10 @@ export function PrizeConfigSheet({
 								onDelete={handleDelete}
 								onDeleteWinner={handleDeleteWinner}
 								onNotifyWinner={handleNotifyWinner}
+								onVoidWinner={(winnerId, voided) =>
+									voidWinnerMutation.mutate({ winnerId, voided })
+								}
+								isVoidingWinner={voidWinnerMutation.isPending}
 								isUpdating={updateMutation.isPending}
 								isDeleting={deleteMutation.isPending}
 								isDeletingWinner={deleteWinnerMutation.isPending}

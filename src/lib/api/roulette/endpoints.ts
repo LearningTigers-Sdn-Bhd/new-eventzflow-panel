@@ -408,6 +408,27 @@ export async function deleteRouletteWinner(
 }
 
 /**
+ * Void (or restore) a winner whose prize was not claimed. The winner stays on
+ * record and the prize goes back in stock.
+ * POST /v1/events/:event_id/roulette/sessions/:session_id/winners/:winner_id/void
+ */
+export async function setRouletteWinnerVoided(
+	eventId: string,
+	sessionId: number,
+	winnerId: number,
+	voided: boolean,
+): Promise<void> {
+	try {
+		await restClient.post(
+			`v1/events/${eventId}/roulette/sessions/${sessionId}/winners/${winnerId}/${voided ? "void" : "unvoid"}`,
+		);
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
  * Notify Roulette Winner
  * POST /v1/events/:event_id/roulette/sessions/:session_id/winners/:winner_id/notify
  * Sends webhook notification for the winner

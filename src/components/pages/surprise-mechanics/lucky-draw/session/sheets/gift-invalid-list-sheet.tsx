@@ -18,6 +18,7 @@ import {
 	Plus,
 	Save,
 	Trash2,
+	Undo2,
 	UserX,
 	X,
 } from "lucide-react";
@@ -92,6 +93,7 @@ interface SortableGiftCardProps {
 	onClearWinner: (giftId: string, winnerId: number) => void;
 	onNotifyWinner: (winnerId: number) => void;
 	onRemoveGift: (giftId: string) => void;
+	onRestoreWinner: (giftId: string, winnerId: number) => void;
 	onUpdateGift: (
 		giftId: string,
 		data: { name?: string; winner_counts?: number; draw_last?: boolean },
@@ -111,6 +113,7 @@ function SortableGiftCard({
 	onClearWinner,
 	onNotifyWinner,
 	onRemoveGift,
+	onRestoreWinner,
 	onUpdateGift,
 	winnerId,
 	allWinners = [],
@@ -406,6 +409,31 @@ function SortableGiftCard({
 								No winner assigned
 							</div>
 						)}
+						{/* No-shows: out of the pool and not counted, kept for the record */}
+						{gift.voidedWinners?.map((voided) => (
+							<div
+								key={voided.id}
+								className="flex items-center justify-between gap-3 border-t bg-muted/30 px-4 py-1.5 text-muted-foreground text-sm"
+							>
+								<span className="truncate line-through">{voided.name}</span>
+								<div className="flex items-center gap-2">
+									<Badge variant="outline" className="rounded-none">
+										Voided
+									</Badge>
+									<Button
+										variant="outline"
+										size="sm"
+										className="gap-2 rounded-none"
+										disabled={remaining <= 0}
+										title={remaining <= 0 ? "Every slot is taken" : undefined}
+										onClick={() => onRestoreWinner(gift.id, voided.id)}
+									>
+										<Undo2 className="size-4" />
+										<span className="hidden md:block">Restore</span>
+									</Button>
+								</div>
+							</div>
+						))}
 					</CardContent>
 				</>
 			)}
@@ -450,6 +478,7 @@ export function GiftInvalidListSheet({
 		reorderGifts,
 		removeInvalidParticipant,
 		clearInvalidParticipants,
+		restoreWinner,
 	} = luckyDraw;
 
 	const handleNotifyWinner = async (invalidParticipantId: number) => {
@@ -584,7 +613,9 @@ export function GiftInvalidListSheet({
 								const backendGift = giftsData?.find(
 									(g) => String(g.id) === gift.id,
 								);
-								const winnerId = backendGift?.winners[0]?.id;
+								const winnerId = backendGift?.winners.find(
+									(w) => !w.voided_at,
+								)?.id;
 								const allWinners = gift.allWinners || [];
 
 								return (
@@ -594,6 +625,9 @@ export function GiftInvalidListSheet({
 										onClearWinner={clearWinner}
 										onNotifyWinner={handleNotifyGiftWinner}
 										onRemoveGift={removeGift}
+										onRestoreWinner={(giftId, id) =>
+											restoreWinner({ giftId: Number(giftId), id })
+										}
 										onUpdateGift={handleUpdateGift}
 										winnerId={winnerId}
 										allWinners={allWinners}
@@ -717,6 +751,10 @@ export function GiftInvalidListSheet({
 			);
 		}
 
+		const voidedInvalid = (invalidParticipantsData ?? []).filter(
+			(ip) => ip.voided_at,
+		);
+
 		return (
 			<div className="flex flex-col gap-3">
 				{invalidParticipants.length === 0 ? (
@@ -790,6 +828,33 @@ export function GiftInvalidListSheet({
 						);
 					})
 				)}
+				{/* No-shows: out of the pool and not counted, kept for the record */}
+				{voidedInvalid.map((ip) => (
+					<Card
+						key={ip.id}
+						className="rounded-none bg-muted/30 py-3 shadow-none"
+					>
+						<CardContent className="flex items-center justify-between gap-3 px-4 py-0 text-muted-foreground text-sm">
+							<span className="truncate line-through">
+								{ip.participant.name}
+							</span>
+							<div className="flex items-center gap-2">
+								<Badge variant="outline" className="rounded-none">
+									Voided
+								</Badge>
+								<Button
+									variant="outline"
+									size="sm"
+									className="gap-2 rounded-none"
+									onClick={() => restoreWinner({ id: ip.id })}
+								>
+									<Undo2 className="size-4" />
+									<span className="hidden md:block">Restore</span>
+								</Button>
+							</div>
+						</CardContent>
+					</Card>
+				))}
 				{invalidParticipants.length > 0 && (
 					<Card className="rounded-none border-dashed py-4 shadow-none">
 						<CardContent className="grid grid-cols-3 gap-4 px-4 py-0">
@@ -846,7 +911,7 @@ export function GiftInvalidListSheet({
 							groups={buildWinnerGroups(
 								useGifts,
 								gifts,
-								invalidParticipantsData ?? [],
+								(invalidParticipantsData ?? []).filter((ip) => !ip.voided_at),
 							)}
 							filenameBase={luckyDraw.eventName ?? "lucky-draw"}
 						/>

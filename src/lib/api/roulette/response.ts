@@ -40,6 +40,8 @@ export interface RouletteWinner {
 	ticket_id: number | null;
 	visitor_id: number | null;
 	participant_name: string | null;
+	/** Set when the prize was not claimed: it is back in stock */
+	voided_at: string | null;
 	drawn_at: string;
 	created_at: string;
 	updated_at: string;

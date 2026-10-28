@@ -438,6 +438,31 @@ export async function clearWinner(
 }
 
 /**
+ * Void (or restore) a winner who did not show up. The winner stays recorded and
+ * out of the pool; only their gift slot is given back.
+ * POST .../gifts/:gift_id/winners/:id/void  (gifts on)
+ * POST .../invalid_participants/:id/void    (gifts off)
+ */
+export async function setWinnerVoided(
+	eventId: string,
+	sessionId: number,
+	target: { giftId?: number; id: number },
+	voided: boolean,
+): Promise<void> {
+	const session = `v1/events/${eventId}/lucky_draw/sessions/${sessionId}`;
+	const path = target.giftId
+		? `${session}/gifts/${target.giftId}/winners/${target.id}`
+		: `${session}/invalid_participants/${target.id}`;
+
+	try {
+		await restClient.post(`${path}/${voided ? "void" : "unvoid"}`);
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
  * Notify Gift Winner
  * POST /v1/events/:event_id/lucky_draw/sessions/:session_id/gifts/:gift_id/winners/:winner_id/notify
  */

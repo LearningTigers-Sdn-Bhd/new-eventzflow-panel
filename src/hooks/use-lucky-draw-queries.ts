@@ -18,6 +18,7 @@ import {
 	createGift,
 	deleteGift,
 	removeInvalidParticipant,
+	setWinnerVoided,
 	sweepAssignWinners,
 	updateGift,
 	updateLuckyDrawSession,
@@ -221,6 +222,34 @@ export function useClearWinner(eventId: string, sessionId: number) {
 				queryKey: ["lucky-draw", "participants", eventId, sessionId],
 			});
 		},
+	});
+}
+
+/**
+ * Mutation Hook: Void / restore a winner who did not show up.
+ * The pool is unchanged (a voided winner stays out), so only the winner lists refresh.
+ * onSuccess returns the refetches so mutateAsync resolves once the slot shows as open.
+ */
+export function useSetWinnerVoided(eventId: string, sessionId: number) {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({
+			target,
+			voided,
+		}: {
+			target: { giftId?: number; id: number };
+			voided: boolean;
+		}) => setWinnerVoided(eventId, sessionId, target, voided),
+		onSuccess: () =>
+			Promise.all([
+				queryClient.invalidateQueries({
+					queryKey: ["lucky-draw", "gifts", eventId, sessionId],
+				}),
+				queryClient.invalidateQueries({
+					queryKey: ["lucky-draw", "invalid-participants", eventId, sessionId],
+				}),
+			]),
 	});
 }
 

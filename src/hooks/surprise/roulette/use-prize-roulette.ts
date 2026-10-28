@@ -108,7 +108,7 @@ export function usePrizeRoulette(
 		if (!prizesData || !winnersData) return [];
 		return prizesData.map((prize) => {
 			const prizeWinners = winnersData.filter(
-				(w) => w.roulette_prize_id === prize.id,
+				(w) => w.roulette_prize_id === prize.id && !w.voided_at,
 			);
 			const remaining = prize.quantity - prizeWinners.length;
 			return { ...prize, remaining, hasWinner: prizeWinners.length > 0 };

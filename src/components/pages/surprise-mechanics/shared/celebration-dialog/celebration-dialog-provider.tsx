@@ -23,6 +23,8 @@ interface CelebrationData {
 	winner: Participant;
 	prizeOrGift?: PrizeOrGift | null;
 	effectType?: ConfettiEffectType;
+	/** The winner did not show up: lucky draw voids them and draws again */
+	onRedraw?: () => void;
 }
 
 interface CelebrationDialogContextValue {
@@ -63,6 +65,7 @@ export function CelebrationDialogProvider({
 						prizeOrGift: data.prizeOrGift,
 						onClose: closeDialog,
 						effectType: data.effectType ?? "side-cannons",
+						onRedraw: data.onRedraw,
 					},
 					config: {
 						size: "lg",

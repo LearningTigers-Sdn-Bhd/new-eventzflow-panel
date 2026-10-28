@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -14,10 +14,12 @@ import {
 	type AddInvalidParticipantRequest,
 	type CreateGiftRequest,
 	type GetParticipantsQuery,
+	type Gift as GiftRecord,
 	getGifts,
 	getInvalidParticipants,
 	getLuckyDrawSession,
 	getParticipants,
+	type InvalidParticipant,
 	type UpdateGiftRequest,
 	type UpdateLuckyDrawSessionRequest,
 } from "@/lib/api/lucky-draw";
@@ -43,6 +45,7 @@ import {
 	useCreateGift,
 	useDeleteGift,
 	useRemoveInvalidParticipant,
+	useSetWinnerVoided,
 	useSweepAssignWinners,
 	useUpdateGift,
 	useUpdateLuckyDrawSession,
@@ -207,9 +210,10 @@ export function useLuckyDraw(
 		if (!invalidParticipantsData || useTicket === undefined) {
 			return [];
 		}
-		return invalidParticipantsData.map((ip) =>
-			transformInvalidParticipant(ip, useTicket),
-		);
+		// Voided winners (no-shows) are not winners any more
+		return invalidParticipantsData
+			.filter((ip) => !ip.voided_at)
+			.map((ip) => transformInvalidParticipant(ip, useTicket));
 	}, [invalidParticipantsData, useTicket]);
 
 	// Get available participants for drawing
@@ -673,6 +677,82 @@ export function useLuckyDraw(
 		}
 	}, [clearInvalidParticipantsMutation]);
 
+	// ========================================
+	// No-show winners
+	// ========================================
+
+	const queryClient = useQueryClient();
+	const setVoidedMutation = useSetWinnerVoided(eventId, sessionId);
+
+	// Saved record of a winner who is still valid. A draw saved a moment ago may
+	// not be in the list yet, so look again after one refresh.
+	const findWinnerRecord = useCallback(
+		async (participant: Participant) => {
+			const id = Number.parseInt(participant.publicId, 10);
+			const key = useGifts
+				? ["lucky-draw", "gifts", eventId, sessionId]
+				: ["lucky-draw", "invalid-participants", eventId, sessionId];
+			const look = (): { giftId?: number; id: number } | null => {
+				if (useGifts) {
+					for (const gift of queryClient.getQueryData<GiftRecord[]>(key) ??
+						[]) {
+						const hit = gift.winners.find(
+							(w) => !w.voided_at && (w.ticket_id ?? w.visitor_id) === id,
+						);
+						if (hit) return { giftId: gift.id, id: hit.id };
+					}
+					return null;
+				}
+				const record = queryClient
+					.getQueryData<InvalidParticipant[]>(key)
+					?.find((ip) => !ip.voided_at && ip.participant.id === id);
+				return record ? { id: record.id } : null;
+			};
+			const found = look();
+			if (found) return found;
+			await queryClient.refetchQueries({ queryKey: key });
+			return look();
+		},
+		[queryClient, useGifts, eventId, sessionId],
+	);
+
+	// The winner did not show up. Resolves with their record (it holds the gift)
+	// once the lists are fresh, or null when it failed. No success toast: the
+	// screen is on show.
+	const voidWinner = useCallback(
+		async (participant: Participant) => {
+			const target = await findWinnerRecord(participant);
+			if (!target) {
+				toast.error("Could not find that winner");
+				return null;
+			}
+			try {
+				await setVoidedMutation.mutateAsync({ target, voided: true });
+				return target;
+			} catch (error) {
+				toast.error(
+					error instanceof Error ? error.message : "Failed to void winner",
+				);
+				return null;
+			}
+		},
+		[findWinnerRecord, setVoidedMutation],
+	);
+
+	const restoreWinner = useCallback(
+		async (target: { giftId?: number; id: number }) => {
+			try {
+				await setVoidedMutation.mutateAsync({ target, voided: false });
+				toast.success("Winner restored");
+			} catch (error) {
+				toast.error(
+					error instanceof Error ? error.message : "Failed to restore winner",
+				);
+			}
+		},
+		[setVoidedMutation],
+	);
+
 	const startDrawing = useCallback(() => {
 		store.setDrawingState(true);
 	}, [store]);
@@ -761,5 +841,7 @@ export function useLuckyDraw(
 		addInvalidParticipants,
 		removeInvalidParticipant,
 		clearInvalidParticipants,
+		voidWinner,
+		restoreWinner,
 	};
 }

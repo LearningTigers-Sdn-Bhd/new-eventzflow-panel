@@ -2,6 +2,7 @@
 
 import { Image } from "@unpic/react";
 import {
+	Ban,
 	Bell,
 	ChevronDown,
 	Edit2,
@@ -9,12 +10,14 @@ import {
 	Loader2,
 	Save,
 	Trash2,
+	Undo2,
 	UserX,
 	X,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import ImageUpload from "@/components/file-upload/image-upload";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -48,6 +51,9 @@ interface PrizeItemProps {
 	onDelete: (prizeId: number) => void;
 	onDeleteWinner: (winnerId: number) => void;
 	onNotifyWinner: (winnerId: number) => void;
+	/** The prize was not claimed (true), or put the winner back (false) */
+	onVoidWinner: (winnerId: number, voided: boolean) => void;
+	isVoidingWinner: boolean;
 	isUpdating: boolean;
 	isDeleting: boolean;
 	isDeletingWinner: boolean;
@@ -60,6 +66,8 @@ export function PrizeItem({
 	onDelete,
 	onDeleteWinner,
 	onNotifyWinner,
+	onVoidWinner,
+	isVoidingWinner,
 	isUpdating,
 	isDeleting,
 	isDeletingWinner,
@@ -72,8 +80,10 @@ export function PrizeItem({
 	const [editImage, setEditImage] = useState<File | null>(null);
 	const [removeImage, setRemoveImage] = useState(false);
 	const [isWinnersOpen, setIsWinnersOpen] = useState(false);
-	const remaining = prize.quantity - (prize.winners?.length ?? 0);
-	const winners = prize.winners || [];
+	// Voided winners (unclaimed prizes) are back in stock, so they do not count
+	const winners = (prize.winners || []).filter((w) => !w.voided_at);
+	const voidedWinners = (prize.winners || []).filter((w) => w.voided_at);
+	const remaining = prize.quantity - winners.length;
 	const remainingWinners = winners.length > 1 ? winners.length - 1 : 0;
 
 	const handleSave = () => {
@@ -305,6 +315,18 @@ export function PrizeItem({
 										<Button
 											variant="outline"
 											size="sm"
+											disabled={isVoidingWinner}
+											onClick={() =>
+												winners[0] && onVoidWinner(winners[0].id, true)
+											}
+											className="gap-2 rounded-none"
+										>
+											<Ban className="size-4" />
+											<span className="hidden text-sm md:block">Unclaimed</span>
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
 											disabled={isDeletingWinner}
 											onClick={() =>
 												winners[0] &&
@@ -350,6 +372,18 @@ export function PrizeItem({
 													<Button
 														variant="outline"
 														size="sm"
+														disabled={isVoidingWinner}
+														onClick={() => onVoidWinner(winner.id, true)}
+														className="gap-2 rounded-none"
+													>
+														<Ban className="size-4" />
+														<span className="hidden text-sm md:block">
+															Unclaimed
+														</span>
+													</Button>
+													<Button
+														variant="outline"
+														size="sm"
 														disabled={isDeletingWinner}
 														onClick={() =>
 															handleDeleteWinner(
@@ -375,6 +409,33 @@ export function PrizeItem({
 								No winner assigned
 							</div>
 						)}
+						{/* Unclaimed prizes: back in stock, kept for the record */}
+						{voidedWinners.map((winner) => (
+							<div
+								key={winner.id}
+								className="flex items-center justify-between gap-3 border-t bg-muted/30 px-4 py-1.5 text-muted-foreground text-sm"
+							>
+								<span className="truncate line-through">
+									{winner.participant_name || "Unknown"}
+								</span>
+								<div className="flex items-center gap-2">
+									<Badge variant="outline" className="rounded-none">
+										Unclaimed
+									</Badge>
+									<Button
+										variant="outline"
+										size="sm"
+										className="gap-2 rounded-none"
+										disabled={isVoidingWinner || remaining <= 0}
+										title={remaining <= 0 ? "No stock left" : undefined}
+										onClick={() => onVoidWinner(winner.id, false)}
+									>
+										<Undo2 className="size-4" />
+										<span className="hidden md:block">Restore</span>
+									</Button>
+								</div>
+							</div>
+						))}
 					</CardContent>
 				</>
 			)}

@@ -34,6 +34,7 @@ export function LuckyDrawDrawArea() {
 		batchTotal,
 		batchSkipped,
 		skipBatch,
+		redrawBatchSlot,
 		clearBatchWinners,
 		isLoadingConfig,
 		isFullscreen,
@@ -116,6 +117,7 @@ export function LuckyDrawDrawArea() {
 								giftNames={batchGiftNames}
 								suspense={batchSkipped}
 								pool={availableParticipants}
+								onRedraw={redrawBatchSlot}
 								onClose={clearBatchWinners}
 							/>
 						)}

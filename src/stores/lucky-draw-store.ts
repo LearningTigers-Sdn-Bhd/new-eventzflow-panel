@@ -18,6 +18,7 @@ export type Gift = {
 	winner: Participant | null;
 	actual_winner_count?: number; // Actual number of winners assigned
 	allWinners?: Array<Participant & { id: number; round: number | null }>; // All winners for collapsible display
+	voidedWinners?: Array<Participant & { id: number }>; // No-shows: out of the pool, not counted
 };
 
 export type DrawStyle = "wheel" | "slot" | "box";

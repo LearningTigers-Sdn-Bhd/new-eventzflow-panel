@@ -16,8 +16,10 @@ export function transformGift(
 	useTicket: boolean,
 	participantsMap?: Map<number, BackendParticipant>,
 ): Gift {
+	// Voided winners (no-shows) no longer count toward the gift
+	const activeWinners = backendGift.winners.filter((w) => !w.voided_at);
 	// Take first winner if exists, otherwise null (for UI display)
-	const firstWinner = backendGift.winners[0] || null;
+	const firstWinner = activeWinners[0] || null;
 	let winner: Participant | null = null;
 
 	if (firstWinner) {
@@ -48,9 +50,9 @@ export function transformGift(
 		draw_last: backendGift.draw_last,
 		winner,
 		// Store actual winner count for logic
-		actual_winner_count: backendGift.winners.length,
+		actual_winner_count: activeWinners.length,
 		// Store all winners for collapsible display
-		allWinners: backendGift.winners
+		allWinners: activeWinners
 			.map((w) => {
 				const participantId = w.ticket_id ?? w.visitor_id ?? null;
 				if (participantId !== null) {
@@ -73,6 +75,15 @@ export function transformGift(
 				(w): w is Participant & { id: number; round: number | null } =>
 					w !== null,
 			),
+		// No-shows, kept for the operator's list only
+		voidedWinners: backendGift.winners
+			.filter((w) => w.voided_at)
+			.map((w) => ({
+				id: w.id,
+				name: w.participant_name ?? "Unknown",
+				type: useTicket ? ("ticket" as const) : ("visitor" as const),
+				publicId: String(w.ticket_id ?? w.visitor_id),
+			})),
 	};
 }
 

@@ -2,6 +2,7 @@
 
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
+import { RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,9 @@ const FLICKER_MS = 1500;
 const FLICKER_TICK_MS = 70;
 const LOCK_STAGGER_MS = 70;
 
+// A redrawn slot flickers through names this long before it locks
+const REDRAW_ROLL_MS = 900;
+
 interface BatchResultsProps {
 	/** Winners of this draw, already saved, in the order they were drawn */
 	winners: Participant[];
@@ -29,6 +33,8 @@ interface BatchResultsProps {
 	suspense: boolean;
 	/** Names to flicker through while a slot has not locked yet */
 	pool: Participant[];
+	/** The winner of slot `index` did not show up: void them and draw a new one */
+	onRedraw?: (index: number) => void | Promise<void>;
 	onClose: () => void;
 }
 
@@ -68,6 +74,7 @@ export function BatchResults({
 	giftNames,
 	suspense,
 	pool,
+	onRedraw,
 	onClose,
 }: BatchResultsProps) {
 	// How many cards are revealed (locked, in suspense mode)
@@ -75,11 +82,56 @@ export function BatchResults({
 	const [flicker, setFlicker] = useState<string[]>([]);
 	const poolRef = useRef(pool);
 	const celebrated = useRef(false);
+	// Keyed on the count, not the list: a redraw swaps one winner and must not replay the reveal
+	const total = winners.length;
+
+	// Slots that just got a new winner (redraw) flicker through names, then lock
+	const [rolling, setRolling] = useState<Set<number>>(new Set());
+	const previous = useRef(winners);
+
+	useEffect(() => {
+		const changed = winners.flatMap((winner, i) =>
+			previous.current[i] && previous.current[i].publicId !== winner.publicId
+				? [i]
+				: [],
+		);
+		previous.current = winners;
+		if (changed.length === 0 || prefersReducedMotion()) return;
+
+		setRolling((slots) => new Set([...slots, ...changed]));
+		setTimeout(
+			() =>
+				setRolling((slots) => {
+					const next = new Set(slots);
+					for (const i of changed) next.delete(i);
+					return next;
+				}),
+			REDRAW_ROLL_MS,
+		);
+	}, [winners]);
+
+	useEffect(() => {
+		const names = poolRef.current;
+		if (rolling.size === 0 || names.length === 0) return;
+		const id = setInterval(
+			() =>
+				setFlicker((current) => {
+					const next = [...current];
+					for (const i of rolling) {
+						next[i] =
+							names[Math.floor(Math.random() * names.length)]?.name ?? "";
+					}
+					return next;
+				}),
+			FLICKER_TICK_MS,
+		);
+		return () => clearInterval(id);
+	}, [rolling]);
 
 	useEffect(() => {
 		const names = poolRef.current;
 		if (prefersReducedMotion()) {
-			setRevealed(winners.length);
+			setRevealed(total);
 			return;
 		}
 
@@ -88,34 +140,35 @@ export function BatchResults({
 			const id = setInterval(() => {
 				const elapsed = performance.now() - start;
 				const lockedNow = Math.min(
-					winners.length,
+					total,
 					elapsed < FLICKER_MS
 						? 0
 						: Math.floor((elapsed - FLICKER_MS) / LOCK_STAGGER_MS) + 1,
 				);
 				setRevealed(lockedNow);
 				setFlicker(
-					winners.map(
+					Array.from(
+						{ length: total },
 						() => names[Math.floor(Math.random() * names.length)]?.name ?? "",
 					),
 				);
-				if (lockedNow >= winners.length) clearInterval(id);
+				if (lockedNow >= total) clearInterval(id);
 			}, FLICKER_TICK_MS);
 			return () => clearInterval(id);
 		}
 
 		const step = Math.min(
 			REVEAL_MAX_STEP_MS,
-			Math.max(REVEAL_MIN_STEP_MS, REVEAL_TOTAL_MS / winners.length),
+			Math.max(REVEAL_MIN_STEP_MS, REVEAL_TOTAL_MS / total),
 		);
 		const id = setInterval(() => {
 			setRevealed((n) => {
-				if (n + 1 >= winners.length) clearInterval(id);
-				return Math.min(n + 1, winners.length);
+				if (n + 1 >= total) clearInterval(id);
+				return Math.min(n + 1, total);
 			});
 		}, step);
 		return () => clearInterval(id);
-	}, [winners, suspense]);
+	}, [total, suspense]);
 
 	// Burst of confetti when the last name appears
 	useEffect(() => {
@@ -179,7 +232,7 @@ export function BatchResults({
 							}
 							transition={{ type: "spring", stiffness: 420, damping: 14 }}
 							className={cn(
-								"relative flex items-center justify-center border px-2 py-2 text-center font-semibold leading-tight",
+								"group relative flex items-center justify-center border px-2 py-2 text-center font-semibold leading-tight",
 								big ? "min-h-[2.75em]" : "min-h-[3.75em]",
 								giftNames && "pt-3 pb-4",
 								textSize(winners.length),
@@ -191,13 +244,29 @@ export function BatchResults({
 							<span className="absolute top-0.5 left-1 font-normal text-[9px] text-muted-foreground tabular-nums">
 								{i + 1}
 							</span>
+							{onRedraw && isShown && !rolling.has(i) && (
+								<button
+									type="button"
+									aria-label={`Redraw winner ${i + 1}`}
+									onClick={() => onRedraw(i)}
+									className="absolute top-0.5 right-0.5 p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
+								>
+									<RefreshCw className="size-3" />
+								</button>
+							)}
 							<span
 								className={cn(
 									"break-words",
 									big ? "line-clamp-3" : "line-clamp-2",
 								)}
 							>
-								{isShown ? winner.name : suspense ? (flicker[i] ?? "") : ""}
+								{rolling.has(i)
+									? (flicker[i] ?? "")
+									: isShown
+										? winner.name
+										: suspense
+											? (flicker[i] ?? "")
+											: ""}
 							</span>
 							{giftNames?.[i] && (
 								<span className="absolute right-1 bottom-0.5 left-1 truncate font-normal text-[10px] text-muted-foreground">

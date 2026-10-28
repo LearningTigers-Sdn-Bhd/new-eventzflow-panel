@@ -5,6 +5,7 @@ import {
 	SessionBackButton,
 	SessionDisplayModeToggle,
 	SessionDrawButton,
+	SessionFullscreenToggle,
 	SessionHeader,
 	SessionHeaderActions,
 	SessionHeaderCenter,
@@ -95,6 +96,10 @@ export function LuckyDrawHeader() {
 							Scan Participants
 						</Button>
 					)}
+					<SessionFullscreenToggle
+						isFullscreen={isFullscreen}
+						onToggle={toggleFullscreen}
+					/>
 					<SessionDrawButton
 						onClick={handleDraw}
 						disabled={!canDraw || isDrawing}

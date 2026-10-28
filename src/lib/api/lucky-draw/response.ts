@@ -47,6 +47,8 @@ export interface GiftWinner {
 	participant_name: string | null;
 	/** Sweep round that drew this winner. null when drawn gift by gift */
 	round: number | null;
+	/** Set when the winner did not show up: no longer counts toward the gift */
+	voided_at: string | null;
 	drawn_at: string;
 	created_at: string;
 	updated_at: string;
@@ -88,6 +90,8 @@ export interface InvalidParticipant {
 	};
 	/** Draw this winner came from (gifts off). null for winners saved before rounds existed. */
 	round: number | null;
+	/** Set when the winner did not show up. They stay out of the pool. */
+	voided_at: string | null;
 	created_at: string;
 	updated_at: string;
 }
