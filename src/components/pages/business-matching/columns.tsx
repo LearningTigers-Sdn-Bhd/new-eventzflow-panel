@@ -32,7 +32,7 @@ import HostDetailsDialog from "./host-details-dialog";
 
 const STATUS_BADGE = {
 	active: "bg-green-100 text-green-800 hover:bg-green-100",
-	needsHost: "bg-amber-100 text-amber-800 hover:bg-amber-100",
+	notActivated: "bg-amber-100 text-amber-800 hover:bg-amber-100",
 	archived: "bg-gray-100 text-gray-800 hover:bg-gray-100",
 } as const;
 
@@ -41,7 +41,7 @@ function sessionStatus(event: BusinessMatchingEvent) {
 		return { label: "Archived", className: STATUS_BADGE.archived };
 	}
 	if (!event.host) {
-		return { label: "Needs host", className: STATUS_BADGE.needsHost };
+		return { label: "Not Activated", className: STATUS_BADGE.notActivated };
 	}
 	return { label: "Active", className: STATUS_BADGE.active };
 }
