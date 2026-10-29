@@ -202,12 +202,18 @@ export interface TrendsQuery {
 	/** "YYYY-MM-DD"; the API falls back to today / the first event day. */
 	date?: string;
 	bucket?: TrendBucket;
+	/** Excel export only: write times as 2:15 PM instead of 14:15. */
+	hour12?: boolean;
+	/** Excel export only: the whole event instead of one day. */
+	allDays?: boolean;
 }
 
-const trendsQueryString = ({ date, bucket }: TrendsQuery) => {
+const trendsQueryString = ({ date, bucket, hour12, allDays }: TrendsQuery) => {
 	const query = new URLSearchParams();
 	if (date) query.set("date", date);
 	if (bucket) query.set("bucket", String(bucket));
+	if (hour12) query.set("hour12", "1");
+	if (allDays) query.set("all_days", "1");
 	const text = query.toString();
 	return text ? `?${text}` : "";
 };
@@ -247,6 +253,16 @@ interface BackendDaily {
 		peak: { occupancy: number; at: string } | null;
 		busiest_entry_hour: { in: number; at: string } | null;
 		closing: number | null;
+		halls: {
+			id: number;
+			name: string;
+			floor: string | null;
+			status: HallStatus;
+			entries: number;
+			exits: number;
+			peak: { occupancy: number; at: string } | null;
+			closing: number | null;
+		}[];
 	}[];
 }
 
@@ -269,6 +285,16 @@ export async function getDailyBreakdown(
 				at: d.busiest_entry_hour.at,
 			},
 			closing: d.closing,
+			halls: d.halls.map((h) => ({
+				id: h.id,
+				name: h.name,
+				floor: h.floor,
+				status: h.status,
+				entries: h.entries,
+				exits: h.exits,
+				peak: h.peak,
+				closing: h.closing,
+			})),
 		})),
 	};
 }

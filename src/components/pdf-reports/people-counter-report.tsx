@@ -1,12 +1,8 @@
 "use client";
 
-import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
+import { Document, Page } from "@react-pdf/renderer";
 import { formatCount } from "@/components/pages/headcount/format";
-import type {
-	DaySummary,
-	Headcount,
-	HeadcountTrends,
-} from "@/lib/api/event/hall";
+import type { Headcount, HeadcountTrends } from "@/lib/api/event/hall";
 import { AreaChart } from "./charts";
 import {
 	ReportFooter,
@@ -15,9 +11,9 @@ import {
 	StatsGrid,
 	Table,
 } from "./components";
+import { PeopleCounterMasthead } from "./people-counter-masthead";
 import {
 	chartSeries,
-	dayRows,
 	hallRows,
 	headlineFigures,
 	levelRows,
@@ -31,8 +27,8 @@ export interface PeopleCounterReportData {
 	generatedAt: string;
 	trends: HeadcountTrends;
 	headcount: Headcount;
-	/** Every event day so far; the day-by-day table shows only when there are two or more. */
-	days: DaySummary[];
+	/** Write times as 2:15 PM instead of 14:15. */
+	hour12: boolean;
 }
 
 type Align = "left" | "right";
@@ -57,104 +53,54 @@ const HALL_ALIGNS: Align[] = [
 	"right",
 	"right",
 ];
-const DAY_ALIGNS: Align[] = [
-	"left",
-	"right",
-	"right",
-	"right",
-	"right",
-	"right",
-];
 
-/** One day of the people counter as a printable summary: headline numbers, charts, levels, halls and the event's days. */
+/** One day of the people counter, and nothing from other days: headline numbers, the day's charts, levels and halls. */
 export function PeopleCounterReport({
 	data,
 }: {
 	data: PeopleCounterReportData;
 }) {
-	const { trends, headcount, days } = data;
-	const figures = headlineFigures(trends, headcount);
+	const { trends, headcount, hour12 } = data;
+	const figures = headlineFigures(trends, headcount, hour12);
 	const points = trends.event.points;
 
 	return (
 		<Document title={`People counter - ${data.eventTitle}`} author="EventzFlow">
 			<Page size="A4" style={styles.page}>
-				<View style={styles.header}>
-					<View style={styles.headerTop}>
-						<Image
-							src="/logo/Logo.png"
-							style={{ width: 120, height: 10, objectFit: "contain" }}
-						/>
-						<View style={{ alignItems: "flex-end" }}>
-							<Text
-								style={{
-									fontSize: 12,
-									fontFamily: "Helvetica-Bold",
-									textTransform: "uppercase",
-								}}
-							>
-								People counter report
-							</Text>
-							<Text
-								style={{
-									fontSize: 9,
-									color: colors.textSecondary,
-									marginTop: 4,
-								}}
-							>
-								Generated {data.generatedAt}
-							</Text>
-						</View>
-					</View>
-					<Text style={styles.label}>Event</Text>
-					<Text style={styles.h1}>{data.eventTitle}</Text>
-					<Text style={styles.textSmall}>{data.dayLabel}</Text>
-				</View>
+				<PeopleCounterMasthead
+					eventTitle={data.eventTitle}
+					subtitle={data.dayLabel}
+					generatedAt={data.generatedAt}
+				/>
 
 				<StatsGrid>
+					<StatsCard label="Visitors" value={formatCount(figures.entries)} />
 					<StatsCard
 						label="Peak crowd"
 						value={formatCount(figures.peak)}
 						subtext={figures.peakAt ? `at ${figures.peakAt}` : undefined}
 					/>
-					<StatsCard label="Came in" value={formatCount(figures.entries)} />
-					<StatsCard label="Left" value={formatCount(figures.exits)} />
 					<StatsCard
 						label="Busiest hour"
 						value={formatCount(figures.busiest)}
 						subtext={figures.busiestHour ?? undefined}
-						isLast
 					/>
+					<StatsCard label="Left" value={formatCount(figures.exits)} isLast />
 				</StatsGrid>
-				<StatsGrid>
-					<StatsCard
-						label="Inside at close"
-						value={formatCount(figures.closing)}
-					/>
-					<StatsCard
-						label="Total capacity"
-						value={formatCount(figures.capacity)}
-						isLast
-					/>
-				</StatsGrid>
-
-				<Section title="People inside">
+				<Section title="Through the day">
 					<AreaChart
 						data={chartSeries(points, "occupancy")}
 						title="People inside"
 						subtitle={data.dayLabel}
 					/>
-				</Section>
-
-				<Section title="Came in and left">
 					<AreaChart
 						data={chartSeries(points, "entries")}
-						title="Came in"
+						title="Visitors coming in"
 						areaColor={colors.success}
 					/>
 					<AreaChart
 						data={chartSeries(points, "exits")}
-						title="Left"
+						title="People leaving"
 						areaColor={colors.warning}
 					/>
 				</Section>
@@ -166,11 +112,11 @@ export function PeopleCounterReport({
 							"Capacity",
 							"Peak crowd",
 							"Peak at",
-							"Came in",
+							"Visitors",
 							"Left",
 							"Peak vs capacity",
 						]}
-						columnWidths={["20%", "12%", "12%", "11%", "11%", "11%", "23%"]}
+						columnWidths={["18%", "13%", "15%", "11%", "11%", "9%", "23%"]}
 						columnAligns={LEVEL_ALIGNS}
 						rows={levelRows(trends, headcount)}
 					/>
@@ -183,7 +129,7 @@ export function PeopleCounterReport({
 							"Level",
 							"Capacity",
 							"Peak crowd",
-							"Came in",
+							"Visitors",
 							"Left",
 							"Status",
 						]}
@@ -192,24 +138,6 @@ export function PeopleCounterReport({
 						rows={hallRows(trends, headcount)}
 					/>
 				</Section>
-
-				{days.length >= 2 && (
-					<Section title="Day by day">
-						<Table
-							headers={[
-								"Day",
-								"Came in",
-								"Left",
-								"Peak crowd",
-								"Busiest hour",
-								"Inside at close",
-							]}
-							columnWidths={["16%", "14%", "14%", "20%", "20%", "16%"]}
-							columnAligns={DAY_ALIGNS}
-							rows={dayRows(days)}
-						/>
-					</Section>
-				)}
 
 				<ReportFooter />
 			</Page>

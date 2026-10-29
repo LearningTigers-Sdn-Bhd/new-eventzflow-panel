@@ -18,6 +18,7 @@ import { CapacityAlerts } from "./capacity-alerts";
 import { FiguresSummary } from "./figures-summary";
 import { floorLabel } from "./format";
 import { HallCard } from "./hall-card";
+import { VisitorsSummary } from "./visitors-summary";
 
 /** The headline panel: everyone inside right now, then today's and the whole event's traffic. */
 function LiveStatus({ event }: { event: HeadcountRollup }) {
@@ -124,6 +125,7 @@ export function HeadcountOverview({
 		<div className="@container space-y-4">
 			<BigScreenLink />
 			<CapacityAlerts alerts={capacityAlerts(data.halls)} />
+			<VisitorsSummary event={data.event} />
 			<LiveStatus event={data.event} />
 
 			{data.levels.map((level) => {

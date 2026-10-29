@@ -25,12 +25,23 @@ import {
 import type { TrendBucket } from "@/lib/api/event/hall";
 import { type CompareSource, compareRows } from "./trend-format";
 
+export const COMPARE_COLORS = [
+	"var(--chart-1)",
+	"var(--chart-2)",
+	"var(--chart-3)",
+	"var(--chart-4)",
+	"var(--chart-5)",
+];
+
 interface CompareChartsProps {
+	/** What the lines stand for, in the Entries subtitle. */
+	by?: string;
 	series: CompareSource[];
 	config: ChartConfig;
 	bucket: TrendBucket;
 	subtitle: string;
 	hasMovement: boolean;
+	hour12: boolean;
 }
 
 /** Halls (or levels) side by side over the day: people inside as lines, entries as grouped bars. */
@@ -40,9 +51,11 @@ export function CompareCharts({
 	bucket,
 	subtitle,
 	hasMovement,
+	hour12,
+	by = "venue",
 }: CompareChartsProps) {
-	const occupancy = compareRows(series, "occupancy");
-	const entries = compareRows(series, "entries");
+	const occupancy = compareRows(series, "occupancy", hour12);
+	const entries = compareRows(series, "entries", hour12);
 	const domain: [number, number | "auto"] = [0, hasMovement ? "auto" : 10];
 
 	return (
@@ -94,7 +107,7 @@ export function CompareCharts({
 					<CardTitle className="text-sm">Entries</CardTitle>
 					<CardDescription className="text-xs">
 						People who came in during each{" "}
-						{bucket === 15 ? "15 minutes" : "hour"}, by venue
+						{bucket === 15 ? "15 minutes" : "hour"}, by {by}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="pt-4">

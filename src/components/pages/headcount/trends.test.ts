@@ -122,3 +122,19 @@ describe("compareRows", () => {
 		]);
 	});
 });
+
+describe("12-hour clock", () => {
+	test("timeLabel", () => {
+		expect(timeLabel("2026-09-11T14:15:00", true)).toBe("2:15 PM");
+		expect(timeLabel("2026-09-11T00:05:00", true)).toBe("12:05 AM");
+		expect(timeLabel("2026-09-11T12:00:00", true)).toBe("12:00 PM");
+		expect(timeLabel("2026-09-11T14:15:00")).toBe("14:15");
+	});
+
+	test("hourRange keeps one AM/PM when both ends share it", () => {
+		expect(hourRange("2026-09-11T13:00:00", true)).toBe("1:00–2:00 PM");
+		expect(hourRange("2026-09-11T11:00:00", true)).toBe("11:00 AM–12:00 PM");
+		expect(hourRange("2026-09-11T23:00:00", true)).toBe("11:00 PM–12:00 AM");
+		expect(hourRange("2026-09-11T13:00:00")).toBe("13:00–14:00");
+	});
+});

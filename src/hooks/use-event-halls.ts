@@ -1,6 +1,6 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQueries, useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/auth/use-auth";
 import {
 	getConnection,
@@ -60,6 +60,27 @@ export function useHeadcountTrends(
 		refetchInterval: 2 * HEADCOUNT_REFRESH_MS,
 		// Keep the old chart on screen while another day or bucket loads.
 		placeholderData: keepPreviousData,
+	});
+}
+
+/** Several days of counts at once, one query per day. They share cache keys with `useHeadcountTrends`, so a day already on screen is not fetched twice. */
+export function useDaysTrends(
+	eventId: string,
+	days: string[],
+	bucket: TrendBucket,
+) {
+	const { isInitialized } = useAuth();
+	return useQueries({
+		queries: days.map((date) => ({
+			queryKey: hallKeys.trends(eventId, date, bucket),
+			queryFn: () => getHeadcountTrends(eventId, { date, bucket }),
+			enabled: isInitialized,
+			refetchInterval: 2 * HEADCOUNT_REFRESH_MS,
+		})),
+		combine: (results) => ({
+			trends: results.map((r) => r.data),
+			loading: results.some((r) => r.isPending),
+		}),
 	});
 }
 

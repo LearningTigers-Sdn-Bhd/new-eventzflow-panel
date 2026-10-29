@@ -2,7 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { Download, FileSpreadsheet, FileText, Users } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	Area,
 	AreaChart,
@@ -53,14 +53,18 @@ import {
 } from "@/lib/api/event/hall";
 import { cn } from "@/lib/utils";
 import { downloadBlob } from "../feedback-form/responses/export/download";
-import { CompareCharts } from "./compare-charts";
-import { DayByDay } from "./day-by-day";
+import { AllDaysCharts } from "./all-days-charts";
+import { AllDaysSummary } from "./all-days-summary";
+import { COMPARE_COLORS, CompareCharts } from "./compare-charts";
+import { ALL_DAYS, DayPicker } from "./day-picker";
+import { HallsCompared } from "./halls-compared";
 import { StatTile } from "./stat-tile";
 import {
 	dayLabel,
 	hourRange,
 	type ScopeOption,
 	scopeOptions,
+	shortDayLabel,
 	timeLabel,
 } from "./trend-format";
 
@@ -69,24 +73,23 @@ const BUCKETS: { value: TrendBucket; label: string }[] = [
 	{ value: 60, label: "Hourly" },
 ];
 
-const EMPTY_DAY = Array.from({ length: 12 }, (_, i) => ({
-	label: `${String(i + 8).padStart(2, "0")}:00`,
-	occupancy: 0,
-	entries: 0,
-	exits: 0,
-}));
+const HOUR12_KEY = "people-counter-hour12";
+
+/** A flat zero line across a typical day, so the axes still show before anything is counted. */
+const emptyDay = (hour12: boolean) =>
+	Array.from({ length: 12 }, (_, i) => ({
+		label: timeLabel(
+			`2000-01-01T${String(i + 8).padStart(2, "0")}:00:00`,
+			hour12,
+		),
+		occupancy: 0,
+		entries: 0,
+		exits: 0,
+	}));
 
 const occupancyConfig = {
 	occupancy: { label: "People inside", color: "var(--chart-1)" },
 } satisfies ChartConfig;
-
-const COMPARE_COLORS = [
-	"var(--chart-1)",
-	"var(--chart-2)",
-	"var(--chart-3)",
-	"var(--chart-4)",
-	"var(--chart-5)",
-];
 
 const flowConfig = {
 	entries: { label: "Entries", color: "var(--chart-2)" },
@@ -107,7 +110,25 @@ export function TrendsPanel({
 }: TrendsPanelProps) {
 	const [date, setDate] = useState<string | undefined>();
 	const [bucket, setBucket] = useState<TrendBucket>(60);
+	const [allDays, setAllDays] = useState(false);
 	const [scopeValue, setScopeValue] = useState("event");
+	// 12-hour by default; the choice is remembered in this browser only.
+	const [hour12, setHour12] = useState(true);
+	useEffect(() => {
+		try {
+			if (localStorage.getItem(HOUR12_KEY) === "0") setHour12(false);
+		} catch {
+			// storage blocked: keep the default
+		}
+	}, []);
+	const chooseHour12 = (value: boolean) => {
+		setHour12(value);
+		try {
+			localStorage.setItem(HOUR12_KEY, value ? "1" : "0");
+		} catch {
+			// storage blocked: the choice just won't be remembered
+		}
+	};
 
 	const { data, isLoading, error, refetch, isPlaceholderData } =
 		useHeadcountTrends(eventId, date, bucket);
@@ -120,15 +141,25 @@ export function TrendsPanel({
 			const day = data?.date ?? date;
 			if (kind === "pdf") {
 				// Loaded on demand: the PDF library is large and most visits never export.
-				const { exportPeopleCounterPdf } = await import("./export-pdf");
-				await exportPeopleCounterPdf(eventId, eventTitle, day);
+				const { exportPeopleCounterPdf, exportPeopleCounterAllDaysPdf } =
+					await import("./export-pdf");
+				if (allDays)
+					await exportPeopleCounterAllDaysPdf(eventId, eventTitle, hour12);
+				else await exportPeopleCounterPdf(eventId, eventTitle, day, hour12);
 				return;
 			}
 			const blob = await downloadHeadcountReport(eventId, {
 				date: day,
 				bucket,
+				hour12,
+				allDays,
 			});
-			downloadBlob(blob, `people-counts-${day ?? "today"}.xlsx`);
+			downloadBlob(
+				blob,
+				allDays
+					? "people-counts-all-days.xlsx"
+					: `people-counts-${day ?? "today"}.xlsx`,
+			);
 		},
 		onError: (e: Error) => toast.error(`Export failed: ${e.message}`),
 	});
@@ -183,6 +214,8 @@ export function TrendsPanel({
 		options.find((o) => o.value === scopeValue) ?? options[0];
 	const { points, stats } = selected.scope;
 	const series = selected.series;
+	const visitors = points.reduce((sum, p) => sum + p.entries, 0);
+	const exits = points.reduce((sum, p) => sum + p.exits, 0);
 	const compareConfig: ChartConfig = Object.fromEntries(
 		(series ?? []).map((src, i) => [
 			src.key,
@@ -194,8 +227,8 @@ export function TrendsPanel({
 	);
 	// With nothing counted yet, draw a flat zero line across a typical day so the axes and grid still show.
 	const chartData = hasMovement
-		? points.map((p) => ({ ...p, label: timeLabel(p.time) }))
-		: EMPTY_DAY;
+		? points.map((p) => ({ ...p, label: timeLabel(p.time, hour12) }))
+		: emptyDay(hour12);
 	// A bare 0..auto axis collapses when every value is 0.
 	const yDomain: [number, number | "auto"] = [0, hasMovement ? "auto" : 10];
 
@@ -206,54 +239,46 @@ export function TrendsPanel({
 				isPlaceholderData && "opacity-60",
 			)}
 		>
+			<DayPicker
+				eventId={eventId}
+				selected={allDays ? ALL_DAYS : data.date}
+				hour12={hour12}
+				onSelect={(value) => {
+					setAllDays(value === ALL_DAYS);
+					if (value !== ALL_DAYS) setDate(value);
+				}}
+			/>
+
 			<Card className="gap-0 rounded-none shadow-none">
 				<CardContent className="flex flex-wrap items-end gap-4 py-4">
-					<div className="space-y-1.5">
-						<p className="text-muted-foreground text-xs">Day</p>
-						<Select
-							value={data.date}
-							onValueChange={setDate}
-							disabled={data.days.length < 2}
-						>
-							<SelectTrigger className="w-44 rounded-none">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{data.days.map((day) => (
-									<SelectItem key={day} value={day}>
-										{dayLabel(day)}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-
-					<div className="space-y-1.5">
-						<p className="text-muted-foreground text-xs">Show</p>
-						<Select value={selected.value} onValueChange={setScopeValue}>
-							<SelectTrigger className="w-52 rounded-none">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{(["Event", "Compare", "Levels", "Halls"] as const).map(
-									(group) => {
-										const items = options.filter((o) => o.group === group);
-										if (items.length === 0) return null;
-										return (
-											<SelectGroup key={group}>
-												<SelectLabel>{group}</SelectLabel>
-												{items.map((o) => (
-													<SelectItem key={o.value} value={o.value}>
-														{o.label}
-													</SelectItem>
-												))}
-											</SelectGroup>
-										);
-									},
-								)}
-							</SelectContent>
-						</Select>
-					</div>
+					{!allDays && (
+						<div className="space-y-1.5">
+							<p className="text-muted-foreground text-xs">Show</p>
+							<Select value={selected.value} onValueChange={setScopeValue}>
+								<SelectTrigger className="w-52 rounded-none">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{(["Event", "Compare", "Levels", "Halls"] as const).map(
+										(group) => {
+											const items = options.filter((o) => o.group === group);
+											if (items.length === 0) return null;
+											return (
+												<SelectGroup key={group}>
+													<SelectLabel>{group}</SelectLabel>
+													{items.map((o) => (
+														<SelectItem key={o.value} value={o.value}>
+															{o.label}
+														</SelectItem>
+													))}
+												</SelectGroup>
+											);
+										},
+									)}
+								</SelectContent>
+							</Select>
+						</div>
+					)}
 
 					<div className="space-y-1.5">
 						<p
@@ -273,6 +298,26 @@ export function TrendsPanel({
 									onClick={() => setBucket(b.value)}
 								>
 									{b.label}
+								</Button>
+							))}
+						</div>
+					</div>
+					<div className="space-y-1.5">
+						<p className="text-muted-foreground text-xs">Time format</p>
+						<div className="flex">
+							{[
+								{ value: true, label: "12h" },
+								{ value: false, label: "24h" },
+							].map((f) => (
+								<Button
+									key={f.label}
+									type="button"
+									variant={hour12 === f.value ? "default" : "outline"}
+									className="rounded-none"
+									aria-pressed={hour12 === f.value}
+									onClick={() => chooseHour12(f.value)}
+								>
+									{f.label}
 								</Button>
 							))}
 						</div>
@@ -304,135 +349,149 @@ export function TrendsPanel({
 				</CardContent>
 			</Card>
 
-			<DayByDay eventId={eventId} selectedDate={data.date} onSelect={setDate} />
-
-			{!hasMovement && (
-				<p className="text-muted-foreground text-xs">
-					Nothing counted for {selected.label} on {dayLabel(data.date)} yet.
-					These fill in as people are counted.
-				</p>
-			)}
-			{series ? (
-				<CompareCharts
-					series={series}
-					config={compareConfig}
-					bucket={bucket}
-					subtitle={`${selected.label} · ${dayLabel(data.date)}`}
-					hasMovement={hasMovement}
-				/>
+			{allDays ? (
+				<>
+					<AllDaysSummary eventId={eventId} hour12={hour12} />
+					<AllDaysCharts eventId={eventId} bucket={bucket} hour12={hour12} />
+					<HallsCompared eventId={eventId} />
+				</>
 			) : (
 				<>
-					<div className="grid @3xl:grid-cols-3 grid-cols-1 gap-2">
-						<StatTile
-							label="Peak crowd"
-							value={stats?.peak.occupancy ?? null}
-							hint={
-								stats ? `at ${timeLabel(stats.peak.at)}` : "No movement yet"
-							}
-							accent="border-l-emerald-500"
+					{!hasMovement && (
+						<p className="text-muted-foreground text-xs">
+							Nothing counted for {selected.label} on {dayLabel(data.date)} yet.
+							These fill in as people are counted.
+						</p>
+					)}
+					{series ? (
+						<CompareCharts
+							series={series}
+							config={compareConfig}
+							bucket={bucket}
+							hour12={hour12}
+							subtitle={`${selected.label} · ${dayLabel(data.date)}`}
+							hasMovement={hasMovement}
 						/>
-						<StatTile
-							label="Busiest hour for arrivals"
-							value={stats?.busiestEntryHour.entries ?? null}
-							hint={
-								stats
-									? `entries ${hourRange(stats.busiestEntryHour.at)}`
-									: "No movement yet"
-							}
-							accent="border-l-sky-500"
-						/>
-						<StatTile
-							label="Net flow · latest movement"
-							value={stats?.recentFlow?.net ?? null}
-							hint={
-								stats?.recentFlow
-									? `${stats.recentFlow.entries} in · ${stats.recentFlow.exits} out at ${timeLabel(stats.recentFlow.at)}`
-									: "No movement yet"
-							}
-							accent="border-l-amber-500"
-						/>
-					</div>
+					) : (
+						<>
+							<div className="grid @3xl:grid-cols-4 grid-cols-2 gap-2">
+								<StatTile
+									label="Visitors"
+									value={hasMovement ? visitors : null}
+									hint={`came in on ${shortDayLabel(data.date)}`}
+									accent="border-l-violet-500"
+								/>
+								<StatTile
+									label="Most people at once"
+									value={stats?.peak.occupancy ?? null}
+									hint={
+										stats
+											? `at ${timeLabel(stats.peak.at, hour12)}`
+											: "No movement yet"
+									}
+									accent="border-l-emerald-500"
+								/>
+								<StatTile
+									label="Busiest hour"
+									value={stats?.busiestEntryHour.entries ?? null}
+									hint={
+										stats
+											? `entries ${hourRange(stats.busiestEntryHour.at, hour12)}`
+											: "No movement yet"
+									}
+									accent="border-l-sky-500"
+								/>
+								<StatTile
+									label="Left"
+									value={hasMovement ? exits : null}
+									hint={`went out on ${shortDayLabel(data.date)}`}
+									accent="border-l-amber-500"
+								/>
+							</div>
 
-					<Card className="gap-0 rounded-none shadow-none">
-						<CardHeader className="border-b pb-3">
-							<CardTitle className="text-sm">People inside</CardTitle>
-							<CardDescription className="text-xs">
-								{selected.label} · {dayLabel(data.date)}
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="pt-4">
-							<ChartContainer
-								config={occupancyConfig}
-								className="aspect-auto h-64 w-full"
-							>
-								<AreaChart data={chartData} margin={{ left: 4, right: 12 }}>
-									<CartesianGrid vertical={false} />
-									<XAxis
-										dataKey="label"
-										tickLine={false}
-										axisLine={false}
-										tickMargin={8}
-										minTickGap={24}
-									/>
-									<YAxis
-										tickLine={false}
-										axisLine={false}
-										width={40}
-										allowDecimals={false}
-										domain={yDomain}
-									/>
-									<ChartTooltip
-										content={<ChartTooltipContent indicator="line" />}
-									/>
-									<Area
-										dataKey="occupancy"
-										type="monotone"
-										stroke="var(--color-occupancy)"
-										fill="var(--color-occupancy)"
-										fillOpacity={0.2}
-									/>
-								</AreaChart>
-							</ChartContainer>
-						</CardContent>
-					</Card>
+							<Card className="gap-0 rounded-none shadow-none">
+								<CardHeader className="border-b pb-3">
+									<CardTitle className="text-sm">People inside</CardTitle>
+									<CardDescription className="text-xs">
+										{selected.label} · {dayLabel(data.date)}
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="pt-4">
+									<ChartContainer
+										config={occupancyConfig}
+										className="aspect-auto h-64 w-full"
+									>
+										<AreaChart data={chartData} margin={{ left: 4, right: 12 }}>
+											<CartesianGrid vertical={false} />
+											<XAxis
+												dataKey="label"
+												tickLine={false}
+												axisLine={false}
+												tickMargin={8}
+												minTickGap={24}
+											/>
+											<YAxis
+												tickLine={false}
+												axisLine={false}
+												width={40}
+												allowDecimals={false}
+												domain={yDomain}
+											/>
+											<ChartTooltip
+												content={<ChartTooltipContent indicator="line" />}
+											/>
+											<Area
+												dataKey="occupancy"
+												type="monotone"
+												stroke="var(--color-occupancy)"
+												fill="var(--color-occupancy)"
+												fillOpacity={0.2}
+											/>
+										</AreaChart>
+									</ChartContainer>
+								</CardContent>
+							</Card>
 
-					<Card className="gap-0 rounded-none shadow-none">
-						<CardHeader className="border-b pb-3">
-							<CardTitle className="text-sm">Entries and exits</CardTitle>
-							<CardDescription className="text-xs">
-								How many people came in and left in each{" "}
-								{bucket === 15 ? "15 minutes" : "hour"}
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="pt-4">
-							<ChartContainer
-								config={flowConfig}
-								className="aspect-auto h-64 w-full"
-							>
-								<BarChart data={chartData} margin={{ left: 4, right: 12 }}>
-									<CartesianGrid vertical={false} />
-									<XAxis
-										dataKey="label"
-										tickLine={false}
-										axisLine={false}
-										tickMargin={8}
-										minTickGap={24}
-									/>
-									<YAxis
-										tickLine={false}
-										axisLine={false}
-										width={40}
-										allowDecimals={false}
-										domain={yDomain}
-									/>
-									<ChartTooltip content={<ChartTooltipContent />} />
-									<ChartLegend content={<ChartLegendContent />} />
-									<Bar dataKey="entries" fill="var(--color-entries)" />
-									<Bar dataKey="exits" fill="var(--color-exits)" />
-								</BarChart>
-							</ChartContainer>
-						</CardContent>
-					</Card>
+							<Card className="gap-0 rounded-none shadow-none">
+								<CardHeader className="border-b pb-3">
+									<CardTitle className="text-sm">Entries and exits</CardTitle>
+									<CardDescription className="text-xs">
+										How many people came in and left in each{" "}
+										{bucket === 15 ? "15 minutes" : "hour"}
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="pt-4">
+									<ChartContainer
+										config={flowConfig}
+										className="aspect-auto h-64 w-full"
+									>
+										<BarChart data={chartData} margin={{ left: 4, right: 12 }}>
+											<CartesianGrid vertical={false} />
+											<XAxis
+												dataKey="label"
+												tickLine={false}
+												axisLine={false}
+												tickMargin={8}
+												minTickGap={24}
+											/>
+											<YAxis
+												tickLine={false}
+												axisLine={false}
+												width={40}
+												allowDecimals={false}
+												domain={yDomain}
+											/>
+											<ChartTooltip content={<ChartTooltipContent />} />
+											<ChartLegend content={<ChartLegendContent />} />
+											<Bar dataKey="entries" fill="var(--color-entries)" />
+											<Bar dataKey="exits" fill="var(--color-exits)" />
+										</BarChart>
+									</ChartContainer>
+								</CardContent>
+							</Card>
+						</>
+					)}
+					<HallsCompared eventId={eventId} trends={data} />
 				</>
 			)}
 		</div>

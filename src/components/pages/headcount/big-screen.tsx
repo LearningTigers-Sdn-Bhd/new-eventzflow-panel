@@ -33,9 +33,28 @@ function Bar({ percent }: { percent: number | null }) {
 	);
 }
 
+/** Back to wherever the screen was opened from. A tab opened from the panel has no history, so it closes instead; if the browser refuses, go home. */
+function goBack() {
+	if (window.history.length > 1) {
+		window.history.back();
+		return;
+	}
+	window.close();
+	setTimeout(() => window.location.assign("/"), 200);
+}
+
+function BackButton() {
+	return (
+		<button type="button" className={styles.back} onClick={goBack}>
+			← Back
+		</button>
+	);
+}
+
 function Message({ title, text }: { title: string; text: string }) {
 	return (
 		<div className={styles.message}>
+			<BackButton />
 			<h1>{title}</h1>
 			<p>{text}</p>
 		</div>
@@ -218,7 +237,10 @@ export function BigScreen({ slug }: { slug: string }) {
 	return (
 		<main className={styles.screen} data-stale={stale}>
 			<header className={styles.header}>
-				<h1>{data.eventTitle}</h1>
+				<div className={styles.headerLeft}>
+					<BackButton />
+					<h1>{data.eventTitle}</h1>
+				</div>
 				<p>{data.hall ?? data.level ?? "Live occupancy"}</p>
 			</header>
 			<div className={styles.content} data-single={Boolean(data.hall)}>

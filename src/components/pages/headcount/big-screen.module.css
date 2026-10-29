@@ -52,6 +52,26 @@
 .screen[data-stale="true"] .hero {
 	opacity: 0.5;
 }
+.headerLeft {
+	display: flex;
+	align-items: center;
+	gap: 1.4vw;
+	min-width: 0;
+}
+.back {
+	flex: none;
+	padding: 0.35em 0.9em;
+	border: 1px solid #20241f40;
+	background: none;
+	color: inherit;
+	font: inherit;
+	font-size: clamp(14px, 1vw, 28px);
+	white-space: nowrap;
+	cursor: pointer;
+}
+.message .back {
+	margin-bottom: 1.2em;
+}
 .fullscreen {
 	margin-top: 0.4em;
 	padding: 0.2em 0.8em;

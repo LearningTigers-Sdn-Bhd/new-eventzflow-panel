@@ -5,16 +5,29 @@ import type {
 } from "@/lib/api/event/hall";
 import { floorLabel } from "./format";
 
-/** "2026-09-11T14:15:00" -> "14:15". Strings are sliced, never parsed, so no timezone can shift them. */
-export function timeLabel(iso: string): string {
-	return iso.slice(11, 16);
+/** 14, "05" -> "2:05 PM". */
+function clock12(hour: number, minute: string): string {
+	return `${hour % 12 || 12}:${minute} ${hour < 12 ? "AM" : "PM"}`;
 }
 
-/** "2026-09-11T14:00:00" -> "14:00–15:00". */
-export function hourRange(iso: string): string {
+/** "2026-09-11T14:15:00" -> "14:15", or "2:15 PM" with `hour12`. Strings are sliced, never parsed, so no timezone can shift them. */
+export function timeLabel(iso: string, hour12 = false): string {
+	return hour12
+		? clock12(Number(iso.slice(11, 13)), iso.slice(14, 16))
+		: iso.slice(11, 16);
+}
+
+/** "2026-09-11T14:00:00" -> "14:00–15:00", or "2:00–3:00 PM" with `hour12`. */
+export function hourRange(iso: string, hour12 = false): string {
 	const hour = Number(iso.slice(11, 13));
-	const next = String((hour + 1) % 24).padStart(2, "0");
-	return `${timeLabel(iso)}–${next}:00`;
+	const next = (hour + 1) % 24;
+	if (!hour12) return `${timeLabel(iso)}–${String(next).padStart(2, "0")}:00`;
+	const start = clock12(hour, "00");
+	const end = clock12(next, "00");
+	// "1:00–2:00 PM" when both ends sit in the same half of the day, else spell both out.
+	return hour < 12 === next < 12
+		? `${start.slice(0, -3)}–${end}`
+		: `${start}–${end}`;
 }
 
 /** "2026-09-11" -> "11 Sep 2026". */
@@ -74,13 +87,14 @@ export interface CompareSource {
 export function compareRows(
 	sources: CompareSource[],
 	metric: "occupancy" | "entries" | "exits" = "occupancy",
+	hour12 = false,
 ): Record<string, string | number>[] {
 	const rows = new Map<string, Record<string, string | number>>();
 	for (const source of sources) {
 		for (const p of source.points) {
 			const row = rows.get(p.time) ?? {
 				time: p.time,
-				label: timeLabel(p.time),
+				label: timeLabel(p.time, hour12),
 			};
 			row[source.key] = p[metric];
 			rows.set(p.time, row);

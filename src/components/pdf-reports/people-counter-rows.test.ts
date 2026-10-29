@@ -8,8 +8,10 @@ import type {
 import {
 	capacityVerdict,
 	chartSeries,
+	dayBars,
 	dayRows,
 	hallRows,
+	hallTotalRows,
 	headlineFigures,
 	levelRows,
 } from "./people-counter-rows";
@@ -98,7 +100,6 @@ describe("headlineFigures", () => {
 			exits: 30,
 			busiest: 30,
 			busiestHour: "09:00–10:00",
-			closing: 0,
 			capacity: 100,
 		});
 	});
@@ -144,6 +145,7 @@ describe("dayRows", () => {
 				peak: { occupancy: 25, at: "2026-10-30T09:00:00" },
 				busiestEntryHour: { entries: 30, at: "2026-10-30T09:00:00" },
 				closing: 0,
+				halls: [],
 			},
 			{
 				date: "2026-10-31",
@@ -152,11 +154,12 @@ describe("dayRows", () => {
 				peak: null,
 				busiestEntryHour: null,
 				closing: null,
+				halls: [],
 			},
 		];
 		expect(dayRows(days)).toEqual([
-			["30 Oct", "30", "30", "25 at 09:00", "09:00–10:00", "0"],
-			["31 Oct", "0", "0", "—", "—", "—"],
+			["30 Oct", "30", "30", "25 at 09:00", "09:00–10:00"],
+			["31 Oct", "0", "0", "—", "—"],
 		]);
 	});
 });
@@ -166,6 +169,56 @@ describe("chartSeries", () => {
 		expect(chartSeries(points, "occupancy")).toEqual([
 			{ date: "2026-10-30 09:00", value: 25 },
 			{ date: "2026-10-30 10:00", value: 0 },
+		]);
+	});
+});
+
+describe("12-hour reports and visitor totals", () => {
+	const day: DaySummary = {
+		date: "2026-10-30",
+		entries: 30,
+		exits: 30,
+		peak: { occupancy: 25, at: "2026-10-30T14:15:00" },
+		busiestEntryHour: { entries: 30, at: "2026-10-30T13:00:00" },
+		closing: 0,
+		halls: [],
+	};
+
+	test("day rows and headline times follow the clock choice", () => {
+		expect(dayRows([day], true)[0]).toEqual([
+			"30 Oct",
+			"30",
+			"30",
+			"25 at 2:15 PM",
+			"1:00–2:00 PM",
+		]);
+		expect(dayRows([day])[0][3]).toBe("25 at 14:15");
+	});
+
+	test("bars are visitors per day", () => {
+		expect(dayBars([day])).toEqual([{ period: "30 Oct", value: 30 }]);
+	});
+
+	test("hall totals split whole-event visitors by share", () => {
+		const hall = (id: number, inEvent: number | null) => ({
+			id,
+			name: `Hall ${id}`,
+			floor: null,
+			status: "ok" as const,
+			insideNow: 0,
+			capacity: null,
+			inToday: 0,
+			outToday: 0,
+			inEvent,
+			outEvent: 0,
+		});
+		const counts = {
+			halls: [hall(1, 75), hall(2, 25), hall(3, null)],
+		} as Headcount;
+		expect(hallTotalRows(counts)).toEqual([
+			["Hall 1", "No level set", "75", "75%"],
+			["Hall 2", "No level set", "25", "25%"],
+			["Hall 3", "No level set", "—", "—"],
 		]);
 	});
 });

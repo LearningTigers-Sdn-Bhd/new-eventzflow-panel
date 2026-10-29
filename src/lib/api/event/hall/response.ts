@@ -145,6 +145,19 @@ export interface DaySummary {
 	busiestEntryHour: { entries: number; at: string } | null;
 	/** People inside at the day's last reading. */
 	closing: number | null;
+	/** The same figures hall by hall. */
+	halls: DayHall[];
+}
+
+export interface DayHall {
+	id: number;
+	name: string;
+	floor: string | null;
+	status: HallStatus;
+	entries: number;
+	exits: number;
+	peak: { occupancy: number; at: string } | null;
+	closing: number | null;
 }
 
 export interface DailyBreakdown {
