@@ -126,7 +126,8 @@ export interface LuckyDrawEntry {
  * One person found by the entry name search (fallback when a QR will not scan)
  */
 export interface LuckyDrawEntrySearchResult {
-	public_id: string;
+	/** Internal id, never the ticket QR value */
+	id: number;
 	name: string;
 	contact: string | null;
 	/** Already entered into this draw */

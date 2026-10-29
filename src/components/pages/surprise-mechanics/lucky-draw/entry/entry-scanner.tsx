@@ -76,8 +76,8 @@ export function EntryScanner({ eventId, sessionId }: EntryScannerProps) {
 	});
 
 	const { mutate } = useMutation({
-		mutationFn: (publicId: string) =>
-			addLuckyDrawEntry(eventId, sessionId, publicId),
+		mutationFn: (ref: { publicId: string } | { participantId: number }) =>
+			addLuckyDrawEntry(eventId, sessionId, ref),
 		onSuccess: (entry) => {
 			addedAny.current = true;
 			setQuery("");
@@ -107,7 +107,7 @@ export function EntryScanner({ eventId, sessionId }: EntryScannerProps) {
 			const last = lastScan.current;
 			if (code === last.value && now - last.at < DUPLICATE_SCAN_MS) return;
 			lastScan.current = { value: code, at: now };
-			mutate(code);
+			mutate({ publicId: code });
 		},
 		[mutate],
 	);
@@ -293,7 +293,7 @@ export function EntryScanner({ eventId, sessionId }: EntryScannerProps) {
 						) : (
 							matches.map((m) => (
 								<li
-									key={m.public_id}
+									key={m.id}
 									className="flex items-center gap-3 px-3 py-2 text-sm"
 								>
 									<div className="min-w-0 flex-1">
@@ -311,7 +311,7 @@ export function EntryScanner({ eventId, sessionId }: EntryScannerProps) {
 											size="sm"
 											className="rounded-none"
 											disabled={!!m.ineligible_reason}
-											onClick={() => mutate(m.public_id)}
+											onClick={() => mutate({ participantId: m.id })}
 										>
 											Enter
 										</Button>

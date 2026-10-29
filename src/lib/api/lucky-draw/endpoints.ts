@@ -749,18 +749,20 @@ export async function updateSessionBackground(
 }
 
 /**
- * Add Lucky Draw Entry (scan a ticket QR at the booth)
+ * Add Lucky Draw Entry: a scanned ticket QR, or a person picked from search
  * POST /v1/events/:event_id/lucky_draw/sessions/:session_id/entries
  */
 export async function addLuckyDrawEntry(
 	eventId: string,
 	sessionId: number,
-	publicId: string,
+	ref: { publicId: string } | { participantId: number },
 ): Promise<LuckyDrawEntry> {
 	try {
 		const response = await restClient.post<ApiResponse<LuckyDrawEntry>>(
 			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/entries`,
-			{ public_id: publicId },
+			"publicId" in ref
+				? { public_id: ref.publicId }
+				: { participant_id: ref.participantId },
 		);
 
 		if (!response.success || !response.data) {
