@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { useRichEditorContext } from "./context";
 import { InsertImageToolbarButton } from "./plugins/insert-image-toolbar-button";
 import { ToolbarPlugin } from "./plugins/toolbar-plugin";
 import { ToolbarLeftSlot, ToolbarRightSlot } from "./toolbar-slots";
@@ -16,6 +17,7 @@ export function RichEditorToolbar({
 	children,
 	className,
 }: RichEditorToolbarProps) {
+	const { disabledExtensions } = useRichEditorContext();
 	const childrenArray = React.Children.toArray(children);
 	const leftSlot = childrenArray.find(
 		(child) => React.isValidElement(child) && child.type === ToolbarLeftSlot,
@@ -37,7 +39,9 @@ export function RichEditorToolbar({
 			<div className="flex items-center gap-1">
 				{leftSlot}
 				<ToolbarPlugin>
-					<InsertImageToolbarButton />
+					{!disabledExtensions?.includes("image") && (
+						<InsertImageToolbarButton />
+					)}
 					{otherChildren}
 				</ToolbarPlugin>
 				{rightSlot}

@@ -232,3 +232,9 @@
 	border-top: 2px solid var(--border);
 	margin: 2rem 0;
 }
+
+/* Compact editing surface (e.g. email composer): the placeholder sits where the caret is. */
+.compact-editor .editor-placeholder {
+	top: 0;
+	left: 0;
+}

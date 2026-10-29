@@ -106,8 +106,13 @@ export function ToolbarPlugin({
 	children?: React.ReactNode;
 }) {
 	const [editor] = useLexicalComposerContext();
-	const { hasOutline, outlineVisible, toggleOutline, disabledGroups } =
-		useRichEditorContext();
+	const {
+		hasOutline,
+		outlineVisible,
+		toggleOutline,
+		disabledGroups,
+		disabledExtensions,
+	} = useRichEditorContext();
 
 	const [canUndo, setCanUndo] = useState(false);
 	const [canRedo, setCanRedo] = useState(false);
@@ -286,7 +291,7 @@ export function ToolbarPlugin({
 		}
 	};
 
-	const groups: ToolbarGroup[] = [
+	const allGroups: ToolbarGroup[] = [
 		{
 			id: "navigation",
 			items: [
@@ -656,6 +661,16 @@ export function ToolbarPlugin({
 			})}
 		</>
 	);
+
+	// Hosts can hide items by id (e.g. an email editor drops image/table/code).
+	const groups = allGroups
+		.map((group) => ({
+			...group,
+			items: group.items.filter(
+				(item) => !disabledExtensions?.includes(item.id),
+			),
+		}))
+		.filter((group) => group.items.length > 0);
 
 	const visibleGroups = groups.slice(0, visibleGroupCount);
 	const overflowGroups = groups.slice(visibleGroupCount);

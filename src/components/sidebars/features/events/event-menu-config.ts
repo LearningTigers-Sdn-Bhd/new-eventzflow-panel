@@ -39,6 +39,7 @@ import {
 	Printer,
 	Radio,
 	ScanQrCode,
+	Send,
 	Speech,
 	SquareActivity,
 	Ticket,
@@ -709,6 +710,13 @@ const rawEventMenuConfig: EventMenuConfig = {
 					description: "View all event lead logs for this event.",
 					icon: Logs,
 					visible: (p, e) => visible.mallEvent(p, e) && visible.eventAdmin(p),
+				},
+				{
+					route: "email-blast",
+					label: "Email Blast",
+					description: "Send one email to all registered delegates.",
+					icon: Send,
+					visible: (p) => p.isOrgOwner,
 				},
 				{
 					route: "email-status",
