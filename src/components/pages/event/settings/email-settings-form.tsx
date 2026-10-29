@@ -54,7 +54,7 @@ const DEDICATED_CATEGORY_KEYS = [
 ];
 
 // Organizers only choose the part before the @; the domain is verified with the mail provider.
-const SENDER_DOMAIN = "notify.eventzflow.com";
+const SENDER_DOMAIN = "updates.eventzflow.com";
 
 const formSchema = z.object({
 	senderName: z.string(),

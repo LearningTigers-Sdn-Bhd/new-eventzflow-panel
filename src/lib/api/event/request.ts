@@ -112,7 +112,7 @@ export const updateEventSchema = z.object({
 			sender_address: z
 				.string()
 				.email()
-				.endsWith("@notify.eventzflow.com")
+				.endsWith("@updates.eventzflow.com")
 				.optional()
 				.or(z.literal(""))
 				.or(z.null()),
