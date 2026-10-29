@@ -43,7 +43,7 @@ export function ExportWinnersMenu({
 	const base = `${slug(filenameBase)}-winners`;
 
 	const copy = async (group: WinnerGroup) => {
-		const text = namesToText(group.names);
+		const text = namesToText(group.names, group.contacts);
 		try {
 			await navigator.clipboard.writeText(text);
 		} catch {

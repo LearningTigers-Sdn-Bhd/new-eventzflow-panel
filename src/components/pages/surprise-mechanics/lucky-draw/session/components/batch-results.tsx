@@ -232,7 +232,7 @@ export function BatchResults({
 							}
 							transition={{ type: "spring", stiffness: 420, damping: 14 }}
 							className={cn(
-								"group relative flex items-center justify-center border px-2 py-2 text-center font-semibold leading-tight",
+								"group relative flex flex-col items-center justify-center border px-2 py-2 text-center font-semibold leading-tight",
 								big ? "min-h-[2.75em]" : "min-h-[3.75em]",
 								giftNames && "pt-3 pb-4",
 								textSize(winners.length),
@@ -268,6 +268,11 @@ export function BatchResults({
 											? (flicker[i] ?? "")
 											: ""}
 							</span>
+							{isShown && !rolling.has(i) && winner.contact && (
+								<span className="max-w-full truncate font-normal text-[0.6em] text-muted-foreground tabular-nums">
+									{winner.contact}
+								</span>
+							)}
 							{giftNames?.[i] && (
 								<span className="absolute right-1 bottom-0.5 left-1 truncate font-normal text-[10px] text-muted-foreground">
 									{giftNames[i]}

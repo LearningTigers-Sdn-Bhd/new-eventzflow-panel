@@ -17,6 +17,7 @@ import type {
 	GiftWinner,
 	InvalidParticipant,
 	LuckyDrawEntry,
+	LuckyDrawEntrySearchResult,
 	LuckyDrawSession,
 	Participant,
 } from "./response";
@@ -767,6 +768,33 @@ export async function addLuckyDrawEntry(
 		}
 
 		return response.data;
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Search people to enter by name, phone or email (fallback when a QR will not scan)
+ * GET /v1/events/:event_id/lucky_draw/sessions/:session_id/entries/search?q=
+ */
+export async function searchLuckyDrawEntries(
+	eventId: string,
+	sessionId: number,
+	query: string,
+): Promise<LuckyDrawEntrySearchResult[]> {
+	try {
+		const response = await restClient.get<
+			ApiResponse<LuckyDrawEntrySearchResult[]>
+		>(
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/entries/search?q=${encodeURIComponent(query)}`,
+		);
+
+		if (!response.success) {
+			throw new Error(response.message || "Failed to search");
+		}
+
+		return response.data || [];
 	} catch (error) {
 		const message = await extractErrorMessage(error);
 		throw new Error(message);

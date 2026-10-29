@@ -38,6 +38,9 @@ export function transformGift(
 				name: participantName,
 				type: useTicket ? "ticket" : "visitor",
 				publicId: String(participantId),
+				contact:
+					firstWinner.participant_contact ??
+					participantsMap?.get(participantId)?.contact,
 			};
 		}
 	}
@@ -53,7 +56,7 @@ export function transformGift(
 		actual_winner_count: activeWinners.length,
 		// Store all winners for collapsible display
 		allWinners: activeWinners
-			.map((w) => {
+			.map((w): (Participant & { id: number; round: number | null }) | null => {
 				const participantId = w.ticket_id ?? w.visitor_id ?? null;
 				if (participantId !== null) {
 					// Use participant_name from backend response, fallback to map or placeholder
@@ -67,6 +70,9 @@ export function transformGift(
 						name: participantName,
 						type: useTicket ? "ticket" : "visitor",
 						publicId: String(participantId),
+						contact:
+							w.participant_contact ??
+							participantsMap?.get(participantId)?.contact,
 					};
 				}
 				return null;
@@ -83,6 +89,7 @@ export function transformGift(
 				name: w.participant_name ?? "Unknown",
 				type: useTicket ? ("ticket" as const) : ("visitor" as const),
 				publicId: String(w.ticket_id ?? w.visitor_id),
+				contact: w.participant_contact,
 			})),
 	};
 }
@@ -99,6 +106,7 @@ export function transformParticipant(
 		name: backendParticipant.name,
 		type: useTicket ? "ticket" : "visitor",
 		publicId: String(backendParticipant.id),
+		contact: backendParticipant.contact,
 	};
 }
 
@@ -113,6 +121,7 @@ export function transformInvalidParticipant(
 		name: backendInvalid.participant.name,
 		type: useTicket ? "ticket" : "visitor",
 		publicId: String(backendInvalid.participant.id),
+		contact: backendInvalid.participant.contact,
 	};
 }
 

@@ -7,6 +7,8 @@ export type Participant = {
 	name: string;
 	type: "ticket" | "visitor";
 	publicId: string;
+	/** Phone, else email, else null: tells same-name winners apart */
+	contact?: string | null;
 };
 
 export type Gift = {

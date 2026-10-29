@@ -45,6 +45,8 @@ export interface GiftWinner {
 	ticket_id: number | null;
 	visitor_id: number | null;
 	participant_name: string | null;
+	/** Phone, else email, else null: tells same-name winners apart */
+	participant_contact?: string | null;
 	/** Sweep round that drew this winner. null when drawn gift by gift */
 	round: number | null;
 	/** Set when the winner did not show up: no longer counts toward the gift */
@@ -76,6 +78,8 @@ export interface Gift {
 export interface Participant {
 	id: number;
 	name: string;
+	/** Phone, else email, else null */
+	contact?: string | null;
 }
 
 /**
@@ -87,6 +91,7 @@ export interface InvalidParticipant {
 	participant: {
 		id: number;
 		name: string;
+		contact?: string | null;
 	};
 	/** Draw this winner came from (gifts off). null for winners saved before rounds existed. */
 	round: number | null;
@@ -113,5 +118,19 @@ export interface LuckyDrawEntry {
 	id: number;
 	participant_id: number;
 	name: string;
+	contact?: string | null;
 	entered_at: string;
+}
+
+/**
+ * One person found by the entry name search (fallback when a QR will not scan)
+ */
+export interface LuckyDrawEntrySearchResult {
+	public_id: string;
+	name: string;
+	contact: string | null;
+	/** Already entered into this draw */
+	entered: boolean;
+	/** Set when the ticket cannot qualify (unpaid, refunded, canceled) */
+	ineligible_reason: string | null;
 }

@@ -174,6 +174,11 @@ export function WinnerDialogContent({
 									>
 										{winner.name}
 									</motion.h3>
+									{winner.contact && (
+										<p className="font-semibold text-lg text-muted-foreground tabular-nums">
+											{winner.contact}
+										</p>
+									)}
 								</div>
 							</div>
 						</div>

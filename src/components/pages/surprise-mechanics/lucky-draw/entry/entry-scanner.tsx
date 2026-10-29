@@ -7,18 +7,22 @@ import {
 	CheckCircle2,
 	QrCode,
 	ScanLine,
+	Search,
 	Users,
 	XCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useBarcodeScanner } from "@/hooks/use-barcode-scanner";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useScanner } from "@/hooks/use-scanner";
 import {
 	addLuckyDrawEntry,
 	getLuckyDrawEntries,
 	type LuckyDrawEntry,
+	searchLuckyDrawEntries,
 } from "@/lib/api/lucky-draw";
 import { cn } from "@/lib/utils";
 
@@ -61,12 +65,28 @@ export function EntryScanner({ eventId, sessionId }: EntryScannerProps) {
 	const entries = data?.entries ?? [];
 	const total = data?.total ?? 0;
 
+	// Fallback for a ticket whose QR will not scan: find the person by name, phone or email
+	const [query, setQuery] = useState("");
+	const debouncedQuery = useDebounce(query.trim(), 300);
+	const searching = debouncedQuery.length >= 2;
+	const { data: matches = [], isFetching: isSearching } = useQuery({
+		queryKey: ["lucky-draw-entry-search", eventId, sessionId, debouncedQuery],
+		queryFn: () => searchLuckyDrawEntries(eventId, sessionId, debouncedQuery),
+		enabled: searching,
+	});
+
 	const { mutate } = useMutation({
 		mutationFn: (publicId: string) =>
 			addLuckyDrawEntry(eventId, sessionId, publicId),
 		onSuccess: (entry) => {
 			addedAny.current = true;
-			setResult({ ok: true, message: entry.name });
+			setQuery("");
+			setResult({
+				ok: true,
+				message: entry.contact
+					? `${entry.name} · ${entry.contact}`
+					: entry.name,
+			});
 			// Prepend locally instead of refetching: scans stay fast however many entries exist
 			queryClient.setQueryData(
 				entriesKey,
@@ -253,6 +273,56 @@ export function EntryScanner({ eventId, sessionId }: EntryScannerProps) {
 				)}
 			</Card>
 
+			<div className="space-y-2 rounded-none border p-3">
+				<div className="relative">
+					<Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+					<Input
+						value={query}
+						onChange={(e) => setQuery(e.target.value)}
+						placeholder="QR not scanning? Find by name, phone or email"
+						className="rounded-none pl-9"
+						autoComplete="off"
+					/>
+				</div>
+				{searching && (
+					<ul className="max-h-56 divide-y overflow-y-auto border">
+						{matches.length === 0 ? (
+							<li className="px-3 py-4 text-center text-muted-foreground text-xs">
+								{isSearching ? "Searching..." : "No one found"}
+							</li>
+						) : (
+							matches.map((m) => (
+								<li
+									key={m.public_id}
+									className="flex items-center gap-3 px-3 py-2 text-sm"
+								>
+									<div className="min-w-0 flex-1">
+										<p className="truncate font-medium">{m.name}</p>
+										<p className="truncate text-muted-foreground text-xs">
+											{m.ineligible_reason ?? m.contact ?? "No phone or email"}
+										</p>
+									</div>
+									{m.entered ? (
+										<span className="text-muted-foreground text-xs">
+											Entered
+										</span>
+									) : (
+										<Button
+											size="sm"
+											className="rounded-none"
+											disabled={!!m.ineligible_reason}
+											onClick={() => mutate(m.public_id)}
+										>
+											Enter
+										</Button>
+									)}
+								</li>
+							))
+						)}
+					</ul>
+				)}
+			</div>
+
 			{result && (
 				<div
 					className={cn(
@@ -305,7 +375,14 @@ export function EntryScanner({ eventId, sessionId }: EntryScannerProps) {
 								<span className="w-6 text-muted-foreground text-xs tabular-nums">
 									{total - i}
 								</span>
-								<span className="min-w-0 flex-1 truncate">{e.name}</span>
+								<span className="min-w-0 flex-1 truncate">
+									{e.name}
+									{e.contact && (
+										<span className="ml-2 text-muted-foreground text-xs tabular-nums">
+											{e.contact}
+										</span>
+									)}
+								</span>
 								<span className="text-muted-foreground text-xs tabular-nums">
 									{new Date(e.entered_at).toLocaleTimeString([], {
 										hour: "2-digit",

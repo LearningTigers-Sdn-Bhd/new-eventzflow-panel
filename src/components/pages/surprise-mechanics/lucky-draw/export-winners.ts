@@ -6,21 +6,24 @@ import type { Gift } from "@/stores/lucky-draw-store";
 export interface WinnerGroup {
 	title: string;
 	names: string[];
+	/** Phone, else email of each winner, same order as `names`. Tells same-name winners apart */
+	contacts?: (string | null | undefined)[];
 	/** Gift each winner got, same order as `names` (round sweep lists only) */
 	gifts?: string[];
 }
 
 /** Gifts off: one group per draw round; winners saved before rounds existed come first. */
 function groupByRound(winners: InvalidParticipant[]): WinnerGroup[] {
-	const byRound = new Map<number | null, string[]>();
+	const byRound = new Map<number | null, InvalidParticipant["participant"][]>();
 	for (const { round, participant } of winners) {
-		byRound.set(round, [...(byRound.get(round) ?? []), participant.name]);
+		byRound.set(round, [...(byRound.get(round) ?? []), participant]);
 	}
 	return [...byRound]
 		.sort(([a], [b]) => (a ?? 0) - (b ?? 0))
-		.map(([round, names]) => ({
+		.map(([round, people]) => ({
 			title: round === null ? "Winners" : `Round ${round}`,
-			names,
+			names: people.map((p) => p.name),
+			contacts: people.map((p) => p.contact),
 		}));
 }
 
@@ -36,7 +39,14 @@ export function buildWinnerGroups(
 	const swept = sorted.flatMap((gift) =>
 		(gift.allWinners ?? []).flatMap((w) =>
 			typeof w.round === "number"
-				? [{ round: w.round, gift: gift.name, name: w.name }]
+				? [
+						{
+							round: w.round,
+							gift: gift.name,
+							name: w.name,
+							contact: w.contact,
+						},
+					]
 				: [],
 		),
 	);
@@ -44,18 +54,23 @@ export function buildWinnerGroups(
 		return sorted.map((gift) => ({
 			title: gift.name,
 			names: (gift.allWinners ?? []).map((w) => w.name),
+			contacts: (gift.allWinners ?? []).map((w) => w.contact),
 		}));
 	}
 
 	// Round sweep: one list per round, each winner next to the gift they got.
 	// Winners drawn gift by gift (no round) keep their own gift list.
 	const perGift = sorted
-		.map((gift) => ({
-			title: gift.name,
-			names: (gift.allWinners ?? [])
-				.filter((w) => typeof w.round !== "number")
-				.map((w) => w.name),
-		}))
+		.map((gift) => {
+			const winners = (gift.allWinners ?? []).filter(
+				(w) => typeof w.round !== "number",
+			);
+			return {
+				title: gift.name,
+				names: winners.map((w) => w.name),
+				contacts: winners.map((w) => w.contact),
+			};
+		})
 		.filter((group) => group.names.length > 0);
 	const rounds = [...new Set(swept.map((row) => row.round))].sort(
 		(a, b) => a - b,
@@ -65,16 +80,24 @@ export function buildWinnerGroups(
 		return {
 			title: `Round ${round}`,
 			names: rows.map((row) => row.name),
+			contacts: rows.map((row) => row.contact),
 			gifts: rows.map((row) => row.gift),
 		};
 	});
 	return [...perGift, ...perRound];
 }
 
-/** One name per line, ready to paste into slides. */
-export function namesToText(names: string[]): string {
-	return names.join("\n");
+/** One name per line, ready to paste into slides. A contact follows its name when known. */
+export function namesToText(
+	names: string[],
+	contacts?: WinnerGroup["contacts"],
+): string {
+	return names
+		.map((name, i) => (contacts?.[i] ? `${name} - ${contacts[i]}` : name))
+		.join("\n");
 }
+
+const hasContacts = (group: WinnerGroup) => !!group.contacts?.some(Boolean);
 
 function escapeCsv(value: string | number) {
 	const text = String(neutralizeFormula(value));
@@ -86,12 +109,20 @@ const BOM = "﻿";
 
 export function buildWinnersCsv(groups: WinnerGroup[]): string {
 	const withGift = groups.some((group) => group.gifts);
+	const withContact = groups.some(hasContacts);
 	const rows: (string | number)[][] = [
-		withGift ? ["Round", "No.", "Name", "Gift"] : ["Round", "No.", "Name"],
+		[
+			"Round",
+			"No.",
+			"Name",
+			...(withContact ? ["Phone / Email"] : []),
+			...(withGift ? ["Gift"] : []),
+		],
 	];
 	for (const group of groups) {
 		group.names.forEach((name, i) => {
 			const row: (string | number)[] = [group.title, i + 1, name];
+			if (withContact) row.push(group.contacts?.[i] ?? "");
 			if (withGift) row.push(group.gifts?.[i] ?? "");
 			rows.push(row);
 		});
@@ -127,17 +158,29 @@ export async function buildWinnersXlsx(
 	const names = sheetNames(groups.map((g) => g.title));
 
 	groups.forEach((group, i) => {
-		const { gifts } = group;
+		const { gifts, contacts } = group;
+		const withContact = hasContacts(group);
 		const rows = group.names.map((name, n) => [
 			n + 1,
 			neutralizeFormula(name),
+			...(withContact ? [neutralizeFormula(contacts?.[n] ?? "")] : []),
 			...(gifts ? [neutralizeFormula(gifts[n] ?? "")] : []),
 		]);
 		const sheet = XLSX.utils.aoa_to_sheet([
-			gifts ? ["No.", "Name", "Gift"] : ["No.", "Name"],
+			[
+				"No.",
+				"Name",
+				...(withContact ? ["Phone / Email"] : []),
+				...(gifts ? ["Gift"] : []),
+			],
 			...rows,
 		]);
-		sheet["!cols"] = [{ wch: 6 }, { wch: 40 }, ...(gifts ? [{ wch: 30 }] : [])];
+		sheet["!cols"] = [
+			{ wch: 6 },
+			{ wch: 40 },
+			...(withContact ? [{ wch: 30 }] : []),
+			...(gifts ? [{ wch: 30 }] : []),
+		];
 		XLSX.utils.book_append_sheet(wb, sheet, names[i]);
 	});
 

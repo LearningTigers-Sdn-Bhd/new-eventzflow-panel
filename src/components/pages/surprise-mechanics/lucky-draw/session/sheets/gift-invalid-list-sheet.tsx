@@ -104,6 +104,7 @@ interface SortableGiftCardProps {
 		name: string;
 		type: "ticket" | "visitor";
 		publicId: string;
+		contact?: string | null;
 	}>;
 	notifyingWinnerIds: Set<number>;
 }
@@ -369,7 +370,14 @@ function SortableGiftCard({
 												className="grid grid-cols-3 gap-4 px-4 py-2"
 											>
 												<div className="col-span-2 flex items-center font-medium text-sm">
-													<span className="truncate">{winner.name}</span>
+													<span className="truncate">
+														{winner.name}
+														{winner.contact && (
+															<span className="ml-2 font-normal text-muted-foreground tabular-nums">
+																{winner.contact}
+															</span>
+														)}
+													</span>
 												</div>
 												<div className="col-span-1 flex items-center justify-end gap-2">
 													<Button

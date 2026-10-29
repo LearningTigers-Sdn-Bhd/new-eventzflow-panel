@@ -62,8 +62,8 @@ test("groups winners per gift in order, or one list without gifts", () => {
 		[],
 	);
 	expect(groups).toEqual([
-		{ title: "Round 1", names: ["A", "B"] },
-		{ title: "Round 2", names: ["C"] },
+		{ title: "Round 1", names: ["A", "B"], contacts: [undefined, undefined] },
+		{ title: "Round 2", names: ["C"], contacts: [undefined] },
 	]);
 	const winner = (name: string, round: number | null) =>
 		({ participant: { id: 1, name }, round }) as never;
@@ -73,10 +73,32 @@ test("groups winners per gift in order, or one list without gifts", () => {
 		[winner("C", 2), winner("A", 1), winner("B", 1), winner("Old", null)],
 	);
 	expect(plain).toEqual([
-		{ title: "Winners", names: ["Old"] },
-		{ title: "Round 1", names: ["A", "B"] },
-		{ title: "Round 2", names: ["C"] },
+		{ title: "Winners", names: ["Old"], contacts: [undefined] },
+		{ title: "Round 1", names: ["A", "B"], contacts: [undefined, undefined] },
+		{ title: "Round 2", names: ["C"], contacts: [undefined] },
 	]);
+});
+
+test("exports add the phone, else email, next to a winner's name", () => {
+	const winner = (name: string, contact: string | null) =>
+		({ participant: { id: 1, name, contact }, round: 1 }) as never;
+	const [group] = buildWinnerGroups(
+		false,
+		[],
+		[winner("Ali", "0123"), winner("Ali", "ali@x.com"), winner("Ali", null)],
+	);
+	expect(group.contacts).toEqual(["0123", "ali@x.com", null]);
+	expect(namesToText(group.names, group.contacts)).toBe(
+		"Ali - 0123\nAli - ali@x.com\nAli",
+	);
+	const csv = buildWinnersCsv([group]);
+	expect(csv).toContain("Round,No.,Name,Phone / Email");
+	expect(csv).toContain("Round 1,1,Ali,0123");
+	expect(csv).toContain("Round 1,3,Ali,");
+	// no contacts anywhere: the column stays out of the file
+	expect(buildWinnersCsv([{ title: "R1", names: ["A"] }])).not.toContain(
+		"Phone",
+	);
 });
 
 test("csv escapes quotes and neutralizes formulas", () => {
@@ -276,9 +298,19 @@ test("gift winners from a sweep export per round with their gift", () => {
 		[],
 	);
 	expect(groups).toEqual([
-		{ title: "Phone", names: ["Old"] },
-		{ title: "Round 1", names: ["Ann", "Bo"], gifts: ["Phone", "Voucher"] },
-		{ title: "Round 2", names: ["Cy", "Di"], gifts: ["Phone", "Voucher"] },
+		{ title: "Phone", names: ["Old"], contacts: [undefined] },
+		{
+			title: "Round 1",
+			names: ["Ann", "Bo"],
+			contacts: [undefined, undefined],
+			gifts: ["Phone", "Voucher"],
+		},
+		{
+			title: "Round 2",
+			names: ["Cy", "Di"],
+			contacts: [undefined, undefined],
+			gifts: ["Phone", "Voucher"],
+		},
 	]);
 
 	const csv = buildWinnersCsv(groups);
