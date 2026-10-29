@@ -17,6 +17,7 @@ import {
 	createBusinessMatchingSession,
 	deleteBusinessMatchingSession,
 	generateHostInviteToken,
+	getAllBookings,
 	getAvailability,
 	getBookings,
 	getBusinessMatchingEventDefaults,
@@ -421,6 +422,18 @@ export const useBusinessMatchingBookings = (
 		isLoading: queryResult.isLoading || isAsyncPending,
 		isFetching: queryResult.isFetching || isAsyncPending,
 	};
+};
+
+export const useAllBusinessMatchingBookings = (
+	eventId: string | null,
+	enabled = true,
+) => {
+	return useQuery({
+		queryKey: ["business-matching-all-bookings", eventId],
+		queryFn: () => getAllBookings(eventId!),
+		enabled: !!eventId && enabled,
+		staleTime: 30_000,
+	});
 };
 
 export const useUpdateBooking = (bmEventId: string, eventId: string) => {

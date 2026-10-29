@@ -6,9 +6,11 @@ import {
 	Briefcase,
 	Download,
 	Info,
+	LayoutGrid,
 	LinkIcon,
 	MoreVertical,
 	Settings2,
+	Table2,
 	Tags,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -16,6 +18,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import BuyerBookingsSection from "@/components/pages/business-matching/buyer-bookings-section";
+import { BuyerScheduleMatrix } from "@/components/pages/business-matching/buyer-schedule-matrix";
 import { columns } from "@/components/pages/business-matching/columns";
 import CreateSessionDialog from "@/components/pages/business-matching/create-session-dialog";
 import {
@@ -32,6 +35,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	Tooltip,
 	TooltipContent,
@@ -422,16 +426,63 @@ export default function BusinessMatchingPage() {
 					</Button>
 				</div>
 			)}
-			<DataTable
-				columns={filteredColumns}
-				data={data || []}
-				sessionFilter={sessionFilter}
-				onSessionFilterChange={
-					canManageSessions && hasArchivedData ? setSessionFilter : undefined
-				}
-			/>
-			{!isArchivedView && (
-				<BuyerBookingsSection eventId={event_id} alwaysShow={isBusinessHost} />
+
+			{canManageSessions ? (
+				<Tabs defaultValue="sessions" className="w-full">
+					<div className="w-full overflow-x-auto border-y border-dashed">
+						<TabsList className="flex h-12 w-full rounded-none">
+							<TabsTrigger
+								value="sessions"
+								className="flex flex-1 items-center justify-center gap-2 rounded-none"
+							>
+								<Table2 className="size-4" />
+								Sessions List
+							</TabsTrigger>
+							<TabsTrigger
+								value="matrix"
+								className="flex flex-1 items-center justify-center gap-2 rounded-none"
+							>
+								<LayoutGrid className="size-4" />
+								Buyer Schedule Matrix
+							</TabsTrigger>
+						</TabsList>
+					</div>
+
+					<TabsContent value="sessions" className="mt-4 space-y-4">
+						<DataTable
+							columns={filteredColumns}
+							data={data || []}
+							sessionFilter={sessionFilter}
+							onSessionFilterChange={
+								hasArchivedData ? setSessionFilter : undefined
+							}
+						/>
+						{!isArchivedView && (
+							<BuyerBookingsSection
+								eventId={event_id}
+								alwaysShow={isBusinessHost}
+							/>
+						)}
+					</TabsContent>
+
+					<TabsContent value="matrix" className="mt-4">
+						<BuyerScheduleMatrix eventId={event_id} />
+					</TabsContent>
+				</Tabs>
+			) : (
+				<>
+					<DataTable
+						columns={filteredColumns}
+						data={data || []}
+						sessionFilter={sessionFilter}
+					/>
+					{!isArchivedView && (
+						<BuyerBookingsSection
+							eventId={event_id}
+							alwaysShow={isBusinessHost}
+						/>
+					)}
+				</>
 			)}
 		</div>
 	);
