@@ -209,6 +209,19 @@ export async function getBookings(
 	return restClient.get<BookingsResponse>(url);
 }
 
+/**
+ * Fetches all bookings across all sessions for an event (admin only).
+ */
+export async function getAllBookings(
+	eventId: string,
+	force = false,
+): Promise<BookingsResponse> {
+	const url = force
+		? `v1/business_matching/events/${eventId}/all_bookings?force_refresh=true`
+		: `v1/business_matching/events/${eventId}/all_bookings`;
+	return restClient.get<BookingsResponse>(url);
+}
+
 export interface BuyerBooking extends Booking {
 	host_name: string;
 }
