@@ -12,6 +12,7 @@ export interface EmailBlastDraft {
 	subject: string;
 	body: string;
 	ticketTypeIds: number[];
+	includePending: boolean;
 	banner?: File | null;
 	bodyFormat: EmailBlastFormat;
 	styleKey: string;
@@ -28,6 +29,7 @@ const toFormData = (draft: EmailBlastDraft) => {
 	if (draft.ticketTypeIds.length === 0) form.append("ticket_type_ids[]", "");
 	for (const id of draft.ticketTypeIds)
 		form.append("ticket_type_ids[]", String(id));
+	form.append("include_pending", String(draft.includePending));
 	if (draft.banner) form.append("banner", draft.banner);
 	form.append("body_format", draft.bodyFormat);
 	form.append("style_key", draft.styleKey);
@@ -74,8 +76,12 @@ export async function duplicateEmailBlast(
 export async function getEmailBlastAudience(
 	eventId: string,
 	ticketTypeIds: number[],
+	includePending: boolean,
 ): Promise<EmailBlastAudience> {
-	const query = ticketTypeIds.map((id) => `ticket_type_ids[]=${id}`).join("&");
+	const query = [
+		...ticketTypeIds.map((id) => `ticket_type_ids[]=${id}`),
+		`include_pending=${includePending}`,
+	].join("&");
 	return restClient.get<EmailBlastAudience>(
 		`${base(eventId)}/audience?${query}`,
 	);

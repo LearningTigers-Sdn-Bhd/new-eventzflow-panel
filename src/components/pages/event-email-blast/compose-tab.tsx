@@ -8,6 +8,7 @@ import { RichEditor } from "@/components/admin-ui/rich-editor/rich-editor";
 import { RichEditorContentArea } from "@/components/admin-ui/rich-editor/rich-editor-content-area";
 import { RichEditorToolbar } from "@/components/admin-ui/rich-editor/rich-editor-toolbar";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
@@ -84,6 +85,9 @@ export function ComposeTab({ eventId, initial, onSent }: Props) {
 	const [typeIds, setTypeIds] = useState<string[]>(
 		(initial?.ticket_type_ids ?? []).map(String),
 	);
+	const [includePending, setIncludePending] = useState(
+		initial?.include_pending ?? false,
+	);
 	const [banner, setBanner] = useState<File | null>(null);
 	const [bannerUrl, setBannerUrl] = useState<string | null>(
 		initial?.banner_url ?? null,
@@ -106,8 +110,9 @@ export function ComposeTab({ eventId, initial, onSent }: Props) {
 		queryFn: () => getEventTicketTypes({ eventId }),
 	});
 	const { data: audience } = useQuery({
-		queryKey: ["email-blast-audience", eventId, typeIds],
-		queryFn: () => getEmailBlastAudience(eventId, numericTypeIds),
+		queryKey: ["email-blast-audience", eventId, typeIds, includePending],
+		queryFn: () =>
+			getEmailBlastAudience(eventId, numericTypeIds, includePending),
 	});
 	const recipientCount = audience?.recipient_count ?? 0;
 	const ready = subject.trim().length > 0 && hasText(body);
@@ -123,6 +128,7 @@ export function ComposeTab({ eventId, initial, onSent }: Props) {
 			bodyFormat: format,
 			styleKey,
 			ticketTypeIds: numericTypeIds,
+			includePending,
 			banner: isHtml ? null : (bannerFile ?? banner),
 			attachments: newFiles,
 			removeAttachmentIds: removedIds,
@@ -363,6 +369,19 @@ export function ComposeTab({ eventId, initial, onSent }: Props) {
 								))}
 							</MultiSelectContent>
 						</MultiSelect>
+						<div className="flex items-start gap-2">
+							<Checkbox
+								id="include-pending"
+								checked={includePending}
+								onCheckedChange={(v) => setIncludePending(v === true)}
+							/>
+							<Label
+								htmlFor="include-pending"
+								className="font-normal text-xs leading-snug"
+							>
+								Also send to pending tickets (not yet paid)
+							</Label>
+						</div>
 						<div className="flex items-center gap-2 border border-emerald-300 bg-emerald-50 p-3 text-emerald-900 text-xs">
 							<Mail className="size-4 shrink-0" />
 							<span>

@@ -25,6 +25,7 @@ export interface EmailBlast {
 	attachments: EmailBlastAttachment[];
 	status: EmailBlastStatus;
 	ticket_type_ids: number[];
+	include_pending: boolean;
 	banner_url: string | null;
 	recipient_count: number | null;
 	delivery_counts: Record<string, number>;
