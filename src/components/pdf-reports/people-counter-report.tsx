@@ -17,6 +17,7 @@ import {
 	hallRows,
 	headlineFigures,
 	levelRows,
+	soFarSeries,
 } from "./people-counter-rows";
 import { colors, styles } from "./styles";
 
@@ -85,7 +86,19 @@ export function PeopleCounterReport({
 						value={formatCount(figures.busiest)}
 						subtext={figures.busiestHour ?? undefined}
 					/>
-					<StatsCard label="Left" value={formatCount(figures.exits)} isLast />
+					<StatsCard
+						label="Left"
+						value={formatCount(figures.exits)}
+						isLast={figures.soFar === null}
+					/>
+					{figures.soFar !== null && (
+						<StatsCard
+							label="Total so far"
+							value={formatCount(figures.soFar)}
+							subtext={`since ${figures.since}`}
+							isLast
+						/>
+					)}
 				</StatsGrid>
 				<Section title="Through the day">
 					<AreaChart
@@ -103,6 +116,14 @@ export function PeopleCounterReport({
 						title="People leaving"
 						areaColor={colors.warning}
 					/>
+					{figures.soFar !== null && (
+						<AreaChart
+							data={soFarSeries(points, trends.event.beforeIn ?? 0)}
+							title="Visitors so far"
+							subtitle={`Since ${figures.since}`}
+							areaColor={colors.success}
+						/>
+					)}
 				</Section>
 
 				<Section title="By level" breakOnPage>

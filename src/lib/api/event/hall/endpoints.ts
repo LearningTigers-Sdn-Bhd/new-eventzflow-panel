@@ -155,6 +155,8 @@ interface BackendTrendScope {
 		busiest_entry_hour: { in: number; at: string };
 		recent_flow: { net: number; in: number; out: number; at: string } | null;
 	} | null;
+	before_in?: number;
+	before_days?: { date: string; in: number }[];
 }
 
 interface BackendTrends {
@@ -176,6 +178,11 @@ interface BackendTrends {
 function transformScope(scope: BackendTrendScope): TrendScope {
 	const { stats } = scope;
 	return {
+		beforeIn: scope.before_in,
+		beforeDays: scope.before_days?.map((d) => ({
+			date: d.date,
+			entries: d.in,
+		})),
 		points: scope.points.map((p) => ({
 			time: p.bucket,
 			entries: p.in,
@@ -202,16 +209,25 @@ export interface TrendsQuery {
 	/** "YYYY-MM-DD"; the API falls back to today / the first event day. */
 	date?: string;
 	bucket?: TrendBucket;
+	/** Also total the visitors from the event's earlier days (`beforeIn`), for "so far" figures. */
+	cumulative?: boolean;
 	/** Excel export only: write times as 2:15 PM instead of 14:15. */
 	hour12?: boolean;
 	/** Excel export only: the whole event instead of one day. */
 	allDays?: boolean;
 }
 
-const trendsQueryString = ({ date, bucket, hour12, allDays }: TrendsQuery) => {
+const trendsQueryString = ({
+	date,
+	bucket,
+	cumulative,
+	hour12,
+	allDays,
+}: TrendsQuery) => {
 	const query = new URLSearchParams();
 	if (date) query.set("date", date);
 	if (bucket) query.set("bucket", String(bucket));
+	if (cumulative) query.set("cumulative", "1");
 	if (hour12) query.set("hour12", "1");
 	if (allDays) query.set("all_days", "1");
 	const text = query.toString();

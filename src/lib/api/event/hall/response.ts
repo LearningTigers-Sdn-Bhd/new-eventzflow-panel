@@ -78,6 +78,10 @@ export interface TrendScope {
 	points: TrendPoint[];
 	/** Null when the scope has no counted data (unlinked / unreachable / no activity). */
 	stats: TrendStats | null;
+	/** Visitors who came in on the event's earlier days. Only present when asked for with `cumulative`. */
+	beforeIn?: number;
+	/** The same, one entry per earlier event day (arrivals that day). Only present with `cumulative`. */
+	beforeDays?: { date: string; entries: number }[];
 }
 
 export interface TrendHall extends TrendScope {

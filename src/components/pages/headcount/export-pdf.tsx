@@ -29,7 +29,7 @@ export async function exportPeopleCounterPdf(
 	hour12: boolean,
 ): Promise<void> {
 	const [trends, headcount] = await Promise.all([
-		getHeadcountTrends(eventId, { date, bucket: 60 }),
+		getHeadcountTrends(eventId, { date, bucket: 60, cumulative: true }),
 		getHeadcount(eventId),
 	]);
 

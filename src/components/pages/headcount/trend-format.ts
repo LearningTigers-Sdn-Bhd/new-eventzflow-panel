@@ -81,28 +81,74 @@ export interface CompareSource {
 	key: string;
 	name: string;
 	points: TrendPoint[];
+	/** Visitors who came in on earlier days; where the "soFar" line starts. */
+	beforeIn?: number;
 }
 
-/** One chart row per time slot, with a `<key>` column per source so each hall / level gets its own line. */
+/** One chart row per time slot, with a `<key>` column per source so each hall / level gets its own line. "soFar" is each source's running visitor total. */
 export function compareRows(
 	sources: CompareSource[],
-	metric: "occupancy" | "entries" | "exits" = "occupancy",
+	metric: "occupancy" | "entries" | "exits" | "soFar" = "occupancy",
 	hour12 = false,
 ): Record<string, string | number>[] {
 	const rows = new Map<string, Record<string, string | number>>();
 	for (const source of sources) {
-		for (const p of source.points) {
+		const soFar =
+			metric === "soFar"
+				? runningVisitors(source.points, source.beforeIn ?? 0)
+				: [];
+		source.points.forEach((p, i) => {
 			const row = rows.get(p.time) ?? {
 				time: p.time,
 				label: timeLabel(p.time, hour12),
 			};
-			row[source.key] = p[metric];
+			row[source.key] = metric === "soFar" ? soFar[i] : p[metric];
 			rows.set(p.time, row);
-		}
+		});
 	}
 	return [...rows.values()].sort((a, b) =>
 		String(a.time).localeCompare(String(b.time)),
 	);
+}
+
+/** Visitors counted since the event opened, slot by slot: what came before the day plus the day's arrivals so far. */
+export function runningVisitors(
+	points: TrendPoint[],
+	beforeIn: number,
+): number[] {
+	let total = beforeIn;
+	return points.map((p) => {
+		total += p.entries;
+		return total;
+	});
+}
+
+/** Rows for the stacked "so far" chart: one flat band per earlier day (that whole day's arrivals), then today's running arrivals on top. */
+export function soFarBands(
+	points: TrendPoint[],
+	beforeDays: { date: string; entries: number }[],
+	hour12 = false,
+): {
+	bands: { key: string; label: string }[];
+	rows: Record<string, string | number>[];
+} {
+	const today = runningVisitors(points, 0);
+	return {
+		bands: beforeDays.map((d, i) => ({
+			key: `d${i}`,
+			label: shortDayLabel(d.date),
+		})),
+		rows: points.map((p, i) => {
+			const row: Record<string, string | number> = {
+				label: timeLabel(p.time, hour12),
+				today: today[i],
+			};
+			beforeDays.forEach((d, j) => {
+				row[`d${j}`] = d.entries;
+			});
+			return row;
+		}),
+	};
 }
 
 /** Everything the chart can be pointed at: the whole event, each level, each linked hall. */
@@ -119,6 +165,7 @@ export function scopeOptions(trends: HeadcountTrends): ScopeOption[] {
 				key: `h${h.id}`,
 				name: h.name,
 				points: h.points,
+				beforeIn: h.beforeIn,
 			})),
 		});
 	}
@@ -132,6 +179,7 @@ export function scopeOptions(trends: HeadcountTrends): ScopeOption[] {
 				key: `l${l.floor ?? ""}`,
 				name: floorLabel(l.floor),
 				points: l.points,
+				beforeIn: l.beforeIn,
 			})),
 		});
 	}

@@ -4,7 +4,7 @@ import { Document, Page, View } from "@react-pdf/renderer";
 import { formatCount } from "@/components/pages/headcount/format";
 import { shortDayLabel } from "@/components/pages/headcount/trend-format";
 import type { DaySummary, Headcount, TrendPoint } from "@/lib/api/event/hall";
-import { AreaChart, BarChart } from "./charts";
+import { AreaChart, BarChart, LinesChart } from "./charts";
 import {
 	ReportFooter,
 	Section,
@@ -17,6 +17,7 @@ import {
 	allDaysFigures,
 	chartSeries,
 	dayBars,
+	dayOverlay,
 	dayRows,
 	hallDayRows,
 	hallTotalRows,
@@ -39,7 +40,14 @@ export interface PeopleCounterAllDaysReportData {
 
 type Align = "left" | "right";
 
-const DAY_ALIGNS: Align[] = ["left", "right", "right", "right", "right"];
+const DAY_ALIGNS: Align[] = [
+	"left",
+	"right",
+	"right",
+	"right",
+	"right",
+	"right",
+];
 const HALL_TOTAL_ALIGNS: Align[] = ["left", "left", "right", "right"];
 
 /** The matrix columns: hall, level, one per day, total. Days share what is left after the label columns. */
@@ -138,8 +146,15 @@ export function PeopleCounterAllDaysReport({
 						barColor={colors.success}
 					/>
 					<Table
-						headers={["Day", "Visitors", "Left", "Peak crowd", "Busiest hour"]}
-						columnWidths={["16%", "16%", "14%", "27%", "27%"]}
+						headers={[
+							"Day",
+							"Visitors",
+							"Total so far",
+							"Left",
+							"Peak crowd",
+							"Busiest hour",
+						]}
+						columnWidths={["14%", "14%", "16%", "12%", "22%", "22%"]}
 						columnAligns={DAY_ALIGNS}
 						rows={dayRows(days, hour12)}
 					/>
@@ -167,8 +182,23 @@ export function PeopleCounterAllDaysReport({
 					</Section>
 				)}
 
+				{hourly.length >= 2 && (
+					<Section title="Day by day comparison" breakOnPage>
+						<LinesChart
+							{...dayOverlay(hourly, "entries", hour12)}
+							title="Visitors coming in"
+							subtitle="One line per day, by hour: compare the pattern across days"
+						/>
+						<LinesChart
+							{...dayOverlay(hourly, "occupancy", hour12)}
+							title="People inside"
+							subtitle="One line per day, by hour"
+						/>
+					</Section>
+				)}
+
 				{hourly.length > 0 && (
-					<Section title="People inside, day by day">
+					<Section title="People inside, day by day" breakOnPage>
 						{hourly.map((day) => (
 							<View key={day.date} wrap={false}>
 								<AreaChart

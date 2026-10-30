@@ -65,6 +65,7 @@ import {
 	type ScopeOption,
 	scopeOptions,
 	shortDayLabel,
+	soFarBands,
 	timeLabel,
 } from "./trend-format";
 
@@ -90,6 +91,17 @@ const emptyDay = (hour12: boolean) =>
 const occupancyConfig = {
 	occupancy: { label: "People inside", color: "var(--chart-1)" },
 } satisfies ChartConfig;
+
+/** Greys for the flat band of each earlier day, so today's teal stands out on top. */
+const EARLIER_DAY_COLORS = [
+	"#94a3b8",
+	"#cbd5e1",
+	"#64748b",
+	"#e2e8f0",
+	"#475569",
+	"#a8b4c4",
+	"#8392a5",
+];
 
 const flowConfig = {
 	entries: { label: "Entries", color: "var(--chart-2)" },
@@ -225,12 +237,38 @@ export function TrendsPanel({
 	const hasMovement = (series ?? [{ points }]).some((src) =>
 		src.points.some((p) => p.entries + p.exits > 0),
 	);
+	// On any day after the first, also total the visitors since the event opened ("so far").
+	const beforeIn = selected.scope.beforeIn;
+	const laterDay = beforeIn !== undefined && data.days.indexOf(data.date) > 0;
+	const showSoFar = !series && laterDay;
+	const latest = points.at(-1);
 	// With nothing counted yet, draw a flat zero line across a typical day so the axes and grid still show.
 	const chartData = hasMovement
 		? points.map((p) => ({ ...p, label: timeLabel(p.time, hour12) }))
 		: emptyDay(hour12);
 	// A bare 0..auto axis collapses when every value is 0.
 	const yDomain: [number, number | "auto"] = [0, hasMovement ? "auto" : 10];
+	// Earlier days as flat bands, today's arrivals stacked on top.
+	const soFar = showSoFar
+		? soFarBands(points, selected.scope.beforeDays ?? [], hour12)
+		: null;
+	const soFarConfig: ChartConfig = soFar
+		? {
+				...Object.fromEntries(
+					soFar.bands.map((b, i) => [
+						b.key,
+						{
+							label: b.label,
+							color: EARLIER_DAY_COLORS[i % EARLIER_DAY_COLORS.length],
+						},
+					]),
+				),
+				today: {
+					label: `${shortDayLabel(data.date)} so far`,
+					color: "var(--chart-2)",
+				},
+			}
+		: {};
 
 	return (
 		<div
@@ -371,10 +409,16 @@ export function TrendsPanel({
 							hour12={hour12}
 							subtitle={`${selected.label} · ${dayLabel(data.date)}`}
 							hasMovement={hasMovement}
+							soFar={laterDay}
 						/>
 					) : (
 						<>
-							<div className="grid @3xl:grid-cols-4 grid-cols-2 gap-2">
+							<div
+								className={cn(
+									"grid grid-cols-2 gap-2",
+									showSoFar ? "@3xl:grid-cols-5" : "@3xl:grid-cols-4",
+								)}
+							>
 								<StatTile
 									label="Visitors"
 									value={hasMovement ? visitors : null}
@@ -407,6 +451,16 @@ export function TrendsPanel({
 									hint={`went out on ${shortDayLabel(data.date)}`}
 									accent="border-l-amber-500"
 								/>
+								{showSoFar && (
+									<StatTile
+										label="Visitors so far"
+										value={(beforeIn ?? 0) + visitors}
+										hint={`${shortDayLabel(data.days[0])} to ${shortDayLabel(data.date)}${
+											latest ? `, ${timeLabel(latest.time, hour12)}` : ""
+										}`}
+										accent="border-l-rose-500"
+									/>
+								)}
 							</div>
 
 							<Card className="gap-0 rounded-none shadow-none">
@@ -451,6 +505,62 @@ export function TrendsPanel({
 									</ChartContainer>
 								</CardContent>
 							</Card>
+
+							{showSoFar && hasMovement && (
+								<Card className="gap-0 rounded-none shadow-none">
+									<CardHeader className="border-b pb-3">
+										<CardTitle className="text-sm">Visitors so far</CardTitle>
+										<CardDescription className="text-xs">
+											Earlier days as flat bands, {dayLabel(data.date)} adding
+											up on top
+										</CardDescription>
+									</CardHeader>
+									<CardContent className="pt-4">
+										<ChartContainer
+											config={soFarConfig}
+											className="aspect-auto h-64 w-full"
+										>
+											<AreaChart
+												data={soFar?.rows ?? []}
+												margin={{ left: 4, right: 12 }}
+											>
+												<CartesianGrid vertical={false} />
+												<XAxis
+													dataKey="label"
+													tickLine={false}
+													axisLine={false}
+													tickMargin={8}
+													minTickGap={24}
+												/>
+												<YAxis
+													tickLine={false}
+													axisLine={false}
+													width={48}
+													allowDecimals={false}
+													domain={[0, "auto"]}
+												/>
+												<ChartTooltip
+													content={<ChartTooltipContent indicator="line" />}
+												/>
+												<ChartLegend content={<ChartLegendContent />} />
+												{[...(soFar?.bands ?? []), { key: "today" }].map(
+													(b) => (
+														<Area
+															key={b.key}
+															dataKey={b.key}
+															stackId="so-far"
+															type="stepAfter"
+															stroke={`var(--color-${b.key})`}
+															fill={`var(--color-${b.key})`}
+															fillOpacity={b.key === "today" ? 0.5 : 0.6}
+														/>
+													),
+												)}
+											</AreaChart>
+										</ChartContainer>
+									</CardContent>
+								</Card>
+							)}
 
 							<Card className="gap-0 rounded-none shadow-none">
 								<CardHeader className="border-b pb-3">

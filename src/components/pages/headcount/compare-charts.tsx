@@ -42,6 +42,8 @@ interface CompareChartsProps {
 	subtitle: string;
 	hasMovement: boolean;
 	hour12: boolean;
+	/** Also draw each source's running visitor total, carried on from earlier days. */
+	soFar?: boolean;
 }
 
 /** Halls (or levels) side by side over the day: people inside as lines, entries as grouped bars. */
@@ -52,10 +54,12 @@ export function CompareCharts({
 	subtitle,
 	hasMovement,
 	hour12,
+	soFar = false,
 	by = "venue",
 }: CompareChartsProps) {
 	const occupancy = compareRows(series, "occupancy", hour12);
 	const entries = compareRows(series, "entries", hour12);
+	const running = soFar ? compareRows(series, "soFar", hour12) : [];
 	const domain: [number, number | "auto"] = [0, hasMovement ? "auto" : 10];
 
 	return (
@@ -141,6 +145,52 @@ export function CompareCharts({
 					</ChartContainer>
 				</CardContent>
 			</Card>
+
+			{soFar && (
+				<Card className="gap-0 rounded-none shadow-none">
+					<CardHeader className="border-b pb-3">
+						<CardTitle className="text-sm">Visitors so far</CardTitle>
+						<CardDescription className="text-xs">
+							Everyone counted in since the event opened, by {by}
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="pt-4">
+						<ChartContainer config={config} className="aspect-auto h-72 w-full">
+							<LineChart data={running} margin={{ left: 4, right: 12 }}>
+								<CartesianGrid vertical={false} />
+								<XAxis
+									dataKey="label"
+									tickLine={false}
+									axisLine={false}
+									tickMargin={8}
+									minTickGap={24}
+								/>
+								<YAxis
+									tickLine={false}
+									axisLine={false}
+									width={48}
+									allowDecimals={false}
+									domain={domain}
+								/>
+								<ChartTooltip
+									content={<ChartTooltipContent indicator="line" />}
+								/>
+								<ChartLegend content={<ChartLegendContent />} />
+								{series.map((s) => (
+									<Line
+										key={s.key}
+										dataKey={s.key}
+										type="stepAfter"
+										stroke={`var(--color-${s.key})`}
+										strokeWidth={2}
+										dot={false}
+									/>
+								))}
+							</LineChart>
+						</ChartContainer>
+					</CardContent>
+				</Card>
+			)}
 		</>
 	);
 }

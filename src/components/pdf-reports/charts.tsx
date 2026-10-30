@@ -9,3 +9,4 @@ export {
 	DailyHourlyBreakdownSection,
 	HourlyBarChart,
 } from "./charts/hourly-bar-chart";
+export { LinesChart } from "./charts/lines-chart";

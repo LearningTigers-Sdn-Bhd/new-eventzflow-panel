@@ -9,11 +9,13 @@ import {
 	capacityVerdict,
 	chartSeries,
 	dayBars,
+	dayOverlay,
 	dayRows,
 	hallRows,
 	hallTotalRows,
 	headlineFigures,
 	levelRows,
+	soFarSeries,
 } from "./people-counter-rows";
 
 const p = (time: string, entries: number, exits: number, occupancy: number) =>
@@ -158,9 +160,67 @@ describe("dayRows", () => {
 			},
 		];
 		expect(dayRows(days)).toEqual([
-			["30 Oct", "30", "30", "25 at 09:00", "09:00–10:00"],
-			["31 Oct", "0", "0", "—", "—"],
+			["30 Oct", "30", "30", "30", "25 at 09:00", "09:00–10:00"],
+			["31 Oct", "0", "30", "0", "—", "—"],
 		]);
+	});
+});
+
+describe("visitors so far", () => {
+	test("the headline figure is absent on the first day", () => {
+		expect(headlineFigures(trends, headcount).soFar).toBeNull();
+	});
+
+	test("on a later day it adds what came in on the days before", () => {
+		const later: HeadcountTrends = {
+			...trends,
+			date: "2026-10-31",
+			days: ["2026-10-30", "2026-10-31"],
+			event: { points, stats, beforeIn: 100 },
+		};
+		expect(headlineFigures(later, headcount)).toMatchObject({
+			soFar: 130,
+			since: "30 Oct",
+		});
+	});
+
+	test("the chart line starts from the earlier days' total", () => {
+		expect(soFarSeries(points, 100)).toEqual([
+			{ date: "2026-10-30 09:00", value: 130 },
+			{ date: "2026-10-30 10:00", value: 130 },
+		]);
+	});
+});
+
+describe("dayOverlay", () => {
+	const at = (date: string, time: string, entries: number) =>
+		({
+			time: `${date}T${time}:00`,
+			entries,
+			exits: 0,
+			occupancy: entries * 2,
+		}) as TrendPoint;
+	const hourly = [
+		{
+			date: "2026-10-29",
+			points: [at("2026-10-29", "09:00", 10), at("2026-10-29", "10:00", 20)],
+		},
+		{ date: "2026-10-30", points: [at("2026-10-30", "09:00", 5)] },
+	];
+
+	test("lines up the days on one time-of-day axis, leaving a gap where a day has no count yet", () => {
+		const chart = dayOverlay(hourly, "entries");
+		expect(chart.labels).toEqual(["09:00", "10:00"]);
+		expect(chart.series.map((s) => [s.name, s.values])).toEqual([
+			["29 Oct", [10, 20]],
+			["30 Oct", [5, null]],
+		]);
+	});
+
+	test("follows the clock choice and the measure", () => {
+		const chart = dayOverlay(hourly, "occupancy", true);
+		expect(chart.labels).toEqual(["9:00 AM", "10:00 AM"]);
+		expect(chart.series[0].values).toEqual([20, 40]);
 	});
 });
 
@@ -189,10 +249,11 @@ describe("12-hour reports and visitor totals", () => {
 			"30 Oct",
 			"30",
 			"30",
+			"30",
 			"25 at 2:15 PM",
 			"1:00–2:00 PM",
 		]);
-		expect(dayRows([day])[0][3]).toBe("25 at 14:15");
+		expect(dayRows([day])[0][4]).toBe("25 at 14:15");
 	});
 
 	test("bars are visitors per day", () => {

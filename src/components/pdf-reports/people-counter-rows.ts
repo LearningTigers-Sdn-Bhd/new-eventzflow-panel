@@ -6,6 +6,7 @@ import {
 } from "@/components/pages/headcount/format";
 import {
 	hourRange,
+	runningVisitors,
 	shortDayLabel,
 	timeLabel,
 } from "@/components/pages/headcount/trend-format";
@@ -50,10 +51,16 @@ export function headlineFigures(
 ) {
 	const { event } = trends;
 	const stats = event.stats;
+	const entries = sum(event.points, "entries");
+	// From the second day on: everyone counted in since the event opened.
+	const before = event.beforeIn;
+	const later = before !== undefined && trends.days.indexOf(trends.date) > 0;
 	return {
 		peak: stats ? stats.peak.occupancy : null,
 		peakAt: stats ? timeLabel(stats.peak.at, hour12) : null,
-		entries: sum(event.points, "entries"),
+		entries,
+		soFar: later ? before + entries : null,
+		since: shortDayLabel(trends.days[0]),
 		exits: sum(event.points, "exits"),
 		busiest: stats ? stats.busiestEntryHour.entries : null,
 		busiestHour: stats ? hourRange(stats.busiestEntryHour.at, hour12) : null,
@@ -106,17 +113,65 @@ export function hallRows(
 	});
 }
 
-/** One row per event day: day, visitors, left, peak crowd (with time), busiest hour. */
+/** One row per event day: day, visitors, total so far, left, peak crowd (with time), busiest hour. */
 export function dayRows(days: DaySummary[], hour12 = false): string[][] {
-	return days.map((d) => [
-		shortDayLabel(d.date),
-		formatCount(d.entries),
-		formatCount(d.exits),
-		d.peak
-			? `${formatCount(d.peak.occupancy)} at ${timeLabel(d.peak.at, hour12)}`
-			: DASH,
-		d.busiestEntryHour ? hourRange(d.busiestEntryHour.at, hour12) : DASH,
-	]);
+	let soFar = 0;
+	return days.map((d) => {
+		soFar += d.entries;
+		return [
+			shortDayLabel(d.date),
+			formatCount(d.entries),
+			formatCount(soFar),
+			formatCount(d.exits),
+			d.peak
+				? `${formatCount(d.peak.occupancy)} at ${timeLabel(d.peak.at, hour12)}`
+				: DASH,
+			d.busiestEntryHour ? hourRange(d.busiestEntryHour.at, hour12) : DASH,
+		];
+	});
+}
+
+/** One colour per day line, in day order. */
+export const DAY_LINE_COLORS = [
+	"#2766ec",
+	"#16a34a",
+	"#d97706",
+	"#7c3aed",
+	"#dc2626",
+	"#0891b2",
+	"#64748b",
+];
+
+/** Day-vs-day chart input: one line per day over the hours of the day. A day with no count in a slot (still in progress) has a gap there. */
+export function dayOverlay(
+	hourly: { date: string; points: TrendPoint[] }[],
+	key: "entries" | "occupancy",
+	hour12 = false,
+) {
+	const byDay = hourly.map(
+		(d) => new Map(d.points.map((p) => [p.time.slice(11, 16), p[key]])),
+	);
+	const slots = [...new Set(byDay.flatMap((m) => [...m.keys()]))].sort();
+	return {
+		labels: slots.map((s) => timeLabel(`2000-01-01T${s}:00`, hour12)),
+		series: hourly.map((d, i) => ({
+			name: shortDayLabel(d.date),
+			color: DAY_LINE_COLORS[i % DAY_LINE_COLORS.length],
+			values: slots.map((s) => byDay[i].get(s) ?? null),
+		})),
+	};
+}
+
+/** Chart input: visitors counted since the event opened, slot by slot. */
+export function soFarSeries(
+	points: TrendPoint[],
+	beforeIn: number,
+): { date: string; value: number }[] {
+	const total = runningVisitors(points, beforeIn);
+	return chartSeries(points, "entries").map((p, i) => ({
+		date: p.date,
+		value: total[i],
+	}));
 }
 
 /** Chart input: the counter's "2026-10-30T14:00:00" as the "2026-10-30 14:00" the PDF charts read. */

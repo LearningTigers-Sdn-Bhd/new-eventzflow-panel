@@ -19,8 +19,20 @@ export const HEADCOUNT_REFRESH_MS = 15_000;
 export const hallKeys = {
 	halls: (eventId: string) => ["event", eventId, "halls"] as const,
 	headcount: (eventId: string) => ["event", eventId, "headcount"] as const,
-	trends: (eventId: string, date: string | undefined, bucket: TrendBucket) =>
-		["event", eventId, "headcount-trends", date ?? "auto", bucket] as const,
+	trends: (
+		eventId: string,
+		date: string | undefined,
+		bucket: TrendBucket,
+		cumulative = false,
+	) =>
+		[
+			"event",
+			eventId,
+			"headcount-trends",
+			date ?? "auto",
+			bucket,
+			cumulative,
+		] as const,
 	daily: (eventId: string) => ["event", eventId, "headcount-daily"] as const,
 	counterVenues: (eventId: string) =>
 		["event", eventId, "counter-venues"] as const,
@@ -46,7 +58,7 @@ export function useHeadcount(eventId: string) {
 	});
 }
 
-/** One day of counts over time. `date` unset = let the API pick (today, else the first event day). */
+/** One day of counts over time, plus the visitors from earlier days so it can show a running total. `date` unset = let the API pick (today, else the first event day). */
 export function useHeadcountTrends(
 	eventId: string,
 	date: string | undefined,
@@ -54,8 +66,9 @@ export function useHeadcountTrends(
 ) {
 	const { isInitialized } = useAuth();
 	return useQuery({
-		queryKey: hallKeys.trends(eventId, date, bucket),
-		queryFn: () => getHeadcountTrends(eventId, { date, bucket }),
+		queryKey: hallKeys.trends(eventId, date, bucket, true),
+		queryFn: () =>
+			getHeadcountTrends(eventId, { date, bucket, cumulative: true }),
 		enabled: isInitialized,
 		refetchInterval: 2 * HEADCOUNT_REFRESH_MS,
 		// Keep the old chart on screen while another day or bucket loads.
@@ -63,7 +76,7 @@ export function useHeadcountTrends(
 	});
 }
 
-/** Several days of counts at once, one query per day. They share cache keys with `useHeadcountTrends`, so a day already on screen is not fetched twice. */
+/** Several days of counts at once, one query per day. Plain per-day reads with no running total, so they don't share a cache entry with `useHeadcountTrends`. */
 export function useDaysTrends(
 	eventId: string,
 	days: string[],

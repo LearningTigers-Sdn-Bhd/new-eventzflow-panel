@@ -5,6 +5,7 @@ import {
 	compareRows,
 	dayLabel,
 	hourRange,
+	runningVisitors,
 	scopeOptions,
 	signed,
 	timeLabel,
@@ -136,5 +137,51 @@ describe("12-hour clock", () => {
 		expect(hourRange("2026-09-11T11:00:00", true)).toBe("11:00 AM–12:00 PM");
 		expect(hourRange("2026-09-11T23:00:00", true)).toBe("11:00 PM–12:00 AM");
 		expect(hourRange("2026-09-11T13:00:00")).toBe("13:00–14:00");
+	});
+});
+
+describe("runningVisitors", () => {
+	const pt = (entries: number) => ({
+		time: "2026-09-12T09:00:00",
+		entries,
+		exits: 0,
+		occupancy: 0,
+	});
+
+	test("carries the earlier days' visitors into each slot of the day", () => {
+		expect(runningVisitors([pt(10), pt(0), pt(5)], 100)).toEqual([
+			110, 110, 115,
+		]);
+	});
+
+	test("is empty for a day with no slots", () => {
+		expect(runningVisitors([], 100)).toEqual([]);
+	});
+
+	test("compare rows give each source its own running line, from its own start", () => {
+		const time = (hour: string) => `2026-09-12T${hour}:00:00`;
+		const rows = compareRows(
+			[
+				{
+					key: "h1",
+					name: "KH",
+					beforeIn: 100,
+					points: [
+						{ ...pt(10), time: time("09") },
+						{ ...pt(5), time: time("10") },
+					],
+				},
+				{
+					key: "h2",
+					name: "SH",
+					points: [{ ...pt(4), time: time("09") }],
+				},
+			],
+			"soFar",
+		);
+		expect(rows).toEqual([
+			{ time: time("09"), label: "09:00", h1: 110, h2: 4 },
+			{ time: time("10"), label: "10:00", h1: 115 },
+		]);
 	});
 });
