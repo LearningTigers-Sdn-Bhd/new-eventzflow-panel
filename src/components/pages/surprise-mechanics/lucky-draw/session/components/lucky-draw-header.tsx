@@ -86,7 +86,7 @@ export function LuckyDrawHeader() {
 									props: { eventId, sessionId: session.id },
 									config: {
 										title: "Scan Participants",
-										size: "md",
+										size: "full",
 										showCloseButton: true,
 									},
 								})

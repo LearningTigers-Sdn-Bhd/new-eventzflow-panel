@@ -803,18 +803,44 @@ export async function searchLuckyDrawEntries(
 	}
 }
 
+export const ENTRIES_PER_PAGE = 20;
+
 /**
- * Get Lucky Draw Entries (latest first, plus the full total)
+ * Remove an entry from the draw pool
+ * DELETE /v1/events/:event_id/lucky_draw/sessions/:session_id/entries/:id
+ */
+export async function removeLuckyDrawEntry(
+	eventId: string,
+	sessionId: number,
+	entryId: number,
+): Promise<void> {
+	try {
+		await restClient.delete(
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/entries/${entryId}`,
+		);
+	} catch (error) {
+		const message = await extractErrorMessage(error);
+		throw new Error(message);
+	}
+}
+
+/**
+ * Get one page of Lucky Draw Entries (newest first)
  * GET /v1/events/:event_id/lucky_draw/sessions/:session_id/entries
  */
 export async function getLuckyDrawEntries(
 	eventId: string,
 	sessionId: number,
-	limit = 20,
-): Promise<{ entries: LuckyDrawEntry[]; total: number }> {
+	page = 1,
+	perPage = ENTRIES_PER_PAGE,
+): Promise<{ entries: LuckyDrawEntry[]; total: number; totalPages: number }> {
 	try {
-		const response = await restClient.get<ApiResponse<LuckyDrawEntry[]>>(
-			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/entries?limit=${limit}`,
+		const response = await restClient.get<
+			ApiResponse<LuckyDrawEntry[]> & {
+				pagination?: { total_count: number; total_pages: number };
+			}
+		>(
+			`v1/events/${eventId}/lucky_draw/sessions/${sessionId}/entries?page=${page}&per_page=${perPage}`,
 		);
 
 		if (!response.success) {
@@ -822,8 +848,11 @@ export async function getLuckyDrawEntries(
 		}
 
 		const entries = response.data || [];
-		const total = (response.meta as { total?: number } | undefined)?.total;
-		return { entries, total: total ?? entries.length };
+		return {
+			entries,
+			total: response.pagination?.total_count ?? entries.length,
+			totalPages: response.pagination?.total_pages ?? 1,
+		};
 	} catch (error) {
 		const message = await extractErrorMessage(error);
 		throw new Error(message);

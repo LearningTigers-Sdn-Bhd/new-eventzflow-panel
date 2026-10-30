@@ -133,7 +133,7 @@ export function ActionMenu({ session }: { session: LuckyDrawSession }) {
 								config: {
 									title: "Scan Participants",
 									description: `Scan a ticket QR to enter someone into "${s.title}"`,
-									size: "md",
+									size: "full",
 									showCloseButton: true,
 								},
 							}),
