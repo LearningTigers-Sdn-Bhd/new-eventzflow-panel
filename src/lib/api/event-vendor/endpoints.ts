@@ -85,7 +85,11 @@ export async function getExhibitorKitsPaged(
 	params.set("page", String(options.page));
 	params.set("per_page", String(options.perPage));
 	for (const [key, value] of Object.entries(options.filters)) {
-		if (value) params.set(key, value);
+		if (Array.isArray(value)) {
+			for (const item of value) params.append(`${key}[]`, item);
+		} else if (value) {
+			params.set(key, value);
+		}
 	}
 	if (options.sortBy) params.set("sort_by", options.sortBy);
 	if (options.sortDir) params.set("sort_dir", options.sortDir);

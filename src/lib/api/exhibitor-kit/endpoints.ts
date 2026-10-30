@@ -317,7 +317,8 @@ export interface ExhibitorKitFilters {
 	payment_status?: string;
 	booth_type?: string;
 	booth_pricing?: string;
-	zone?: string;
+	/** One zone name (or "__unassigned__"), or several names to match any of them. */
+	zone?: string | string[];
 	tags_status?: string;
 }
 

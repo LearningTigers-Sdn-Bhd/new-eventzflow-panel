@@ -231,12 +231,12 @@ const baseColumns: ColumnDef<ExhibitorMember>[] = [
 		accessorFn: (row) => row.kit.exhibitor_booth_price_zone ?? "",
 		id: "zone",
 		enableHiding: false,
-		filterFn: (row, id, value) => {
-			if (!value) return true;
-			if (value === "__unassigned__") {
-				return !row.original.kit.exhibitor_booth_price_zone;
-			}
-			return row.getValue(id) === value;
+		filterFn: (row, _id, value: string[] | undefined) => {
+			if (!value?.length) return true;
+			const zone = row.original.kit.exhibitor_booth_price_zone;
+			return value.some((item) =>
+				item === "__unassigned__" ? !zone : item === zone,
+			);
 		},
 		header: () => null,
 		cell: () => null,

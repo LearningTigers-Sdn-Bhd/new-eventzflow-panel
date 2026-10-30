@@ -77,6 +77,8 @@ export function ExhibitorListView({
 		columnFilters.find((filter) => filter.id === id)?.value as
 			| string
 			| undefined;
+	const selectedZones = columnFilters.find((filter) => filter.id === "zone")
+		?.value as string[] | undefined;
 	const sort = sorting[0];
 	const sortBy = sort?.id as
 		| "booth_number"
@@ -91,7 +93,8 @@ export function ExhibitorListView({
 		payment_status: filterValue("payment_status"),
 		booth_type: filterValue("booth_type"),
 		booth_pricing: filterValue("booth_pricing"),
-		zone: filterValue("zone"),
+		// A lone zone goes as a plain string: the server matches "__unassigned__" only that way.
+		zone: selectedZones?.length === 1 ? selectedZones[0] : selectedZones,
 		tags_status: filterValue("tags_status"),
 	};
 

@@ -8,6 +8,8 @@ import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -20,6 +22,8 @@ import {
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
 import { getExhibitorFilterOptions } from "./filter-options";
+
+const UNASSIGNED_ZONE = "__unassigned__";
 
 interface DataControlProps<TData> {
 	table: Table<TData>;
@@ -46,7 +50,6 @@ export function DataControl<TData>({
 		configuredPricingLabels,
 		configuredZones,
 	);
-	const hasUnassignedZone = zones.length > 0;
 	const searchProps = {
 		table,
 		columns: searchColumns,
@@ -98,12 +101,79 @@ export function DataControl<TData>({
 		...pricingLabels.map((label) => ({ label, value: label })),
 	];
 	const zoneOptions = [
-		{ label: "All Zones", value: "all" },
 		...zones.map((zone) => ({ label: zone, value: zone })),
-		...(hasUnassignedZone
-			? [{ label: "Unassigned", value: "__unassigned__" }]
-			: []),
+		{ label: "Unassigned", value: UNASSIGNED_ZONE },
 	];
+
+	const renderZoneFilter = (label: string, className = "w-44") => {
+		const column = table.getColumn("zone");
+		const selected = (column?.getFilterValue() as string[] | undefined) ?? [];
+		const summary =
+			selected.length === 0
+				? "All"
+				: selected.length === 1
+					? (zoneOptions.find((option) => option.value === selected[0])
+							?.label ?? selected[0])
+					: `${selected.length} selected`;
+		// "Unassigned" can't be combined with named zones: the server only matches it alone.
+		const toggle = (value: string, checked: boolean) => {
+			const base =
+				value === UNASSIGNED_ZONE || selected.includes(UNASSIGNED_ZONE)
+					? []
+					: selected;
+			const next = checked
+				? [...base, value]
+				: base.filter((item) => item !== value);
+			column?.setFilterValue(next.length > 0 ? next : undefined);
+		};
+
+		return (
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button
+						variant="outline"
+						className={cn(
+							className,
+							"justify-between rounded-none bg-background font-medium",
+						)}
+					>
+						<div className="flex min-w-0 items-center gap-1 truncate text-sm">
+							<span className="shrink-0 font-semibold">{label}:</span>
+							<span className="truncate">{summary}</span>
+						</div>
+						<ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent
+					align="start"
+					className="rounded-none bg-background"
+				>
+					{zoneOptions.map((option) => (
+						<DropdownMenuCheckboxItem
+							key={option.value}
+							className="rounded-none"
+							checked={selected.includes(option.value)}
+							onCheckedChange={(checked) => toggle(option.value, !!checked)}
+							onSelect={(event) => event.preventDefault()}
+						>
+							{option.label}
+						</DropdownMenuCheckboxItem>
+					))}
+					{selected.length > 0 && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								className="rounded-none"
+								onSelect={() => column?.setFilterValue(undefined)}
+							>
+								Clear
+							</DropdownMenuItem>
+						</>
+					)}
+				</DropdownMenuContent>
+			</DropdownMenu>
+		);
+	};
 
 	return (
 		<div className="mb-4 flex flex-col border-y border-dashed bg-accent px-0 py-0 md:px-2 md:py-4 lg:px-4 lg:py-4">
@@ -119,8 +189,7 @@ export function DataControl<TData>({
 							boothPricingOptions,
 							"w-40",
 						)}
-					{zones.length > 0 &&
-						renderFilterSelect("Zone", "zone", zoneOptions, "w-32")}
+					{zones.length > 0 && renderZoneFilter("Zone", "w-44")}
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="outline" className="ml-auto rounded-none">
@@ -165,8 +234,7 @@ export function DataControl<TData>({
 								boothPricingOptions,
 								"w-full",
 							)}
-						{zones.length > 0 &&
-							renderFilterSelect("Zone", "zone", zoneOptions, "w-full")}
+						{zones.length > 0 && renderZoneFilter("Zone", "w-full")}
 						<Button
 							variant="outline"
 							onClick={() =>
