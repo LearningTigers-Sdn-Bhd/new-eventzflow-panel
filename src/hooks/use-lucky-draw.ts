@@ -739,6 +739,22 @@ export function useLuckyDraw(
 		[findWinnerRecord, setVoidedMutation],
 	);
 
+	// Void a winner picked from the Winner List, for when the celebration dialog
+	// was closed without redrawing. The gift gets the slot back.
+	const voidWinnerRecord = useCallback(
+		async (target: { giftId?: number; id: number }) => {
+			try {
+				await setVoidedMutation.mutateAsync({ target, voided: true });
+				toast.success("Winner voided");
+			} catch (error) {
+				toast.error(
+					error instanceof Error ? error.message : "Failed to void winner",
+				);
+			}
+		},
+		[setVoidedMutation],
+	);
+
 	const restoreWinner = useCallback(
 		async (target: { giftId?: number; id: number }) => {
 			try {
@@ -842,6 +858,7 @@ export function useLuckyDraw(
 		removeInvalidParticipant,
 		clearInvalidParticipants,
 		voidWinner,
+		voidWinnerRecord,
 		restoreWinner,
 	};
 }

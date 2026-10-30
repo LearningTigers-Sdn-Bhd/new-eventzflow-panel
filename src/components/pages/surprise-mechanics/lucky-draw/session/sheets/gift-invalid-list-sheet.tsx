@@ -8,6 +8,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
+	Ban,
 	Bell,
 	ChevronDown,
 	Edit2,
@@ -94,6 +95,7 @@ interface SortableGiftCardProps {
 	onNotifyWinner: (winnerId: number) => void;
 	onRemoveGift: (giftId: string) => void;
 	onRestoreWinner: (giftId: string, winnerId: number) => void;
+	onVoidWinner: (giftId: string, winnerId: number) => void;
 	onUpdateGift: (
 		giftId: string,
 		data: { name?: string; winner_counts?: number; draw_last?: boolean },
@@ -115,6 +117,7 @@ function SortableGiftCard({
 	onNotifyWinner,
 	onRemoveGift,
 	onRestoreWinner,
+	onVoidWinner,
 	onUpdateGift,
 	winnerId,
 	allWinners = [],
@@ -350,6 +353,21 @@ function SortableGiftCard({
 											size="sm"
 											onClick={() => {
 												if (winnerId) {
+													onVoidWinner(gift.id, winnerId);
+												}
+											}}
+											disabled={!winnerId}
+											title="No-show: keep them out of the draw and free the slot"
+											className="gap-2 rounded-none"
+										>
+											<Ban className="size-4" />
+											<span className="hidden text-sm md:block">Void</span>
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => {
+												if (winnerId) {
 													onClearWinner(gift.id, winnerId);
 												}
 											}}
@@ -392,6 +410,18 @@ function SortableGiftCard({
 														) : (
 															<Bell className="size-4" />
 														)}
+													</Button>
+													<Button
+														variant="outline"
+														size="sm"
+														onClick={() => onVoidWinner(gift.id, winner.id)}
+														title="No-show: keep them out of the draw and free the slot"
+														className="gap-2 rounded-none"
+													>
+														<Ban className="size-4" />
+														<span className="hidden text-sm md:block">
+															Void
+														</span>
 													</Button>
 													<Button
 														variant="outline"
@@ -487,6 +517,7 @@ export function GiftInvalidListSheet({
 		removeInvalidParticipant,
 		clearInvalidParticipants,
 		restoreWinner,
+		voidWinnerRecord,
 	} = luckyDraw;
 
 	const handleNotifyWinner = async (invalidParticipantId: number) => {
@@ -635,6 +666,9 @@ export function GiftInvalidListSheet({
 										onRemoveGift={removeGift}
 										onRestoreWinner={(giftId, id) =>
 											restoreWinner({ giftId: Number(giftId), id })
+										}
+										onVoidWinner={(giftId, id) =>
+											voidWinnerRecord({ giftId: Number(giftId), id })
 										}
 										onUpdateGift={handleUpdateGift}
 										winnerId={winnerId}
