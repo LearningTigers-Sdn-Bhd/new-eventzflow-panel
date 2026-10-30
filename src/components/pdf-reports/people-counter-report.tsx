@@ -85,10 +85,6 @@ export function PeopleCounterReport({
 						label="Busiest hour"
 						value={formatCount(figures.busiest)}
 						subtext={figures.busiestHour ?? undefined}
-					/>
-					<StatsCard
-						label="Left"
-						value={formatCount(figures.exits)}
 						isLast={figures.soFar === null}
 					/>
 					{figures.soFar !== null && (

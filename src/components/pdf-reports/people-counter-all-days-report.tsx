@@ -121,10 +121,6 @@ export function PeopleCounterAllDaysReport({
 				</StatsGrid>
 				<StatsGrid>
 					<StatsCard
-						label="Left · all days"
-						value={formatCount(figures.exits)}
-					/>
-					<StatsCard
 						label="Quietest day"
 						value={formatCount(figures.quiet.entries)}
 						subtext={shortDayLabel(figures.quiet.date)}
