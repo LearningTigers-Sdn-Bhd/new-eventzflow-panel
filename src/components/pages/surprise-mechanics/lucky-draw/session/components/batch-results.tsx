@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, maskPhone } from "@/lib/utils";
 import type { Participant } from "@/stores/lucky-draw-store";
 import { gridColumns } from "../../batch-draw";
 
@@ -270,7 +270,7 @@ export function BatchResults({
 							</span>
 							{isShown && !rolling.has(i) && winner.contact && (
 								<span className="max-w-full truncate font-normal text-[0.6em] text-muted-foreground tabular-nums">
-									{winner.contact}
+									{maskPhone(winner.contact)}
 								</span>
 							)}
 							{giftNames?.[i] && (

@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useRecentPointer } from "@/hooks/surprise/shared/use-recent-pointer";
-import { cn } from "@/lib/utils";
+import { cn, maskPhone } from "@/lib/utils";
 import type { Participant } from "@/stores/lucky-draw-store";
 
 type ConfettiEffectType = "side-cannons" | "fireworks";
@@ -234,7 +234,7 @@ export function CelebrationDialogContent({
 									</motion.h3>
 									{winner.contact && (
 										<p className="font-semibold text-lg text-muted-foreground tabular-nums">
-											{winner.contact}
+											{maskPhone(winner.contact)}
 										</p>
 									)}
 								</div>
