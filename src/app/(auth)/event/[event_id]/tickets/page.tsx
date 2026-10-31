@@ -2,13 +2,15 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
-import { ChevronDown, ListChecks, Wrench } from "lucide-react";
+import { ChevronDown, Download, ListChecks, Users, Wrench } from "lucide-react";
 import { use, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { JsonSampleTool } from "@/components/json-sample-tool";
 import { ImportDataDialog } from "@/components/pages/import/import-data-dialog";
 import { DataTable } from "@/components/pages/tickets/event-ticket-table";
 import { TicketPageButton } from "@/components/pages/tickets/page-action/create-event-ticket-button";
+import GuestPassesForm from "@/components/pages/tickets/page-action/create-guest-passes-form";
+import { downloadGuestPassQrZip } from "@/components/pages/tickets/page-action/guest-pass-qr-zip";
 import { ImportTicketButton } from "@/components/pages/tickets/page-action/import-ticket";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +21,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useDialog } from "@/hooks/use-dialog";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
 import { getEventTicketsPaged } from "@/lib/api/ticket";
@@ -52,6 +55,7 @@ export default function TicketsPage({
 	params: Promise<{ event_id: string }>;
 }) {
 	const { event_id } = use(params);
+	const { openDialog } = useDialog();
 	const [ticketFilter, setTicketFilter] = useState<TicketFilter>("active");
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = usePersistedState(
@@ -146,6 +150,32 @@ export default function TicketsPage({
 							{bulkSelectMode ? "Exit Bulk Actions" : "Bulk Actions"}
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
+						<DropdownMenuItem
+							onSelect={() =>
+								openDialog({
+									component: GuestPassesForm,
+									config: {
+										size: "full",
+										showCloseButton: true,
+										title: "Create Guest Passes",
+										description:
+											"Placeholder passes for groups whose names aren't known or needed — rename later, or never.",
+									},
+								})
+							}
+							className="rounded-none"
+						>
+							<Users className="h-4 w-4" />
+							Guest Passes
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onSelect={() => downloadGuestPassQrZip(event_id)}
+							className="rounded-none"
+						>
+							<Download className="h-4 w-4" />
+							Guest QR ZIP
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
 						<JsonSampleTool
 							resourceName="Ticket"
 							eventId={event_id}
@@ -168,7 +198,7 @@ export default function TicketsPage({
 				<TicketPageButton />
 			</div>
 		),
-		[event_id, bulkSelectMode],
+		[event_id, bulkSelectMode, openDialog],
 	);
 
 	useSetEventActions(eventActions);
