@@ -12,6 +12,7 @@ import { TicketPageButton } from "@/components/pages/tickets/page-action/create-
 import GuestPassesForm from "@/components/pages/tickets/page-action/create-guest-passes-form";
 import { downloadGuestPassQrZip } from "@/components/pages/tickets/page-action/guest-pass-qr-zip";
 import { ImportTicketButton } from "@/components/pages/tickets/page-action/import-ticket";
+import ResizeGuestPassesForm from "@/components/pages/tickets/page-action/resize-guest-passes-form";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -167,6 +168,25 @@ export default function TicketsPage({
 						>
 							<Users className="h-4 w-4" />
 							Guest Passes
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onSelect={() =>
+								openDialog({
+									component: ResizeGuestPassesForm,
+									config: {
+										size: "md",
+										className: "rounded-none",
+										showCloseButton: true,
+										title: "Resize Guest Pack",
+										description:
+											"Add or remove passes in an existing company pack — existing QR codes stay valid.",
+									},
+								})
+							}
+							className="rounded-none"
+						>
+							<Users className="h-4 w-4" />
+							Resize Guest Pack
 						</DropdownMenuItem>
 						<DropdownMenuItem
 							onSelect={() => downloadGuestPassQrZip(event_id)}

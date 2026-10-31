@@ -49,18 +49,47 @@ export async function downloadGuestPassQrZip(eventId: string) {
 	const run = async () => {
 		const tickets = await getEventTickets(eventId);
 		// One PDF per company, one page per pass (QR + "Company 1/6" caption).
-		const byCompany = new Map<
+		// A pass is a guest pass when the backend stamped guest_pass_label on it;
+		// the "<label> Pax i/N" name match only covers rows older than that column.
+		// Passes group by registration batch, so two batches that share a company
+		// name stay separate PDFs.
+		const batches = new Map<
 			string,
-			{ n: number; i: number; png: string }[]
+			{
+				company: string;
+				passes: { id: number; i?: number; n?: number; publicId: string }[];
+			}
 		>();
 		for (const t of tickets) {
 			const m = GUEST_PASS_NAME.exec(t.name);
-			if (!m) continue;
-			const [, company, i, n] = m;
-			const png = await qrPng(t.publicId, `${company} ${i}/${n}`);
-			const pages = byCompany.get(company) ?? [];
-			pages.push({ n: Number(n), i: Number(i), png });
-			byCompany.set(company, pages);
+			const company = t.guestPassLabel ?? m?.[1];
+			if (!company) continue;
+			const key = t.registrationBatchId ?? company;
+			const batch = batches.get(key) ?? { company, passes: [] };
+			batch.passes.push({
+				id: Number(t.id),
+				i: m ? Number(m[2]) : undefined,
+				n: m ? Number(m[3]) : undefined,
+				publicId: t.publicId,
+			});
+			batches.set(key, batch);
+		}
+		const byCompany = new Map<string, { i: number; png: string }[]>();
+		const usedNames = new Set<string>();
+		for (const { company, passes } of batches.values()) {
+			passes.sort((a, b) => (a.i ?? a.id) - (b.i ?? b.id));
+			let fileName = safeName(company);
+			for (let dup = 2; usedNames.has(fileName); dup++) {
+				fileName = `${safeName(company)} (${dup})`;
+			}
+			usedNames.add(fileName);
+			const pages: { i: number; png: string }[] = [];
+			for (const [idx, p] of passes.entries()) {
+				const i = p.i ?? idx + 1;
+				const n = p.n ?? passes.length;
+				pages.push({ i, png: await qrPng(p.publicId, `${company} ${i}/${n}`) });
+			}
+			byCompany.set(fileName, pages);
 		}
 		if (!byCompany.size) {
 			throw new Error("No guest passes found for this event");
@@ -73,10 +102,10 @@ export async function downloadGuestPassQrZip(eventId: string) {
 			img: { width: 400 },
 		});
 		const files: Record<string, Uint8Array> = {};
-		for (const [company, pages] of byCompany) {
+		for (const [fileName, pages] of byCompany) {
 			pages.sort((a, b) => a.i - b.i);
 			const blob = await pdf(
-				<Document title={company}>
+				<Document title={fileName}>
 					{pages.map((p) => (
 						<Page key={p.i} size="A4" style={styles.page}>
 							<Image src={p.png} style={styles.img} />
@@ -84,9 +113,7 @@ export async function downloadGuestPassQrZip(eventId: string) {
 					))}
 				</Document>,
 			).toBlob();
-			files[`${safeName(company)}.pdf`] = new Uint8Array(
-				await blob.arrayBuffer(),
-			);
+			files[`${fileName}.pdf`] = new Uint8Array(await blob.arrayBuffer());
 		}
 		const count = byCompany.size;
 		const blob = new Blob([zipSync(files, { level: 0 }).slice()], {

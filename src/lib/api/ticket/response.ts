@@ -10,6 +10,9 @@ export type Ticket = {
 	id: string;
 	publicId: string;
 	role?: string;
+	// Set only on guest passes (company/group label); batch id ties one company's passes together.
+	guestPassLabel?: string;
+	registrationBatchId?: string;
 	name: string;
 	email: string;
 	registeredByEmail?: string;
@@ -156,6 +159,8 @@ export type BackendTicket = {
 	id: number;
 	public_id: string;
 	role?: string | null;
+	guest_pass_label?: string | null;
+	registration_batch_id?: string | null;
 	attendee_name: string;
 	attendee_email: string;
 	registered_by_email?: string | null;

@@ -273,10 +273,13 @@ function transformBackendTicket(
 		}
 	}
 
+	const backend = ticket as Partial<BackendTicket>;
 	return {
 		id,
 		publicId,
 		role,
+		guestPassLabel: backend.guest_pass_label || undefined,
+		registrationBatchId: backend.registration_batch_id || undefined,
 		name,
 		email,
 		registeredByEmail,
@@ -457,6 +460,32 @@ export async function createTicket(data: {
 
 	// Transform backend response to frontend format
 	return transformBackendTicket(response, "Unknown Event", eventId);
+}
+
+/**
+ * Grow or shrink an existing guest pass pack to `quantity` total passes.
+ * Existing passes (and their QR codes) are kept; shrinking only archives
+ * untouched placeholder passes (backend refuses otherwise).
+ */
+export async function resizeGuestPasses(data: {
+	eventId: string;
+	registrationBatchId: string;
+	quantity: number;
+}): Promise<{ quantity: number; added: number; removed: number }> {
+	const response = await restClient.post<{
+		quantity: number;
+		added: BackendTicket[];
+		removed_public_ids: string[];
+	}>(`v1/events/${data.eventId}/tickets/resize_guest_passes`, {
+		registration_batch_id: data.registrationBatchId,
+		quantity: data.quantity,
+	});
+
+	return {
+		quantity: response.quantity,
+		added: response.added.length,
+		removed: response.removed_public_ids.length,
+	};
 }
 
 /**
