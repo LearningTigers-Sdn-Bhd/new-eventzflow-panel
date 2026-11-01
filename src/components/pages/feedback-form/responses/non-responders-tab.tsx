@@ -6,8 +6,9 @@ import {
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { Link2, Mail, PartyPopper } from "lucide-react";
+import { Link2, Mail, PartyPopper, QrCode } from "lucide-react";
 import { useState } from "react";
+import QRCodeSVG from "react-qr-code";
 import { toast } from "sonner";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import {
@@ -22,6 +23,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { FeedbackFilters } from "@/lib/api/feedback-form";
 import {
@@ -80,6 +88,20 @@ export function FeedbackNonRespondersTab({
 		onError: (error: Error) => toast.error(error.message),
 	});
 
+	// Same short link, shown as a QR so the vendor can scan it from the screen.
+	const [qr, setQr] = useState<{ url: string; name: string } | null>(null);
+	const showQr = useMutation({
+		mutationFn: async (row: {
+			public_id: string;
+			attendee_name?: string | null;
+		}) => ({
+			url: await getFeedbackExhibitorShortLink(eventId, row.public_id),
+			name: row.attendee_name || "Feedback form",
+		}),
+		onSuccess: setQr,
+		onError: (error: Error) => toast.error(error.message),
+	});
+
 	const remind = useMutation({
 		mutationFn: (target: { ticketIds: string[] } | { all: true }) =>
 			sendFeedbackReminders(eventId, target, listFilters),
@@ -113,6 +135,56 @@ export function FeedbackNonRespondersTab({
 			else next.delete(id);
 			return next;
 		});
+
+	const actions = (row: (typeof rows)[number], large = false) => {
+		const size = large ? "default" : "sm";
+		const cls = "rounded-none";
+		// Mobile: Show QR leads, the other two shrink to 40px icon buttons.
+		const iconCls = large ? "size-10 shrink-0 rounded-none px-0" : cls;
+		return (
+			<>
+				{exhibitor && (
+					<>
+						<Button
+							type="button"
+							variant="outline"
+							size={size}
+							className={large ? `${cls} h-10 flex-1` : cls}
+							disabled={showQr.isPending}
+							onClick={() => showQr.mutate(row)}
+						>
+							<QrCode className="size-4" />
+							Show QR
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							size={size}
+							className={iconCls}
+							aria-label="Copy link"
+							disabled={copyLink.isPending}
+							onClick={() => copyLink.mutate(row)}
+						>
+							<Link2 className="size-4" />
+							{!large && "Copy link"}
+						</Button>
+					</>
+				)}
+				<Button
+					type="button"
+					variant="outline"
+					size={size}
+					className={iconCls}
+					aria-label="Send reminder"
+					disabled={!row.attendee_email || remind.isPending}
+					onClick={() => remind.mutate({ ticketIds: [row.public_id] })}
+				>
+					<Mail className="size-4" />
+					{!large && "Send reminder"}
+				</Button>
+			</>
+		);
+	};
 
 	return (
 		<div className="space-y-4">
@@ -194,14 +266,18 @@ export function FeedbackNonRespondersTab({
 									<th className="px-3 py-2.5 font-medium">
 										{exhibitor ? "Company" : "Attendee"}
 									</th>
-									<th className="px-3 py-2.5 font-medium">
+									<th className="hidden px-3 py-2.5 font-medium md:table-cell">
 										{exhibitor ? "Booths" : "Ticket type"}
 									</th>
 									{!exhibitor && (
-										<th className="px-3 py-2.5 font-medium">Checked in</th>
+										<th className="hidden px-3 py-2.5 font-medium md:table-cell">
+											Checked in
+										</th>
 									)}
-									<th className="px-3 py-2.5 font-medium">Last emailed</th>
-									<th className="px-3 py-2.5" />
+									<th className="hidden px-3 py-2.5 font-medium md:table-cell">
+										Last emailed
+									</th>
+									<th className="hidden px-3 py-2.5 md:table-cell" />
 								</tr>
 							</thead>
 							<tbody>
@@ -221,51 +297,39 @@ export function FeedbackNonRespondersTab({
 											<p className="text-muted-foreground text-xs">
 												{row.attendee_email || "No email"}
 											</p>
+											<p className="mt-1 text-muted-foreground text-xs md:hidden">
+												{[
+													exhibitor ? row.booth_numbers : row.ticket_type_name,
+													row.last_emailed_at
+														? `Emailed ${new Date(row.last_emailed_at).toLocaleDateString()}`
+														: "Never emailed",
+												]
+													.filter(Boolean)
+													.join(" · ")}
+											</p>
+											<div className="mt-3 flex md:hidden [&>*:not(:first-child)]:-ml-px">
+												{actions(row, true)}
+											</div>
 										</td>
-										<td className="px-3 py-2.5">
+										<td className="hidden px-3 py-2.5 md:table-cell">
 											{(exhibitor ? row.booth_numbers : row.ticket_type_name) ||
 												"—"}
 										</td>
 										{!exhibitor && (
-											<td className="px-3 py-2.5 text-muted-foreground">
+											<td className="hidden px-3 py-2.5 text-muted-foreground md:table-cell">
 												{row.checked_in_at
 													? new Date(row.checked_in_at).toLocaleString()
 													: "—"}
 											</td>
 										)}
-										<td className="px-3 py-2.5 text-muted-foreground">
+										<td className="hidden px-3 py-2.5 text-muted-foreground md:table-cell">
 											{row.last_emailed_at
 												? new Date(row.last_emailed_at).toLocaleDateString()
 												: "Never"}
 										</td>
-										<td className="px-3 py-2.5">
+										<td className="hidden px-3 py-2.5 md:table-cell">
 											<div className="flex justify-end gap-2">
-												{exhibitor && (
-													<Button
-														type="button"
-														variant="outline"
-														size="sm"
-														className="rounded-none"
-														disabled={copyLink.isPending}
-														onClick={() => copyLink.mutate(row)}
-													>
-														<Link2 className="size-4" />
-														Copy link
-													</Button>
-												)}
-												<Button
-													type="button"
-													variant="outline"
-													size="sm"
-													className="rounded-none"
-													disabled={!row.attendee_email || remind.isPending}
-													onClick={() =>
-														remind.mutate({ ticketIds: [row.public_id] })
-													}
-												>
-													<Mail className="size-4" />
-													Send reminder
-												</Button>
+												{actions(row)}
 											</div>
 										</td>
 									</tr>
@@ -278,6 +342,22 @@ export function FeedbackNonRespondersTab({
 					)}
 				</>
 			)}
+
+			<Dialog open={!!qr} onOpenChange={(open) => !open && setQr(null)}>
+				<DialogContent className="rounded-none sm:max-w-sm">
+					<DialogHeader>
+						<DialogTitle>{qr?.name}</DialogTitle>
+						<DialogDescription>
+							Scan to open the feedback form.
+						</DialogDescription>
+					</DialogHeader>
+					{qr && (
+						<div className="mx-auto border bg-white p-4">
+							<QRCodeSVG value={qr.url} size={240} level="M" />
+						</div>
+					)}
+				</DialogContent>
+			</Dialog>
 
 			<AlertDialog open={confirmAll} onOpenChange={setConfirmAll}>
 				<AlertDialogContent className="rounded-none">
