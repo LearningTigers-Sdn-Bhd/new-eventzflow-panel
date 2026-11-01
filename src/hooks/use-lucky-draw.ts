@@ -121,7 +121,15 @@ export function useLuckyDraw(
 	});
 	const relabel = useCallback(
 		<T extends Participant>(p: T): T =>
-			showIdLabel ? { ...p, contact: ticketIds?.labels.get(p.publicId) } : p,
+			// No IC on the ticket: keep their phone (masked on screen) once the list is in
+			showIdLabel
+				? {
+						...p,
+						contact: ticketIds
+							? (ticketIds.labels.get(p.publicId) ?? p.contact)
+							: undefined,
+					}
+				: p,
 		[showIdLabel, ticketIds],
 	);
 	/** Full IC/passport for the organizer's lists (undefined on other events) */
@@ -833,6 +841,8 @@ export function useLuckyDraw(
 		invalidParticipants,
 		fullIdOf,
 		ticketIdOf,
+		/** Applies the event's ID label to a winner drawn before the ticket list loaded */
+		relabelParticipant: relabel,
 		availableParticipants,
 		nextAvailableGift,
 		drawStyle,

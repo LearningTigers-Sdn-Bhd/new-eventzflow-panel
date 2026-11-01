@@ -279,7 +279,7 @@ function LuckyDrawSessionProviderInner({
 
 				// Show celebration dialog using shared provider
 				showCelebration({
-					winner,
+					winner: latest.current.luckyDraw.relabelParticipant(winner),
 					prizeOrGift: assignedGift
 						? { type: "gift", name: assignedGift.name }
 						: null,
