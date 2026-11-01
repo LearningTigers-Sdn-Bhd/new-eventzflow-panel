@@ -16,6 +16,7 @@ import {
 	GripVertical,
 	List,
 	Loader2,
+	MonitorPlay,
 	Plus,
 	Save,
 	Trash2,
@@ -58,7 +59,7 @@ import { useClaimedWinners, useWinnerGifts } from "@/hooks/use-claimed-winners";
 import type { useLuckyDraw } from "@/hooks/use-lucky-draw";
 import { notifyInvalidParticipant } from "@/lib/api/lucky-draw";
 import { cn } from "@/lib/utils";
-import type { Gift as GiftType } from "@/stores/lucky-draw-store";
+import type { Gift as GiftType, Participant } from "@/stores/lucky-draw-store";
 import { buildWinnerGroups } from "../../export-winners";
 import { ClaimButton } from "./claim-button";
 import { ExportWinnersMenu } from "./export-winners-menu";
@@ -514,6 +515,12 @@ interface GiftInvalidListSheetProps {
 	luckyDraw: ReturnType<typeof useLuckyDraw>;
 	eventId: string;
 	sessionId: number;
+	// Put winners back on the big screen
+	onReshow: (
+		winners: Participant[],
+		title: string,
+		giftNames?: string[] | null,
+	) => void;
 }
 
 export function GiftInvalidListSheet({
@@ -522,6 +529,7 @@ export function GiftInvalidListSheet({
 	luckyDraw,
 	eventId,
 	sessionId,
+	onReshow,
 }: GiftInvalidListSheetProps) {
 	const [newGiftName, setNewGiftName] = useState("");
 	const [newGiftWinnerCounts, setNewGiftWinnerCounts] = useState(1);
@@ -597,6 +605,26 @@ export function GiftInvalidListSheet({
 				return next;
 			});
 		}
+	};
+
+	// Winners who have not collected their prize yet, in list order
+	const unclaimed = useGifts
+		? gifts.flatMap((gift) =>
+				(gift.allWinners ?? [])
+					.filter((w) => !claimed.has(w.publicId))
+					.map((winner) => ({ winner, giftName: gift.name })),
+			)
+		: invalidParticipants
+				.filter((p) => !claimed.has(p.publicId))
+				.map((winner) => ({ winner, giftName: null }));
+
+	const handleReshowUnclaimed = () => {
+		onReshow(
+			unclaimed.map((u) => u.winner),
+			"Unclaimed winners",
+			useGifts ? unclaimed.map((u) => u.giftName as string) : null,
+		);
+		onOpenChange(false);
 	};
 
 	const handleAddGift = () => {
@@ -1044,7 +1072,17 @@ export function GiftInvalidListSheet({
 							? "Manage prizes and their winners."
 							: "Winners stored here will be skipped in future draws."}
 					</SheetDescription>
-					<div className="pt-3">
+					<div className="flex flex-wrap gap-2 pt-3">
+						<Button
+							variant="outline"
+							className="gap-2 rounded-none"
+							disabled={unclaimed.length === 0}
+							onClick={handleReshowUnclaimed}
+							title="Show the winners who have not claimed on the big screen again"
+						>
+							<MonitorPlay className="size-4" />
+							Reshow unclaimed ({unclaimed.length})
+						</Button>
 						<ExportWinnersMenu
 							groups={buildWinnerGroups(
 								useGifts,

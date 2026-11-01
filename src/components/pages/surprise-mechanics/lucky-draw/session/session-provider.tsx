@@ -71,6 +71,12 @@ interface LuckyDrawSessionContextValue {
 	skipBatch: () => Promise<void>;
 	// A winner of the reveal did not show up: void them and redraw just that slot
 	redrawBatchSlot: (index: number) => Promise<void>;
+	// Show already-saved winners on the big screen again (nothing is saved)
+	reshowWinners: (
+		winners: Participant[],
+		title: string,
+		giftNames?: string[] | null,
+	) => void;
 	batchWinners: Participant[] | null;
 	batchTitle: string;
 	batchGiftNames: string[] | null;
@@ -433,6 +439,23 @@ function LuckyDrawSessionProviderInner({
 		[batchWinners, luckyDraw, assignWinners, addInvalidParticipants, useTicket],
 	);
 
+	// Put saved winners back on the big screen, e.g. the ones who never claimed
+	const reshowWinners = useCallback(
+		(
+			winners: Participant[],
+			title: string,
+			giftNames: string[] | null = null,
+		) => {
+			if (batchRunRef.current || winners.length === 0) return;
+			startCelebration();
+			setBatchTitle(title);
+			setBatchSkipped(false);
+			setBatchGiftNames(giftNames);
+			setBatchWinners(winners);
+		},
+		[startCelebration],
+	);
+
 	// Celebration state: active when drawing is finished (starts immediately) and continues until modal closes
 	const isCelebrating = shouldCelebrate;
 
@@ -483,6 +506,7 @@ function LuckyDrawSessionProviderInner({
 			batchSkipped,
 			skipBatch,
 			redrawBatchSlot,
+			reshowWinners,
 			clearBatchWinners: () => setBatchWinners(null),
 			luckyDraw,
 		}),
@@ -521,6 +545,7 @@ function LuckyDrawSessionProviderInner({
 			batchSkipped,
 			skipBatch,
 			redrawBatchSlot,
+			reshowWinners,
 			luckyDraw,
 		],
 	);

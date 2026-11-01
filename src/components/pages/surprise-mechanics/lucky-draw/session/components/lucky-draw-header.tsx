@@ -34,6 +34,7 @@ export function LuckyDrawHeader() {
 		canDraw,
 		isDrawing,
 		handleDraw,
+		reshowWinners,
 		luckyDraw,
 	} = useLuckyDrawSession();
 
@@ -65,6 +66,7 @@ export function LuckyDrawHeader() {
 								luckyDraw={luckyDraw}
 								eventId={eventId}
 								sessionId={session.id}
+								onReshow={reshowWinners}
 							/>
 						</>
 					) : (
