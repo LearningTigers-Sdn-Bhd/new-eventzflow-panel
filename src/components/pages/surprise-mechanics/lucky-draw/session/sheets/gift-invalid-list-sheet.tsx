@@ -54,11 +54,13 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useClaimedWinners } from "@/hooks/use-claimed-winners";
 import type { useLuckyDraw } from "@/hooks/use-lucky-draw";
 import { notifyInvalidParticipant } from "@/lib/api/lucky-draw";
 import { cn } from "@/lib/utils";
 import type { Gift as GiftType } from "@/stores/lucky-draw-store";
 import { buildWinnerGroups } from "../../export-winners";
+import { ClaimButton } from "./claim-button";
 import { ExportWinnersMenu } from "./export-winners-menu";
 
 function DrawLastField({
@@ -109,6 +111,8 @@ interface SortableGiftCardProps {
 		contact?: string | null;
 	}>;
 	notifyingWinnerIds: Set<number>;
+	claimed: Set<string>;
+	onToggleClaimed: (publicId: string) => void;
 }
 
 function SortableGiftCard({
@@ -122,7 +126,10 @@ function SortableGiftCard({
 	winnerId,
 	allWinners = [],
 	notifyingWinnerIds,
+	claimed,
+	onToggleClaimed,
 }: SortableGiftCardProps) {
+	const firstPublicId = gift.winner?.publicId ?? allWinners[0]?.publicId;
 	const [isEditing, setIsEditing] = useState(false);
 	const [editName, setEditName] = useState(gift.name);
 	const [editWinnerCounts, setEditWinnerCounts] = useState(gift.winner_counts);
@@ -321,13 +328,28 @@ function SortableGiftCard({
 									</CollapsibleTrigger>
 								)}
 								{/* First winner (always visible) */}
-								<div className="grid grid-cols-3 gap-4 px-4 py-2">
-									<div className="col-span-2 flex items-center font-medium text-sm">
-										<span className="truncate">
-											{gift.winner?.name || allWinners[0]?.name}
+								<div className="flex items-center gap-4 px-4 py-2">
+									<div className="flex min-w-0 flex-1 items-center font-medium text-sm">
+										<span className="break-words">
+											<span
+												className={cn(
+													firstPublicId &&
+														claimed.has(firstPublicId) &&
+														"line-through opacity-60",
+												)}
+											>
+												{gift.winner?.name || allWinners[0]?.name}
+											</span>
 										</span>
 									</div>
-									<div className="col-span-1 flex items-center justify-end gap-2">
+									<div className="flex shrink-0 items-center justify-end gap-2">
+										<ClaimButton
+											claimed={!!firstPublicId && claimed.has(firstPublicId)}
+											disabled={!firstPublicId}
+											onToggle={() =>
+												firstPublicId && onToggleClaimed(firstPublicId)
+											}
+										/>
 										<Button
 											variant="outline"
 											size="sm"
@@ -361,7 +383,7 @@ function SortableGiftCard({
 											className="gap-2 rounded-none"
 										>
 											<Ban className="size-4" />
-											<span className="hidden text-sm md:block">Void</span>
+											<span className="sr-only">Void</span>
 										</Button>
 										<Button
 											variant="outline"
@@ -375,7 +397,7 @@ function SortableGiftCard({
 											className="gap-2 rounded-none"
 										>
 											<UserX className="size-4" />
-											<span className="hidden text-sm md:block">Remove</span>
+											<span className="sr-only">Remove</span>
 										</Button>
 									</div>
 								</div>
@@ -385,11 +407,18 @@ function SortableGiftCard({
 										{allWinners.slice(1).map((winner) => (
 											<div
 												key={winner.id}
-												className="grid grid-cols-3 gap-4 px-4 py-2"
+												className="flex items-center gap-4 px-4 py-2"
 											>
-												<div className="col-span-2 flex items-center font-medium text-sm">
-													<span className="truncate">
-														{winner.name}
+												<div className="flex min-w-0 flex-1 items-center font-medium text-sm">
+													<span className="break-words">
+														<span
+															className={cn(
+																claimed.has(winner.publicId) &&
+																	"line-through opacity-60",
+															)}
+														>
+															{winner.name}
+														</span>
 														{winner.contact && (
 															<span className="ml-2 font-normal text-muted-foreground tabular-nums">
 																{winner.contact}
@@ -397,7 +426,11 @@ function SortableGiftCard({
 														)}
 													</span>
 												</div>
-												<div className="col-span-1 flex items-center justify-end gap-2">
+												<div className="flex shrink-0 items-center justify-end gap-2">
+													<ClaimButton
+														claimed={claimed.has(winner.publicId)}
+														onToggle={() => onToggleClaimed(winner.publicId)}
+													/>
 													<Button
 														variant="outline"
 														size="sm"
@@ -419,9 +452,7 @@ function SortableGiftCard({
 														className="gap-2 rounded-none"
 													>
 														<Ban className="size-4" />
-														<span className="hidden text-sm md:block">
-															Void
-														</span>
+														<span className="sr-only">Void</span>
 													</Button>
 													<Button
 														variant="outline"
@@ -432,9 +463,7 @@ function SortableGiftCard({
 														className="gap-2 rounded-none"
 													>
 														<UserX className="size-4" />
-														<span className="hidden text-sm md:block">
-															Remove
-														</span>
+														<span className="sr-only">Remove</span>
 													</Button>
 												</div>
 											</div>
@@ -499,11 +528,14 @@ export function GiftInvalidListSheet({
 	const [newGiftDrawLast, setNewGiftDrawLast] = useState(false);
 	const [isAddGiftCardOpen, setIsAddGiftCardOpen] = useState(false);
 	const [notifyingIds, setNotifyingIds] = useState<Set<number>>(new Set());
+	const { claimed, toggleClaimed } = useClaimedWinners(eventId, sessionId);
 
 	// Get all data and actions from the hook
 	const {
 		gifts,
 		invalidParticipants,
+		fullIdOf,
+		ticketIdOf,
 		giftsData,
 		invalidParticipantsData,
 		useGifts,
@@ -674,6 +706,8 @@ export function GiftInvalidListSheet({
 										winnerId={winnerId}
 										allWinners={allWinners}
 										notifyingWinnerIds={notifyingIds}
+										claimed={claimed}
+										onToggleClaimed={toggleClaimed}
 									/>
 								);
 							})}
@@ -815,10 +849,17 @@ export function GiftInvalidListSheet({
 								key={participant.publicId}
 								className="rounded-none py-4 shadow-none"
 							>
-								<CardContent className="grid grid-cols-3 gap-4 px-4 pb-0">
-									<div className="col-span-2 flex h-full items-center">
+								<CardContent className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 pb-0">
+									<div className="flex h-full min-w-0 flex-1 items-center">
 										<div className="text-balance font-medium text-sm">
-											{participant.name}
+											<span
+												className={cn(
+													claimed.has(participant.publicId) &&
+														"line-through opacity-60",
+												)}
+											>
+												{participant.name}
+											</span>
 											{backendInvalid?.round != null && (
 												<span className="ml-2 font-normal text-muted-foreground text-xs">
 													Round {backendInvalid.round}
@@ -826,7 +867,11 @@ export function GiftInvalidListSheet({
 											)}
 										</div>
 									</div>
-									<div className="col-span-1 flex items-center justify-end gap-2">
+									<div className="flex shrink-0 items-center justify-end gap-2">
+										<ClaimButton
+											claimed={claimed.has(participant.publicId)}
+											onToggle={() => toggleClaimed(participant.publicId)}
+										/>
 										<Button
 											variant="outline"
 											size="sm"
@@ -862,9 +907,36 @@ export function GiftInvalidListSheet({
 											disabled={!invalidParticipantId}
 										>
 											<UserX className="size-4" />
-											<span className="hidden text-sm md:block">Remove</span>
+											<span className="sr-only">Remove</span>
 										</Button>
 									</div>
+									{(fullIdOf(participant.publicId) ||
+										ticketIdOf(participant.publicId)) && (
+										<dl
+											className={cn(
+												"grid w-full grid-cols-[auto_1fr] gap-x-4 gap-y-1 border-t pt-3 text-xs",
+												claimed.has(participant.publicId) &&
+													"line-through opacity-60",
+											)}
+										>
+											{fullIdOf(participant.publicId) && (
+												<>
+													<dt className="text-muted-foreground">IC/Passport</dt>
+													<dd className="font-medium tabular-nums">
+														{fullIdOf(participant.publicId)}
+													</dd>
+												</>
+											)}
+											{ticketIdOf(participant.publicId) && (
+												<>
+													<dt className="text-muted-foreground">Ticket ID</dt>
+													<dd className="break-all font-medium font-mono">
+														{ticketIdOf(participant.publicId)}
+													</dd>
+												</>
+											)}
+										</dl>
+									)}
 								</CardContent>
 							</Card>
 						);

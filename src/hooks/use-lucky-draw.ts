@@ -113,7 +113,7 @@ export function useLuckyDraw(
 	// Borneo Safari shows last 6 of IC/passport instead of a phone number.
 	// Until the labels load the contact stays empty, so a phone never flashes on screen.
 	const showIdLabel = event?.id === ID_LABEL_EVENT_ID && useTicket;
-	const { data: idLabels } = useQuery({
+	const { data: ticketIds } = useQuery({
 		queryKey: ["lucky-draw", "id-labels", eventId],
 		queryFn: () => getTicketIdLabels(eventId),
 		enabled: showIdLabel,
@@ -121,8 +121,20 @@ export function useLuckyDraw(
 	});
 	const relabel = useCallback(
 		<T extends Participant>(p: T): T =>
-			showIdLabel ? { ...p, contact: idLabels?.get(p.publicId) } : p,
-		[showIdLabel, idLabels],
+			showIdLabel ? { ...p, contact: ticketIds?.labels.get(p.publicId) } : p,
+		[showIdLabel, ticketIds],
+	);
+	/** Full IC/passport for the organizer's lists (undefined on other events) */
+	const fullIdOf = useCallback(
+		(publicId: string) =>
+			showIdLabel ? ticketIds?.full.get(publicId) : undefined,
+		[showIdLabel, ticketIds],
+	);
+	/** The ticket's public id, to match against the ticket the winner shows */
+	const ticketIdOf = useCallback(
+		(publicId: string) =>
+			showIdLabel ? ticketIds?.publicIds.get(publicId) : undefined,
+		[showIdLabel, ticketIds],
 	);
 
 	// Fetch config (session)
@@ -819,6 +831,8 @@ export function useLuckyDraw(
 		participants,
 		gifts,
 		invalidParticipants,
+		fullIdOf,
+		ticketIdOf,
 		availableParticipants,
 		nextAvailableGift,
 		drawStyle,

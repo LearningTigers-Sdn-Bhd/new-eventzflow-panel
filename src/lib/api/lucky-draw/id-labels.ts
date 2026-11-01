@@ -10,17 +10,32 @@ export function toIdLabel(idNo: unknown): string | null {
 	return clean ? `ID ${clean.slice(-6)}` : null;
 }
 
-/** Last 6 of IC/passport per ticket id, so winners show it instead of a phone number. */
-export async function getTicketIdLabels(
-	eventId: string,
-): Promise<Map<string, string>> {
+export type TicketIds = {
+	/** "ID 123456" per ticket id, for the screens the crowd sees */
+	labels: Map<string, string>;
+	/** Full IC/passport per ticket id, for the organizer's lists */
+	full: Map<string, string>;
+	/** Public ticket id (what the attendee shows) per ticket id */
+	publicIds: Map<string, string>;
+};
+
+/** IC/passport per ticket id, so winners show it instead of a phone number. */
+export async function getTicketIdLabels(eventId: string): Promise<TicketIds> {
 	const tickets = await restClient.get<BackendTicket[]>(
 		`v1/events/${eventId}/tickets?full=true`,
 	);
-	const labels = new Map<string, string>();
+	const ids: TicketIds = {
+		labels: new Map(),
+		full: new Map(),
+		publicIds: new Map(),
+	};
 	for (const t of tickets) {
-		const label = toIdLabel(t.custom_fields_data?.ic_passport_no);
-		if (label) labels.set(String(t.id), label);
+		const idNo = String(t.custom_fields_data?.ic_passport_no ?? "").trim();
+		ids.publicIds.set(String(t.id), t.public_id);
+		const label = toIdLabel(idNo);
+		if (!label) continue;
+		ids.labels.set(String(t.id), label);
+		ids.full.set(String(t.id), idNo);
 	}
-	return labels;
+	return ids;
 }
