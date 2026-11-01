@@ -23,6 +23,7 @@ import {
 import type { EventEmailTableMeta } from "./event-email-status-columns";
 import { EventEmailStatusTable } from "./event-email-status-table";
 import { FixEmailDialog } from "./fix-email-dialog";
+import { fixExhibitorKitEmail, isExhibitorEmail } from "./fix-exhibitor-email";
 
 const GROUPS: { value: EmailStatusGroup; label: string }[] = [
 	{ value: "problem", label: "Problems" },
@@ -72,8 +73,26 @@ export function EventEmailStatusView({ eventId }: { eventId: string }) {
 	});
 
 	const resend = useMutation({
-		mutationFn: ({ id, email }: { id: number; email?: string }) =>
-			resendEventEmail(eventId, id, email),
+		mutationFn: async ({
+			delivery,
+			email,
+			vendorLogin = false,
+		}: {
+			delivery: EventEmailDelivery;
+			email?: string;
+			vendorLogin?: boolean;
+		}) => {
+			// Exhibitor emails: fix the kit first, the backend only fixes tickets.
+			if (email && delivery.recipient && isExhibitorEmail(delivery.emailType)) {
+				if (email.trim().toLowerCase() !== delivery.recipient.toLowerCase()) {
+					await fixExhibitorKitEmail(eventId, delivery.recipient, email, {
+						vendorLogin,
+					});
+				}
+				return resendEventEmail(eventId, delivery.id);
+			}
+			return resendEventEmail(eventId, delivery.id, email);
+		},
 		onSuccess: () => {
 			toast.success("Email has been queued to send again.");
 			setFixTarget(null);
@@ -125,8 +144,10 @@ export function EventEmailStatusView({ eventId }: { eventId: string }) {
 
 	const meta: EventEmailTableMeta = {
 		onFix: setFixTarget,
-		onResend: (delivery) => resend.mutate({ id: delivery.id }),
-		pendingResendId: resend.isPending ? (resend.variables?.id ?? null) : null,
+		onResend: (delivery) => resend.mutate({ delivery }),
+		pendingResendId: resend.isPending
+			? (resend.variables?.delivery.id ?? null)
+			: null,
 	};
 
 	return (
@@ -213,11 +234,13 @@ export function EventEmailStatusView({ eventId }: { eventId: string }) {
 			</div>
 
 			<FixEmailDialog
+				eventId={eventId}
 				delivery={fixTarget}
 				pending={resend.isPending}
 				onClose={() => setFixTarget(null)}
-				onSubmit={(email) =>
-					fixTarget && resend.mutate({ id: fixTarget.id, email })
+				onSubmit={(email, { vendorLogin }) =>
+					fixTarget &&
+					resend.mutate({ delivery: fixTarget, email, vendorLogin })
 				}
 			/>
 		</div>
