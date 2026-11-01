@@ -45,3 +45,44 @@ export function useClaimedWinners(eventId: string, sessionId: number) {
 
 	return { claimed, toggleClaimed };
 }
+
+const readGifts = (key: string): Record<string, string> => {
+	try {
+		return JSON.parse(window.localStorage.getItem(key) ?? "{}");
+	} catch {
+		return {};
+	}
+};
+
+/** The gift each winner took, typed by staff, saved per lucky draw session. */
+export function useWinnerGifts(eventId: string, sessionId: number) {
+	const key = `lucky-draw-gifts:${eventId}:${sessionId}`;
+	const [gifts, setGifts] = useState<Record<string, string>>({});
+
+	useEffect(() => {
+		setGifts(readGifts(key));
+		const onStorage = (e: StorageEvent) => {
+			if (e.key === key) setGifts(readGifts(key));
+		};
+		window.addEventListener("storage", onStorage);
+		return () => window.removeEventListener("storage", onStorage);
+	}, [key]);
+
+	const setGift = useCallback(
+		(publicId: string, gift: string) => {
+			// Start from storage, not state, so typing can never wipe other winners
+			const next = readGifts(key);
+			if (gift) next[publicId] = gift;
+			else delete next[publicId];
+			try {
+				window.localStorage.setItem(key, JSON.stringify(next));
+			} catch {
+				// storage blocked: the text still shows until refresh
+			}
+			setGifts(next);
+		},
+		[key],
+	);
+
+	return { gifts, setGift };
+}

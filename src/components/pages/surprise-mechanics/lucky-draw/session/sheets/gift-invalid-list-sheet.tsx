@@ -54,7 +54,7 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useClaimedWinners } from "@/hooks/use-claimed-winners";
+import { useClaimedWinners, useWinnerGifts } from "@/hooks/use-claimed-winners";
 import type { useLuckyDraw } from "@/hooks/use-lucky-draw";
 import { notifyInvalidParticipant } from "@/lib/api/lucky-draw";
 import { cn } from "@/lib/utils";
@@ -529,6 +529,7 @@ export function GiftInvalidListSheet({
 	const [isAddGiftCardOpen, setIsAddGiftCardOpen] = useState(false);
 	const [notifyingIds, setNotifyingIds] = useState<Set<number>>(new Set());
 	const { claimed, toggleClaimed } = useClaimedWinners(eventId, sessionId);
+	const { gifts: takenGifts, setGift } = useWinnerGifts(eventId, sessionId);
 
 	// Get all data and actions from the hook
 	const {
@@ -833,6 +834,11 @@ export function GiftInvalidListSheet({
 
 		return (
 			<div className="flex flex-col gap-3">
+				<datalist id="gift-taken-options">
+					{[...new Set(Object.values(takenGifts).filter(Boolean))].map((g) => (
+						<option key={g} value={g} />
+					))}
+				</datalist>
 				{invalidParticipants.length === 0 ? (
 					<div className="text-balance rounded-none border border-dashed p-6 text-center text-muted-foreground text-sm">
 						No winners yet. Winners will appear here when Use Gifts is off.
@@ -937,6 +943,24 @@ export function GiftInvalidListSheet({
 											)}
 										</dl>
 									)}
+									<div className="flex w-full items-center gap-3 text-xs">
+										<Label
+											htmlFor={`gift-taken-${participant.publicId}`}
+											className="shrink-0 font-normal text-muted-foreground text-xs"
+										>
+											Gift taken
+										</Label>
+										<Input
+											id={`gift-taken-${participant.publicId}`}
+											list="gift-taken-options"
+											value={takenGifts[participant.publicId] ?? ""}
+											onChange={(e) =>
+												setGift(participant.publicId, e.target.value)
+											}
+											placeholder="Type the gift they collected"
+											className="h-8 rounded-none text-sm"
+										/>
+									</div>
 								</CardContent>
 							</Card>
 						);
