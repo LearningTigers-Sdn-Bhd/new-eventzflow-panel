@@ -4,7 +4,8 @@ import { twMerge } from "tailwind-merge";
 /** Hides all but the last 4 digits of a phone number; emails and short values pass through. */
 export function maskPhone(contact: string): string {
 	const digits = contact.replace(/\D/g, "");
-	if (contact.includes("@") || digits.length <= 4) return contact;
+	if (contact.includes("@") || /[a-z]/i.test(contact) || digits.length <= 4)
+		return contact;
 	return `${"•".repeat(digits.length - 4)}${digits.slice(-4)}`;
 }
 

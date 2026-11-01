@@ -24,6 +24,10 @@ import {
 	type UpdateLuckyDrawSessionRequest,
 } from "@/lib/api/lucky-draw";
 import {
+	getTicketIdLabels,
+	ID_LABEL_EVENT_ID,
+} from "@/lib/api/lucky-draw/id-labels";
+import {
 	transformGift,
 	transformInvalidParticipant,
 	transformParticipant,
@@ -105,6 +109,21 @@ export function useLuckyDraw(
 	});
 
 	const useTicket = event?.use_ticket ?? true;
+
+	// Borneo Safari shows last 6 of IC/passport instead of a phone number.
+	// Until the labels load the contact stays empty, so a phone never flashes on screen.
+	const showIdLabel = event?.id === ID_LABEL_EVENT_ID && useTicket;
+	const { data: idLabels } = useQuery({
+		queryKey: ["lucky-draw", "id-labels", eventId],
+		queryFn: () => getTicketIdLabels(eventId),
+		enabled: showIdLabel,
+		staleTime: 5 * 60 * 1000,
+	});
+	const relabel = useCallback(
+		<T extends Participant>(p: T): T =>
+			showIdLabel ? { ...p, contact: idLabels?.get(p.publicId) } : p,
+		[showIdLabel, idLabels],
+	);
 
 	// Fetch config (session)
 	const {
@@ -192,8 +211,10 @@ export function useLuckyDraw(
 		if (!participantsData || useTicket === undefined) {
 			return [];
 		}
-		return participantsData.map((p) => transformParticipant(p, useTicket));
-	}, [participantsData, useTicket]);
+		return participantsData.map((p) =>
+			relabel(transformParticipant(p, useTicket)),
+		);
+	}, [participantsData, useTicket, relabel]);
 
 	// Transform gifts (filter out gifts with 0 winner_counts)
 	const gifts = useMemo<Gift[]>(() => {
@@ -202,8 +223,14 @@ export function useLuckyDraw(
 		}
 		return giftsData
 			.filter((g) => g.winner_counts > 0)
-			.map((g) => transformGift(g, useTicket, participantsMap));
-	}, [giftsData, useTicket, participantsMap]);
+			.map((g) => transformGift(g, useTicket, participantsMap))
+			.map((g) => ({
+				...g,
+				winner: g.winner && relabel(g.winner),
+				allWinners: g.allWinners?.map(relabel),
+				voidedWinners: g.voidedWinners?.map(relabel),
+			}));
+	}, [giftsData, useTicket, participantsMap, relabel]);
 
 	// Transform invalid participants
 	const invalidParticipants = useMemo<Participant[]>(() => {
@@ -213,8 +240,8 @@ export function useLuckyDraw(
 		// Voided winners (no-shows) are not winners any more
 		return invalidParticipantsData
 			.filter((ip) => !ip.voided_at)
-			.map((ip) => transformInvalidParticipant(ip, useTicket));
-	}, [invalidParticipantsData, useTicket]);
+			.map((ip) => relabel(transformInvalidParticipant(ip, useTicket)));
+	}, [invalidParticipantsData, useTicket, relabel]);
 
 	// Get available participants for drawing
 	// Backend already handles exclusion based on use_gifts config:

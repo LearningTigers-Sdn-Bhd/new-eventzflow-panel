@@ -92,7 +92,9 @@ export function LuckyDrawDrawArea() {
 				backgroundStyle={backgroundStyle}
 				className={cn(
 					"flex flex-1 flex-col items-center justify-center gap-10 overflow-hidden rounded-none border bg-card p-0 transition-all duration-300 md:p-6",
-					isFullscreen ? "h-screen w-full" : "aspect-video w-full max-w-7xl",
+					isFullscreen
+						? "h-screen w-full"
+						: "aspect-video min-h-0 w-full max-w-7xl",
 				)}
 				drawComponent={<DrawComponent />}
 				overlay={

@@ -233,7 +233,7 @@ export function CelebrationDialogContent({
 										{winner.name}
 									</motion.h3>
 									{winner.contact && (
-										<p className="font-semibold text-lg text-muted-foreground tabular-nums">
+										<p className="font-bold text-3xl text-foreground tabular-nums">
 											{maskPhone(winner.contact)}
 										</p>
 									)}

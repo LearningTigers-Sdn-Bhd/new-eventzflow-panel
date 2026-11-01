@@ -39,11 +39,11 @@ interface BatchResultsProps {
 }
 
 function textSize(count: number) {
-	if (count <= 6) return "text-3xl";
-	if (count <= 15) return "text-xl";
-	if (count <= 30) return "text-base";
-	if (count <= 60) return "text-sm";
-	return "text-xs";
+	if (count <= 6) return "text-5xl";
+	if (count <= 15) return "text-3xl";
+	if (count <= 30) return "text-2xl";
+	if (count <= 60) return "text-lg";
+	return "text-sm";
 }
 
 function prefersReducedMotion() {
@@ -257,7 +257,8 @@ export function BatchResults({
 							<span
 								className={cn(
 									"break-words",
-									big ? "line-clamp-3" : "line-clamp-2",
+									// Never cut a name: long ones shrink and wrap instead
+									winner.name.length > 32 && "text-[0.8em] leading-tight",
 								)}
 							>
 								{rolling.has(i)
@@ -269,7 +270,7 @@ export function BatchResults({
 											: ""}
 							</span>
 							{isShown && !rolling.has(i) && winner.contact && (
-								<span className="max-w-full truncate font-normal text-[0.6em] text-muted-foreground tabular-nums">
+								<span className="max-w-full truncate font-bold text-[0.8em] text-foreground tabular-nums">
 									{maskPhone(winner.contact)}
 								</span>
 							)}

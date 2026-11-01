@@ -72,7 +72,7 @@ const SpinWheel: React.FC<DrawProps> = ({
 
 	if (isEmpty) {
 		return (
-			<div className="flex aspect-square w-full items-center justify-center rounded-full bg-gray-50 font-mono text-gray-400">
+			<div className="mx-auto flex aspect-square w-full max-w-[500px] items-center justify-center rounded-full bg-gray-50 font-mono text-gray-400">
 				{mode === "prizes" ? "Add prizes" : "Add participants"}
 			</div>
 		);
