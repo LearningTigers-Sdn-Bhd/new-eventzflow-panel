@@ -100,7 +100,7 @@ function LuckyDrawSessionProviderInner({
 	const [isDisplayMode, setIsDisplayMode] = useState(false);
 	const [batchWinners, setBatchWinners] = useState<Participant[] | null>(null);
 	// Round/gift the batch was drawn for (the next gift changes once it is saved)
-	const [batchTitle, setBatchTitle] = useState("Winners");
+	const [batchTitle, setBatchTitle] = useState("Lucky Draw Winners");
 	// True when the animation was skipped: the reveal then adds its own suspense
 	const [batchSkipped, setBatchSkipped] = useState(false);
 	// Multi-winner draw in progress: winners picked so far, one per quick round
@@ -175,8 +175,8 @@ function LuckyDrawSessionProviderInner({
 					title: roundSweep
 						? `Round ${nextRound}`
 						: useGifts
-							? (nextAvailableGift?.name ?? "Winners")
-							: "Winners",
+							? (nextAvailableGift?.name ?? "Lucky Draw Winners")
+							: "Lucky Draw Winners",
 					picked: [],
 					targets: giftTargets,
 				};
