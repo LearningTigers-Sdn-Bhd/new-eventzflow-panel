@@ -125,7 +125,7 @@ export function HeadcountOverview({
 		<div className="@container space-y-4">
 			<BigScreenLink />
 			<CapacityAlerts alerts={capacityAlerts(data.halls)} />
-			<VisitorsSummary event={data.event} />
+			<VisitorsSummary event={data.event} eventId={eventId} />
 			<LiveStatus event={data.event} />
 
 			{data.levels.map((level) => {
