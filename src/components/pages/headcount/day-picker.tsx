@@ -3,7 +3,7 @@
 import { useDailyBreakdown } from "@/hooks/use-event-halls";
 import { cn } from "@/lib/utils";
 import { formatCount } from "./format";
-import { shortDayLabel, timeLabel } from "./trend-format";
+import { hourRange, shortDayLabel } from "./trend-format";
 
 export const ALL_DAYS = "all";
 
@@ -22,7 +22,7 @@ interface DayPickerProps {
 	hour12: boolean;
 }
 
-/** One card per event day with its visitor count, plus "All days". Picking a card changes everything below it. */
+/** One card per event day with its visitor count and busiest arrival hour, plus "All days". Picking a card changes everything below it. */
 export function DayPicker({
 	eventId,
 	selected,
@@ -62,8 +62,8 @@ export function DayPicker({
 						</span>
 						<span className="text-muted-foreground text-xs">
 							visitors
-							{d.peak &&
-								` · busiest ${formatCount(d.peak.occupancy)} at ${timeLabel(d.peak.at, hour12)}`}
+							{d.busiestEntryHour &&
+								` · busiest ${hourRange(d.busiestEntryHour.at, hour12)} (${formatCount(d.busiestEntryHour.entries)} in)`}
 						</span>
 					</button>
 				))}
