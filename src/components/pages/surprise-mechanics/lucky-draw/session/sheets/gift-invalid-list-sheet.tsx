@@ -61,6 +61,7 @@ import { notifyInvalidParticipant } from "@/lib/api/lucky-draw";
 import { cn } from "@/lib/utils";
 import type { Gift as GiftType, Participant } from "@/stores/lucky-draw-store";
 import { buildWinnerGroups } from "../../export-winners";
+import { filterWinners } from "../../winner-search";
 import { ClaimButton } from "./claim-button";
 import { ExportWinnersMenu } from "./export-winners-menu";
 import { GiftTakenInput } from "./gift-taken-input";
@@ -540,6 +541,7 @@ export function GiftInvalidListSheet({
 	sessionId,
 	onReshow,
 }: GiftInvalidListSheetProps) {
+	const [search, setSearch] = useState("");
 	const [newGiftName, setNewGiftName] = useState("");
 	const [newGiftWinnerCounts, setNewGiftWinnerCounts] = useState(1);
 	const [newGiftDrawLast, setNewGiftDrawLast] = useState(false);
@@ -577,6 +579,15 @@ export function GiftInvalidListSheet({
 		restoreWinner,
 		voidWinnerRecord,
 	} = luckyDraw;
+
+	const winnerRecords = invalidParticipantsData ?? [];
+	const visibleWinnerRecords = filterWinners(winnerRecords, search);
+	const visibleParticipantIds = new Set(
+		visibleWinnerRecords.map((winner) => String(winner.participant.id)),
+	);
+	const visibleParticipants = invalidParticipants.filter((participant) =>
+		visibleParticipantIds.has(participant.publicId),
+	);
 
 	const handleNotifyWinner = async (invalidParticipantId: number) => {
 		setNotifyingIds((prev) => new Set(prev).add(invalidParticipantId));
@@ -875,9 +886,7 @@ export function GiftInvalidListSheet({
 			);
 		}
 
-		const voidedInvalid = (invalidParticipantsData ?? []).filter(
-			(ip) => ip.voided_at,
-		);
+		const voidedInvalid = visibleWinnerRecords.filter((ip) => ip.voided_at);
 
 		return (
 			<div className="flex flex-col gap-3">
@@ -886,12 +895,16 @@ export function GiftInvalidListSheet({
 						<option key={g} value={g} />
 					))}
 				</datalist>
-				{invalidParticipants.length === 0 ? (
+				{winnerRecords.length === 0 ? (
 					<div className="text-balance rounded-none border border-dashed p-6 text-center text-muted-foreground text-sm">
 						No winners yet. Winners will appear here when Use Gifts is off.
 					</div>
+				) : visibleWinnerRecords.length === 0 ? (
+					<p className="py-6 text-center text-muted-foreground text-sm">
+						No winners match your search.
+					</p>
 				) : (
-					invalidParticipants.map((participant) => {
+					visibleParticipants.map((participant) => {
 						const backendInvalid = invalidParticipantsData?.find(
 							(ip) => String(ip.participant.id) === participant.publicId,
 						);
@@ -948,6 +961,20 @@ export function GiftInvalidListSheet({
 											) : (
 												<Bell className="size-4" />
 											)}
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
+											className="gap-2 rounded-none"
+											title="Void winner: keep their record and exclude them from future draws"
+											disabled={!invalidParticipantId || isSaving}
+											onClick={() => {
+												if (invalidParticipantId)
+													voidWinnerRecord({ id: invalidParticipantId });
+											}}
+										>
+											<Ban className="size-4" />
+											<span className="sr-only">Void winner</span>
 										</Button>
 										<Button
 											variant="outline"
@@ -1020,6 +1047,7 @@ export function GiftInvalidListSheet({
 									variant="outline"
 									size="sm"
 									className="gap-2 rounded-none"
+									disabled={isSaving}
 									onClick={() => restoreWinner({ id: ip.id })}
 								>
 									<Undo2 className="size-4" />
@@ -1029,7 +1057,7 @@ export function GiftInvalidListSheet({
 						</CardContent>
 					</Card>
 				))}
-				{invalidParticipants.length > 0 && (
+				{winnerRecords.length > 0 && !search.trim() && (
 					<Card className="rounded-none border-dashed py-4 shadow-none">
 						<CardContent className="grid grid-cols-3 gap-4 px-4 py-0">
 							<div className="col-span-2 flex flex-col justify-center">
@@ -1072,7 +1100,10 @@ export function GiftInvalidListSheet({
 					</span>
 				</Button>
 			</SheetTrigger>
-			<SheetContent side="right" className="flex w-full flex-col sm:max-w-lg">
+			<SheetContent
+				side="right"
+				className="flex w-full flex-col overflow-hidden sm:max-w-lg"
+			>
 				<SheetHeader className="gap-0! border-b">
 					<SheetTitle>{useGifts ? "List of Gifts" : "Winner List"}</SheetTitle>
 					<SheetDescription>
@@ -1129,11 +1160,38 @@ export function GiftInvalidListSheet({
 							filenameBase={luckyDraw.eventName ?? "lucky-draw"}
 						/>
 					</div>
+					{!useGifts && (
+						<div className="space-y-2 pt-3">
+							<div className="flex items-center gap-2">
+								<Input
+									type="search"
+									aria-label="Search winners"
+									placeholder="Search name, IC/passport, ticket ID, contact or gift"
+									value={search}
+									onChange={(event) => setSearch(event.target.value)}
+									className="h-9 min-w-0 rounded-none"
+								/>
+								{search && (
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => setSearch("")}
+									>
+										Clear
+									</Button>
+								)}
+							</div>
+							<p role="status" className="text-muted-foreground text-xs">
+								Showing {visibleWinnerRecords.length} of {winnerRecords.length}{" "}
+								records, including voided participants.
+							</p>
+						</div>
+					)}
 				</SheetHeader>
-				<div className="flex flex-col gap-6 px-4 pb-4">
-					<Card className="flex border-0 p-0! shadow-none">
-						<CardContent className="p-0">
-							<ScrollArea className="h-[calc(100vh-12rem)] pb-4">
+				<div className="min-h-0 flex-1 px-4 pb-4">
+					<Card className="flex h-full border-0 p-0! shadow-none">
+						<CardContent className="h-full min-h-0 p-0">
+							<ScrollArea className="h-full pb-4">
 								{useGifts ? (
 									<DndContext onDragEnd={handleDragEnd}>
 										{renderGiftCards()}
