@@ -29,6 +29,8 @@ interface BatchResultsProps {
 	title: string;
 	/** Gift each winner got, in the same order as `winners` (round sweep only) */
 	giftNames?: string[] | null;
+	/** Message under the Close button; a line break starts a smaller line */
+	note?: string | null;
 	/** True when the draw animation was skipped: reveal with a flicker instead */
 	suspense: boolean;
 	/** Names to flicker through while a slot has not locked yet */
@@ -72,6 +74,7 @@ export function BatchResults({
 	winners,
 	title,
 	giftNames,
+	note,
 	suspense,
 	pool,
 	onRedraw,
@@ -290,6 +293,27 @@ export function BatchResults({
 			>
 				Close
 			</Button>
+			{note && (
+				<motion.div
+					className="shrink-0 text-balance text-center"
+					initial={{ y: 12, opacity: 0 }}
+					animate={{ y: 0, opacity: 1 }}
+					transition={{ delay: 0.6, duration: 0.5 }}
+				>
+					{note.split("\n").map((line, i) => (
+						<p
+							key={line}
+							className={
+								i === 0
+									? "font-semibold text-primary text-xl"
+									: "text-lg text-muted-foreground"
+							}
+						>
+							{line}
+						</p>
+					))}
+				</motion.div>
+			)}
 		</motion.div>
 	);
 }

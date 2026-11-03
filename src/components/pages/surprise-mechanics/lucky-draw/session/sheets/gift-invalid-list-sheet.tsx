@@ -55,14 +55,19 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useClaimedWinners, useWinnerGifts } from "@/hooks/use-claimed-winners";
 import type { useLuckyDraw } from "@/hooks/use-lucky-draw";
+import { useWinnerCollection } from "@/hooks/use-winner-collection";
 import { notifyInvalidParticipant } from "@/lib/api/lucky-draw";
 import { cn } from "@/lib/utils";
 import type { Gift as GiftType, Participant } from "@/stores/lucky-draw-store";
 import { buildWinnerGroups } from "../../export-winners";
 import { ClaimButton } from "./claim-button";
 import { ExportWinnersMenu } from "./export-winners-menu";
+import { GiftTakenInput } from "./gift-taken-input";
+
+// Shown on the big screen under the reshown names (first line big, second smaller)
+const UNCLAIMED_NOTE =
+	"Your prize is still waiting for you.\nPlease collect it at the counter before the end of tonight. Prizes not collected by then will be void.";
 
 function DrawLastField({
 	id,
@@ -113,6 +118,7 @@ interface SortableGiftCardProps {
 	}>;
 	notifyingWinnerIds: Set<number>;
 	claimed: Set<string>;
+	isSaving: boolean;
 	onToggleClaimed: (publicId: string) => void;
 }
 
@@ -128,6 +134,7 @@ function SortableGiftCard({
 	allWinners = [],
 	notifyingWinnerIds,
 	claimed,
+	isSaving,
 	onToggleClaimed,
 }: SortableGiftCardProps) {
 	const firstPublicId = gift.winner?.publicId ?? allWinners[0]?.publicId;
@@ -346,7 +353,7 @@ function SortableGiftCard({
 									<div className="flex shrink-0 items-center justify-end gap-2">
 										<ClaimButton
 											claimed={!!firstPublicId && claimed.has(firstPublicId)}
-											disabled={!firstPublicId}
+											disabled={!firstPublicId || isSaving}
 											onToggle={() =>
 												firstPublicId && onToggleClaimed(firstPublicId)
 											}
@@ -430,6 +437,7 @@ function SortableGiftCard({
 												<div className="flex shrink-0 items-center justify-end gap-2">
 													<ClaimButton
 														claimed={claimed.has(winner.publicId)}
+														disabled={isSaving}
 														onToggle={() => onToggleClaimed(winner.publicId)}
 													/>
 													<Button
@@ -520,6 +528,7 @@ interface GiftInvalidListSheetProps {
 		winners: Participant[],
 		title: string,
 		giftNames?: string[] | null,
+		note?: string | null,
 	) => void;
 }
 
@@ -536,8 +545,16 @@ export function GiftInvalidListSheet({
 	const [newGiftDrawLast, setNewGiftDrawLast] = useState(false);
 	const [isAddGiftCardOpen, setIsAddGiftCardOpen] = useState(false);
 	const [notifyingIds, setNotifyingIds] = useState<Set<number>>(new Set());
-	const { claimed, toggleClaimed } = useClaimedWinners(eventId, sessionId);
-	const { gifts: takenGifts, setGift } = useWinnerGifts(eventId, sessionId);
+	const {
+		claimed,
+		toggleClaimed,
+		takenGifts,
+		setGift,
+		isSaving,
+		hasLegacy,
+		importLegacy,
+		isError: collectionError,
+	} = useWinnerCollection(eventId, sessionId, luckyDraw.useGifts, open);
 
 	// Get all data and actions from the hook
 	const {
@@ -623,6 +640,7 @@ export function GiftInvalidListSheet({
 			unclaimed.map((u) => u.winner),
 			"Unclaimed winners",
 			useGifts ? unclaimed.map((u) => u.giftName as string) : null,
+			UNCLAIMED_NOTE,
 		);
 		onOpenChange(false);
 	};
@@ -736,6 +754,7 @@ export function GiftInvalidListSheet({
 										allWinners={allWinners}
 										notifyingWinnerIds={notifyingIds}
 										claimed={claimed}
+										isSaving={isSaving}
 										onToggleClaimed={toggleClaimed}
 									/>
 								);
@@ -904,6 +923,7 @@ export function GiftInvalidListSheet({
 									<div className="flex shrink-0 items-center justify-end gap-2">
 										<ClaimButton
 											claimed={claimed.has(participant.publicId)}
+											disabled={isSaving}
 											onToggle={() => toggleClaimed(participant.publicId)}
 										/>
 										<Button
@@ -971,24 +991,12 @@ export function GiftInvalidListSheet({
 											)}
 										</dl>
 									)}
-									<div className="flex w-full items-center gap-3 text-xs">
-										<Label
-											htmlFor={`gift-taken-${participant.publicId}`}
-											className="shrink-0 font-normal text-muted-foreground text-xs"
-										>
-											Gift taken
-										</Label>
-										<Input
-											id={`gift-taken-${participant.publicId}`}
-											list="gift-taken-options"
-											value={takenGifts[participant.publicId] ?? ""}
-											onChange={(e) =>
-												setGift(participant.publicId, e.target.value)
-											}
-											placeholder="Type the gift they collected"
-											className="h-8 rounded-none text-sm"
-										/>
-									</div>
+									<GiftTakenInput
+										id={`gift-taken-${participant.publicId}`}
+										value={takenGifts[participant.publicId] ?? ""}
+										disabled={isSaving}
+										onSave={(value) => setGift(participant.publicId, value)}
+									/>
 								</CardContent>
 							</Card>
 						);
@@ -1072,6 +1080,35 @@ export function GiftInvalidListSheet({
 							? "Manage prizes and their winners."
 							: "Winners stored here will be skipped in future draws."}
 					</SheetDescription>
+					<p role="status" className="pt-2 text-muted-foreground text-xs">
+						{collectionError
+							? "Could not refresh shared records. Check your connection."
+							: isSaving
+								? "Saving to shared records…"
+								: "Shared across devices. Refreshes every 5 seconds while open. Gift notes save when you leave the field."}
+					</p>
+					{hasLegacy && (
+						<div className="space-y-2 pt-2 text-xs">
+							<p>
+								Old records found in this browser. Import preserves shared edits
+								and keeps the browser backup. Run this on each browser used
+								previously.
+							</p>
+							<Button
+								variant="outline"
+								size="sm"
+								disabled={
+									isSaving ||
+									isLoadingGifts ||
+									isLoadingInvalidParticipants ||
+									collectionError
+								}
+								onClick={importLegacy}
+							>
+								Import browser records
+							</Button>
+						</div>
+					)}
 					<div className="flex flex-wrap gap-2 pt-3">
 						<Button
 							variant="outline"

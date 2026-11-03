@@ -39,7 +39,18 @@ export interface LuckyDrawSession {
 /**
  * Gift Winner
  */
-export interface GiftWinner {
+export interface WinnerCollection {
+	claimed_at?: string | null;
+	gift_taken?: string | null;
+	collection_updated_at?: string | null;
+}
+
+export interface WinnerIdentity {
+	ticket_public_id?: string | null;
+	ic_passport_no?: string | null;
+}
+
+export interface GiftWinner extends WinnerCollection, WinnerIdentity {
 	id: number;
 	gift_id: number;
 	ticket_id: number | null;
@@ -85,10 +96,10 @@ export interface Participant {
 /**
  * Invalid Participant
  */
-export interface InvalidParticipant {
+export interface InvalidParticipant extends WinnerCollection {
 	id: number;
 	lucky_draw_session_id: number;
-	participant: {
+	participant: WinnerIdentity & {
 		id: number;
 		name: string;
 		contact?: string | null;

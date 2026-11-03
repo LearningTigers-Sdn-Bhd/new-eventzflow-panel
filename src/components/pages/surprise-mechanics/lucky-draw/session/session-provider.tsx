@@ -76,9 +76,11 @@ interface LuckyDrawSessionContextValue {
 		winners: Participant[],
 		title: string,
 		giftNames?: string[] | null,
+		note?: string | null,
 	) => void;
 	batchWinners: Participant[] | null;
 	batchTitle: string;
+	batchNote: string | null;
 	batchGiftNames: string[] | null;
 	clearBatchWinners: () => void;
 	luckyDraw: ReturnType<typeof useLuckyDraw>;
@@ -109,6 +111,8 @@ function LuckyDrawSessionProviderInner({
 	const [batchTitle, setBatchTitle] = useState("Lucky Draw Winners");
 	// True when the animation was skipped: the reveal then adds its own suspense
 	const [batchSkipped, setBatchSkipped] = useState(false);
+	// Message under the reveal's Close button (reshow only)
+	const [batchNote, setBatchNote] = useState<string | null>(null);
 	// Multi-winner draw in progress: winners picked so far, one per quick round
 	const [batchPicked, setBatchPicked] = useState<Participant[]>([]);
 	const [batchTotal, setBatchTotal] = useState(0);
@@ -285,7 +289,7 @@ function LuckyDrawSessionProviderInner({
 
 				// Show celebration dialog using shared provider
 				showCelebration({
-					winner: latest.current.luckyDraw.relabelParticipant(winner),
+					winner,
 					prizeOrGift: assignedGift
 						? { type: "gift", name: assignedGift.name }
 						: null,
@@ -348,6 +352,7 @@ function LuckyDrawSessionProviderInner({
 				startCelebration();
 				setBatchTitle(title);
 				setBatchSkipped(skipped);
+				setBatchNote(null);
 				setBatchGiftNames(
 					useGifts && roundSweep ? targets.map((gift) => gift.name) : null,
 				);
@@ -445,10 +450,12 @@ function LuckyDrawSessionProviderInner({
 			winners: Participant[],
 			title: string,
 			giftNames: string[] | null = null,
+			note: string | null = null,
 		) => {
 			if (batchRunRef.current || winners.length === 0) return;
 			startCelebration();
 			setBatchTitle(title);
+			setBatchNote(note);
 			setBatchSkipped(false);
 			setBatchGiftNames(giftNames);
 			setBatchWinners(winners);
@@ -500,6 +507,7 @@ function LuckyDrawSessionProviderInner({
 			handleBatchComplete,
 			batchWinners,
 			batchTitle,
+			batchNote,
 			batchGiftNames,
 			batchPicked,
 			batchTotal,
@@ -539,6 +547,7 @@ function LuckyDrawSessionProviderInner({
 			handleBatchComplete,
 			batchWinners,
 			batchTitle,
+			batchNote,
 			batchGiftNames,
 			batchPicked,
 			batchTotal,

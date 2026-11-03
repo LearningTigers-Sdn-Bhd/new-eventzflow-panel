@@ -125,3 +125,9 @@ export interface GetParticipantsQuery {
 	exclude_winners?: boolean;
 	exclude_invalid?: boolean;
 }
+
+export interface UpdateWinnerCollectionRequest {
+	claimed?: boolean;
+	gift_taken?: string;
+	import_only?: boolean;
+}

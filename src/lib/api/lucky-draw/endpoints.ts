@@ -10,6 +10,7 @@ import type {
 	SweepAssignWinnersRequest,
 	UpdateGiftRequest,
 	UpdateLuckyDrawSessionRequest,
+	UpdateWinnerCollectionRequest,
 } from "./request";
 import type {
 	ApiResponse,
@@ -20,6 +21,7 @@ import type {
 	LuckyDrawEntrySearchResult,
 	LuckyDrawSession,
 	Participant,
+	WinnerCollection,
 } from "./response";
 
 /**
@@ -856,5 +858,28 @@ export async function getLuckyDrawEntries(
 	} catch (error) {
 		const message = await extractErrorMessage(error);
 		throw new Error(message);
+	}
+}
+
+/** Save collection details on the existing winner, without changing draw eligibility. */
+export async function updateWinnerCollection(
+	eventId: string,
+	sessionId: number,
+	target: { giftId?: number; id: number },
+	data: UpdateWinnerCollectionRequest,
+): Promise<WinnerCollection & { skipped: boolean }> {
+	const session = `v1/events/${eventId}/lucky_draw/sessions/${sessionId}`;
+	const path = target.giftId
+		? `${session}/gifts/${target.giftId}/winners/${target.id}`
+		: `${session}/invalid_participants/${target.id}`;
+	try {
+		const response = await restClient.post<
+			ApiResponse<WinnerCollection & { skipped: boolean }>
+		>(`${path}/collection`, data);
+		if (!response.success || !response.data)
+			throw new Error(response.message || "Failed to save collection details");
+		return response.data;
+	} catch (error) {
+		throw new Error(await extractErrorMessage(error));
 	}
 }

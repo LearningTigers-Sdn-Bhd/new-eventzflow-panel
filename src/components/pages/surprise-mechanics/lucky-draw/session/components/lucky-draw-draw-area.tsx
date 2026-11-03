@@ -28,6 +28,7 @@ export function LuckyDrawDrawArea() {
 		handleDraw,
 		isBatchDraw,
 		batchWinners,
+		batchNote,
 		batchTitle,
 		batchGiftNames,
 		batchPicked,
@@ -37,7 +38,6 @@ export function LuckyDrawDrawArea() {
 		redrawBatchSlot,
 		clearBatchWinners,
 		isLoadingConfig,
-		luckyDraw,
 		isFullscreen,
 		toggleFullscreen,
 	} = useLuckyDrawSession();
@@ -115,9 +115,10 @@ export function LuckyDrawDrawArea() {
 						)}
 						{batchWinners && (
 							<BatchResults
-								winners={batchWinners.map(luckyDraw.relabelParticipant)}
+								winners={batchWinners}
 								title={batchTitle}
 								giftNames={batchGiftNames}
+								note={batchNote}
 								suspense={batchSkipped}
 								pool={availableParticipants}
 								onRedraw={redrawBatchSlot}
