@@ -63,6 +63,7 @@ const featuresFormSchema = z.object({
 	useCertificate: z.boolean(),
 	useRfid: z.boolean(),
 	usePeopleCounter: z.boolean(),
+	useTicketGroups: z.boolean(),
 	useFeedback: z.boolean(),
 	useApiAccess: z.boolean(),
 	vehiclesEnabled: z.boolean(),
@@ -130,6 +131,7 @@ export default function EventFeaturesForm({
 			useCertificate: false,
 			useRfid: false,
 			usePeopleCounter: false,
+			useTicketGroups: false,
 			useFeedback: false,
 			useApiAccess: false,
 			vehiclesEnabled: false,
@@ -159,6 +161,7 @@ export default function EventFeaturesForm({
 					use_certificate: value.useCertificate,
 					use_rfid: value.useRfid,
 					use_people_counter: value.usePeopleCounter,
+					use_ticket_groups: value.useTicketGroups,
 					use_feedback: value.useFeedback,
 					use_api_access: value.useApiAccess,
 					vehicles_enabled: value.vehiclesEnabled,
@@ -200,13 +203,11 @@ export default function EventFeaturesForm({
 			form.setFieldValue("useCertificate", event.use_certificate ?? false);
 			form.setFieldValue("useRfid", event.use_rfid ?? false);
 			form.setFieldValue("usePeopleCounter", event.use_people_counter ?? false);
+			form.setFieldValue("useTicketGroups", event.use_ticket_groups ?? false);
 			form.setFieldValue("useFeedback", event.use_feedback ?? false);
 			form.setFieldValue("useApiAccess", event.use_api_access ?? false);
 			form.setFieldValue("vehiclesEnabled", event.vehicles_enabled ?? false);
-			form.setFieldValue(
-				"useSeatTicketing",
-				event.use_seat_ticketing ?? false,
-			);
+			form.setFieldValue("useSeatTicketing", event.use_seat_ticketing ?? false);
 			form.setFieldValue("useExhibitorKit", event.use_exhibitor_kit ?? false);
 			form.setFieldValue(
 				"enableExhibitorManagement",
@@ -417,6 +418,21 @@ export default function EventFeaturesForm({
 												<SwitchCardInput
 													label="People Counter"
 													description="Live crowd counts per hall and level, trends and a big screen for the door. Hidden when off."
+													htmlFor={field.name}
+													variant="no-rounded"
+													border={true}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													disabled={updateEventMutation.isPending}
+												/>
+											)}
+										</form.Field>
+
+										<form.Field name="useTicketGroups">
+											{(field) => (
+												<SwitchCardInput
+													label="Ticket Groups"
+													description="Split paid tickets into groups (for example rooms), with a priority ticket type per group. Hidden when off."
 													htmlFor={field.name}
 													variant="no-rounded"
 													border={true}

@@ -39,6 +39,7 @@ export type BaseTicket = {
 		id: number;
 		name: string;
 	} | null;
+	ticketGroup?: { id: number; name: string } | null;
 	documents?: Array<{
 		key: string | null;
 		filename: string;
@@ -76,6 +77,7 @@ function formatDateTime(dateString: string): {
 export function generateColumns(
 	labelsData?: Record<string, string>,
 	showSelectColumn = false,
+	showGroupColumn = false,
 ): ColumnDef<BaseTicket>[] {
 	// Base columns that everyone sees
 	// Order: Name, Phone (hidden), Email, Ticket Type, Status, Created At, Actions
@@ -247,6 +249,22 @@ export function generateColumns(
 				);
 			},
 		},
+		...(showGroupColumn
+			? [
+					{
+						id: "ticketGroup",
+						// Needed so the toolbar can set a (server-side) filter on this column.
+						accessorFn: (row: BaseTicket) => row.ticketGroup?.id,
+						size: 120,
+						header: "Group",
+						cell: ({ row }: { row: { original: BaseTicket } }) => (
+							<div className="truncate font-medium">
+								{row.original.ticketGroup?.name || "-"}
+							</div>
+						),
+					} satisfies ColumnDef<BaseTicket>,
+				]
+			: []),
 		{
 			accessorKey: "status",
 			size: 120,

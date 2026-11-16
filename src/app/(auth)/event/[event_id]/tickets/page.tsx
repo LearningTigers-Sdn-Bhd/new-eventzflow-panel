@@ -2,10 +2,18 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
-import { ChevronDown, Download, ListChecks, Users, Wrench } from "lucide-react";
-import { use, useMemo, useState } from "react";
+import {
+	AlertTriangle,
+	ChevronDown,
+	Download,
+	ListChecks,
+	Users,
+	Wrench,
+} from "lucide-react";
+import { use, useCallback, useMemo, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/data-state";
 import { JsonSampleTool } from "@/components/json-sample-tool";
+import TicketGroupsDialog from "@/components/pages/event-ticket-groups/ticket-groups-view";
 import { ImportDataDialog } from "@/components/pages/import/import-data-dialog";
 import { DataTable } from "@/components/pages/tickets/event-ticket-table";
 import { TicketPageButton } from "@/components/pages/tickets/page-action/create-event-ticket-button";
@@ -13,6 +21,7 @@ import GuestPassesForm from "@/components/pages/tickets/page-action/create-guest
 import { downloadGuestPassQrZip } from "@/components/pages/tickets/page-action/guest-pass-qr-zip";
 import { ImportTicketButton } from "@/components/pages/tickets/page-action/import-ticket";
 import ResizeGuestPassesForm from "@/components/pages/tickets/page-action/resize-guest-passes-form";
+import { useEventSidebarContext } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -25,7 +34,9 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { useDialog } from "@/hooks/use-dialog";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useSetEventActions } from "@/hooks/use-set-event-actions";
+import { getEventById } from "@/lib/api/event";
 import { getEventTicketsPaged } from "@/lib/api/ticket";
+import { getTicketGroups } from "@/lib/api/ticket-group";
 
 type TicketFilter = "active" | "archived" | "all";
 
@@ -128,6 +139,51 @@ export default function TicketsPage({
 		"ticketTypeName",
 	) as string[] | undefined;
 
+	// Shares the cache with the table and the action menu.
+	const { data: eventData } = useQuery({
+		queryKey: ["event", event_id],
+		queryFn: () => getEventById(event_id),
+	});
+	const { permissions } = useEventSidebarContext();
+	// Same rule as the backend: org owner, organizer or this event's admin.
+	const canManageGroups =
+		permissions.isOrgOwner ||
+		permissions.isOrganizer ||
+		permissions.isEventAdmin;
+	const ticketGroupsOn =
+		eventData?.use_ticket_groups === true && canManageGroups;
+
+	// Same cache as the Ticket Groups modal, so assigning there updates this.
+	const { data: groupData } = useQuery({
+		queryKey: ["ticket-groups", event_id],
+		queryFn: () => getTicketGroups(event_id),
+		enabled: ticketGroupsOn,
+	});
+	// With no groups yet every ticket is "unassigned", which is not worth a warning.
+	const unassignedCount = groupData?.groups.length
+		? groupData.unassigned_count
+		: 0;
+
+	const openTicketGroups = useCallback(
+		() =>
+			openDialog({
+				component: TicketGroupsDialog,
+				config: {
+					size: "full",
+					showCloseButton: true,
+					title: "Ticket Groups",
+					description:
+						"Split paid tickets into groups (e.g. rooms), with a priority ticket type per group.",
+				},
+			}),
+		[openDialog],
+	);
+
+	const ticketGroupFilter = findColumnFilterValue(
+		columnFilters,
+		"ticketGroup",
+	) as string | undefined;
+
 	const eventActions = useMemo(
 		() => (
 			<div className="flex w-full flex-col items-center gap-2 lg:w-auto lg:flex-row">
@@ -139,6 +195,13 @@ export default function TicketsPage({
 						>
 							<Wrench className="mr-2 h-4 w-4" />
 							Tools
+							{unassignedCount > 0 && (
+								<span
+									role="img"
+									aria-label="Tickets not in a group"
+									className="ml-2 size-2 rounded-full bg-amber-500"
+								/>
+							)}
 							<ChevronDown className="ml-2 h-4 w-4" />
 						</Button>
 					</DropdownMenuTrigger>
@@ -195,6 +258,20 @@ export default function TicketsPage({
 							<Download className="h-4 w-4" />
 							Guest QR ZIP
 						</DropdownMenuItem>
+						{ticketGroupsOn && (
+							<DropdownMenuItem
+								onSelect={openTicketGroups}
+								className="rounded-none"
+							>
+								<Users className="h-4 w-4" />
+								Ticket Groups
+								{unassignedCount > 0 && (
+									<span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-900 text-xs">
+										{unassignedCount}
+									</span>
+								)}
+							</DropdownMenuItem>
+						)}
 						<DropdownMenuSeparator />
 						<JsonSampleTool
 							resourceName="Ticket"
@@ -218,7 +295,14 @@ export default function TicketsPage({
 				<TicketPageButton />
 			</div>
 		),
-		[event_id, bulkSelectMode, openDialog],
+		[
+			event_id,
+			bulkSelectMode,
+			openDialog,
+			ticketGroupsOn,
+			unassignedCount,
+			openTicketGroups,
+		],
 	);
 
 	useSetEventActions(eventActions);
@@ -239,6 +323,7 @@ export default function TicketsPage({
 			debouncedSearch,
 			statusFilter,
 			ticketTypeFilter,
+			ticketGroupFilter,
 			sortBy,
 			sortDir,
 		],
@@ -251,6 +336,7 @@ export default function TicketsPage({
 				q: debouncedSearch || undefined,
 				status: statusFilter as "scanned" | "not_scanned" | undefined,
 				ticketTypeName: ticketTypeFilter?.[0],
+				ticketGroupId: ticketGroupFilter,
 				sortBy,
 				sortDir,
 			}),
@@ -259,6 +345,23 @@ export default function TicketsPage({
 
 	return (
 		<div className="space-y-4">
+			{unassignedCount > 0 && (
+				<div className="flex flex-wrap items-center gap-2 border-l-4 border-l-amber-500 bg-amber-50 px-3 py-2.5 dark:bg-amber-950/30">
+					<AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+					<span className="text-amber-900 text-sm dark:text-amber-100">
+						<strong>{unassignedCount}</strong> paid ticket
+						{unassignedCount === 1 ? " is" : "s are"} not in a group yet.
+					</span>
+					<Button
+						variant="outline"
+						size="sm"
+						className="ml-auto rounded-none"
+						onClick={openTicketGroups}
+					>
+						Open Ticket Groups
+					</Button>
+				</div>
+			)}
 			{isLoading && !result ? (
 				<LoadingState
 					title="Loading tickets..."

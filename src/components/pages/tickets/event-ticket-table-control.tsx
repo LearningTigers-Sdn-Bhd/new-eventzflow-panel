@@ -6,6 +6,8 @@ import { useParams } from "next/navigation";
 import * as React from "react";
 import { BaseTableControl } from "@/components/admin-ui/table/control/base-table-control";
 import type { ControlConfig } from "@/components/admin-ui/table/control/type";
+import { getEventById } from "@/lib/api/event";
+import { getTicketGroups } from "@/lib/api/ticket-group";
 import { getEventTicketTypes } from "@/lib/api/ticket-type";
 
 type TicketFilter = "active" | "archived" | "all";
@@ -36,6 +38,7 @@ function getColumnLabel(
 	const standardLabels: Record<string, string> = {
 		name: "Name",
 		ticketTypeName: "Ticket Type",
+		ticketGroup: "Group",
 		status: "Status",
 		createdAt: "Created At",
 	};
@@ -58,6 +61,16 @@ export function DataControl<TData>({
 	const { data: eventTicketTypes } = useQuery({
 		queryKey: ["event", eventId, "ticket-types"],
 		queryFn: () => getEventTicketTypes({ eventId }),
+	});
+
+	const { data: eventData } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+	});
+	const { data: groupData } = useQuery({
+		queryKey: ["ticket-groups", eventId],
+		queryFn: () => getTicketGroups(eventId),
+		enabled: eventData?.use_ticket_groups === true,
 	});
 
 	const uniqueTicketTypeNames = React.useMemo(() => {
@@ -102,6 +115,10 @@ export function DataControl<TData>({
 			(table.getColumn("ticketTypeName")?.getFilterValue() as string[]) ?? [];
 		return ticketTypeFilter.length === 0 ? "all" : ticketTypeFilter[0];
 	};
+
+	const getGroupFilterValue = () =>
+		(table.getColumn("ticketGroup")?.getFilterValue() as string | undefined) ??
+		"all";
 
 	const ticketFilterControl = onTicketFilterChange
 		? {
@@ -153,6 +170,33 @@ export function DataControl<TData>({
 		},
 	};
 
+	// Only offered once groups exist, so events not using groups see no change.
+	const groupFilterControls: ControlConfig[] = groupData?.groups.length
+		? [
+				{
+					label: "Group",
+					columnId: "ticketGroup",
+					type: "filter",
+					data: [
+						{ label: "All", value: "all" },
+						{ label: "No group", value: "none" },
+						...groupData.groups.map((g) => ({
+							label: g.name,
+							value: String(g.id),
+						})),
+					],
+					customFilter: {
+						value: getGroupFilterValue(),
+						onChange: (value: string) => {
+							table
+								.getColumn("ticketGroup")
+								?.setFilterValue(value === "all" ? undefined : value);
+						},
+					},
+				},
+			]
+		: [];
+
 	const desktopControlConfigs: ControlConfig[] = [
 		...(ticketFilterControl
 			? [
@@ -169,6 +213,7 @@ export function DataControl<TData>({
 			: []),
 		statusFilterControl,
 		ticketTypeFilterControl,
+		...groupFilterControls,
 		{
 			label: "Columns",
 			columnId: "visibility",
@@ -219,6 +264,7 @@ export function DataControl<TData>({
 			: []),
 		{ ...statusFilterControl, topPriority: true },
 		{ ...ticketTypeFilterControl, topPriority: true },
+		...groupFilterControls,
 		...baseMobileSortConfigs,
 		...customMobileSortConfigs,
 	];

@@ -204,6 +204,9 @@ export default function TicketViewModal({ ticket }: TicketViewModalProps) {
 				{ticket.passBundle?.name && (
 					<Field label="Bundle pass">{ticket.passBundle.name}</Field>
 				)}
+				{ticket.ticketGroup?.name && (
+					<Field label="Group">{ticket.ticketGroup.name}</Field>
+				)}
 				<Field label="Price">
 					RM
 					{(typeof ticket.value === "number"

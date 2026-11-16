@@ -214,6 +214,7 @@ function transformBackendTicket(
 	let transactionId: string | undefined;
 	let paymentScreenshotUrl: string | undefined;
 	let passBundle: Ticket["passBundle"] = null;
+	let ticketGroup: Ticket["ticketGroup"] = null;
 	let documents: Ticket["documents"];
 	let vehicleRegistration: Ticket["vehicleRegistration"] = null;
 	let ticketApplication: Ticket["ticketApplication"];
@@ -234,6 +235,7 @@ function transformBackendTicket(
 		transactionId = bt.transaction_id;
 		paymentScreenshotUrl = bt.payment_screenshot_url;
 		passBundle = bt.pass_bundle ?? null;
+		ticketGroup = bt.ticket_group ?? null;
 		documents = bt.registration_documents_data;
 		vehicleRegistration = bt.vehicle_registration_data
 			? {
@@ -299,6 +301,7 @@ function transformBackendTicket(
 		transactionId,
 		paymentScreenshotUrl,
 		passBundle,
+		ticketGroup,
 		customLabels: customLabels.length > 0 ? customLabels : undefined,
 		custom_fields_data:
 			"custom_fields_data" in ticket
@@ -379,6 +382,8 @@ export async function getEventTicketsPaged(
 		q?: string;
 		status?: "scanned" | "not_scanned";
 		ticketTypeName?: string;
+		/** A ticket group id, or "none" for tickets without a group. */
+		ticketGroupId?: string;
 		archived?: boolean;
 		full?: boolean;
 		sortBy?: "name" | "email" | "status" | "createdAt" | `custom_${string}`;
@@ -398,6 +403,8 @@ export async function getEventTicketsPaged(
 	if (options.status) params.set("status", options.status);
 	if (options.ticketTypeName)
 		params.set("ticket_type_name", options.ticketTypeName);
+	if (options.ticketGroupId)
+		params.set("ticket_group_id", options.ticketGroupId);
 	if (options.sortBy) params.set("sort_by", options.sortBy);
 	if (options.sortDir) params.set("sort_dir", options.sortDir);
 

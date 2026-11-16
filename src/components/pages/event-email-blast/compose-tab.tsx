@@ -44,6 +44,8 @@ import {
 	testEmailBlast,
 	updateEmailBlast,
 } from "@/lib/api/email-blast";
+import { getEventById } from "@/lib/api/event";
+import { getTicketGroups } from "@/lib/api/ticket-group";
 import { getEventTicketTypes } from "@/lib/api/ticket-type";
 import { cn } from "@/lib/utils";
 import { AttachmentsField } from "./attachments-field";
@@ -85,6 +87,9 @@ export function ComposeTab({ eventId, initial, onSent }: Props) {
 	const [typeIds, setTypeIds] = useState<string[]>(
 		(initial?.ticket_type_ids ?? []).map(String),
 	);
+	const [groupIds, setGroupIds] = useState<string[]>(
+		(initial?.ticket_group_ids ?? []).map(String),
+	);
 	const [includePending, setIncludePending] = useState(
 		initial?.include_pending ?? false,
 	);
@@ -105,14 +110,37 @@ export function ComposeTab({ eventId, initial, onSent }: Props) {
 	const [templateName, setTemplateName] = useState("");
 
 	const numericTypeIds = typeIds.map(Number);
+	const numericGroupIds = groupIds.map(Number);
 	const { data: ticketTypes = [] } = useQuery({
 		queryKey: ["event", eventId, "ticket-types"],
 		queryFn: () => getEventTicketTypes({ eventId }),
 	});
+	// Groups only exist as a choice when the event uses them.
+	const { data: eventData } = useQuery({
+		queryKey: ["event", eventId],
+		queryFn: () => getEventById(eventId),
+	});
+	const { data: groupData } = useQuery({
+		queryKey: ["ticket-groups", eventId],
+		queryFn: () => getTicketGroups(eventId),
+		enabled: eventData?.use_ticket_groups === true,
+	});
+	const groups = groupData?.groups ?? [];
 	const { data: audience } = useQuery({
-		queryKey: ["email-blast-audience", eventId, typeIds, includePending],
+		queryKey: [
+			"email-blast-audience",
+			eventId,
+			typeIds,
+			groupIds,
+			includePending,
+		],
 		queryFn: () =>
-			getEmailBlastAudience(eventId, numericTypeIds, includePending),
+			getEmailBlastAudience(
+				eventId,
+				numericTypeIds,
+				includePending,
+				numericGroupIds,
+			),
 	});
 	const recipientCount = audience?.recipient_count ?? 0;
 	const ready = subject.trim().length > 0 && hasText(body);
@@ -128,6 +156,7 @@ export function ComposeTab({ eventId, initial, onSent }: Props) {
 			bodyFormat: format,
 			styleKey,
 			ticketTypeIds: numericTypeIds,
+			ticketGroupIds: numericGroupIds,
 			includePending,
 			banner: isHtml ? null : (bannerFile ?? banner),
 			attachments: newFiles,
@@ -359,7 +388,13 @@ export function ComposeTab({ eventId, initial, onSent }: Props) {
 						<h4 className="font-medium text-sm">Audience</h4>
 						<MultiSelect value={typeIds} onValueChange={setTypeIds}>
 							<MultiSelectTrigger className="rounded-none">
-								<MultiSelectValue placeholder="All ticket types" />
+								<MultiSelectValue
+									placeholder="All ticket types"
+									options={ticketTypes.map((t) => ({
+										label: t.name.trim(),
+										value: String(t.id),
+									}))}
+								/>
 							</MultiSelectTrigger>
 							<MultiSelectContent>
 								{ticketTypes.map((t) => (
@@ -369,6 +404,26 @@ export function ComposeTab({ eventId, initial, onSent }: Props) {
 								))}
 							</MultiSelectContent>
 						</MultiSelect>
+						{groups.length > 0 && (
+							<MultiSelect value={groupIds} onValueChange={setGroupIds}>
+								<MultiSelectTrigger className="rounded-none">
+									<MultiSelectValue
+										placeholder="All groups"
+										options={groups.map((g) => ({
+											label: g.name,
+											value: String(g.id),
+										}))}
+									/>
+								</MultiSelectTrigger>
+								<MultiSelectContent>
+									{groups.map((g) => (
+										<MultiSelectItem key={g.id} value={String(g.id)}>
+											{g.name}
+										</MultiSelectItem>
+									))}
+								</MultiSelectContent>
+							</MultiSelect>
+						)}
 						<div className="flex items-start gap-2">
 							<Checkbox
 								id="include-pending"

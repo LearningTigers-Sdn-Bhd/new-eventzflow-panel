@@ -12,6 +12,7 @@ export interface EmailBlastDraft {
 	subject: string;
 	body: string;
 	ticketTypeIds: number[];
+	ticketGroupIds: number[];
 	includePending: boolean;
 	banner?: File | null;
 	bodyFormat: EmailBlastFormat;
@@ -29,6 +30,9 @@ const toFormData = (draft: EmailBlastDraft) => {
 	if (draft.ticketTypeIds.length === 0) form.append("ticket_type_ids[]", "");
 	for (const id of draft.ticketTypeIds)
 		form.append("ticket_type_ids[]", String(id));
+	if (draft.ticketGroupIds.length === 0) form.append("ticket_group_ids[]", "");
+	for (const id of draft.ticketGroupIds)
+		form.append("ticket_group_ids[]", String(id));
 	form.append("include_pending", String(draft.includePending));
 	if (draft.banner) form.append("banner", draft.banner);
 	form.append("body_format", draft.bodyFormat);
@@ -77,9 +81,11 @@ export async function getEmailBlastAudience(
 	eventId: string,
 	ticketTypeIds: number[],
 	includePending: boolean,
+	ticketGroupIds: number[] = [],
 ): Promise<EmailBlastAudience> {
 	const query = [
 		...ticketTypeIds.map((id) => `ticket_type_ids[]=${id}`),
+		...ticketGroupIds.map((id) => `ticket_group_ids[]=${id}`),
 		`include_pending=${includePending}`,
 	].join("&");
 	return restClient.get<EmailBlastAudience>(

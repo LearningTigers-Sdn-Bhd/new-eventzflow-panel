@@ -36,6 +36,7 @@ export type Ticket = {
 		id: number;
 		name: string;
 	} | null;
+	ticketGroup?: { id: number; name: string } | null;
 	customLabels?: Array<{
 		name: string;
 		value: string;
@@ -184,6 +185,7 @@ export type BackendTicket = {
 		id: number;
 		name: string;
 	} | null;
+	ticket_group?: { id: number; name: string } | null;
 	ticket_type?: {
 		id: number;
 		name: string;

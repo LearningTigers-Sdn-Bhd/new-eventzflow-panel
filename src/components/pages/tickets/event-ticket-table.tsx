@@ -26,6 +26,8 @@ import { BaseTable } from "@/components/admin-ui/table/base-table";
 import { DataPagination } from "@/components/data-pagination";
 import { EmptyState } from "@/components/data-state";
 import BulkChangeTicketTypeModal from "@/components/pages/tickets/page-action/bulk-change-ticket-type-modal";
+import ChangeTicketGroupModal from "@/components/pages/tickets/page-action/change-ticket-group-modal";
+import { useEventSidebarContextSafe } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { ItemSeparator } from "@/components/ui/item";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
@@ -234,6 +236,25 @@ export function DataTable<TData>({
 		});
 	};
 
+	const openBulkChangeGroup = () => {
+		openDialog({
+			component: ChangeTicketGroupModal,
+			config: {
+				size: "md",
+				showCloseButton: true,
+				title: "Change Group",
+				description: "Move the selected tickets to a different group.",
+				className: "rounded-none",
+			},
+			props: {
+				eventId,
+				publicIds: Object.keys(rowSelection),
+				currentGroupId: null,
+				onSuccess: () => setRowSelection({}),
+			},
+		});
+	};
+
 	const openTicketCreate = () => {
 		openDialog({
 			component: TicketForm,
@@ -250,6 +271,16 @@ export function DataTable<TData>({
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId),
 	});
+
+	const permissions = useEventSidebarContextSafe()?.permissions;
+	const canManageGroups =
+		!!permissions &&
+		(permissions.isOrgOwner ||
+			permissions.isOrganizer ||
+			permissions.isEventAdmin);
+	// The Group column and filter are for anyone who can see tickets; changing
+	// groups (bulk button) is only for those who can manage them.
+	const ticketGroupsOn = eventData?.use_ticket_groups === true;
 
 	// Initialize with default visibility (phone is always hidden)
 	const [columnVisibility, setColumnVisibility, resetColumnVisibility] =
@@ -325,8 +356,13 @@ export function DataTable<TData>({
 	};
 
 	const columns = React.useMemo(
-		() => generateColumns(mergedLabelsData, selectMode) as ColumnDef<TData>[],
-		[mergedLabelsData, selectMode],
+		() =>
+			generateColumns(
+				mergedLabelsData,
+				selectMode,
+				ticketGroupsOn,
+			) as ColumnDef<TData>[],
+		[mergedLabelsData, selectMode, ticketGroupsOn],
 	);
 
 	// Manual pagination: search, status/type filters, and paging are all
@@ -417,6 +453,16 @@ export function DataTable<TData>({
 						>
 							Change Ticket Type
 						</Button>
+						{ticketGroupsOn && canManageGroups && (
+							<Button
+								variant="outline"
+								size="sm"
+								className="rounded-none"
+								onClick={openBulkChangeGroup}
+							>
+								Change Group
+							</Button>
+						)}
 						{canBulkArchive && (
 							<Button
 								variant="outline"

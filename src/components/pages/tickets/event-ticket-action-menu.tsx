@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Archive,
+	LayoutGrid,
 	MessageSquareHeart,
 	MoreHorizontal,
 	Pencil,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
+import { useEventSidebarContextSafe } from "@/components/sidebars/features/events/event-sidebar-provider";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
@@ -41,6 +43,7 @@ import TicketEditModal from "./action-modals/edit-event-ticket-form";
 import TicketQRModal from "./action-modals/qr-modal";
 import UnscanModal from "./action-modals/unscan-modal";
 import type { BaseTicket } from "./event-ticket-table-columns";
+import ChangeTicketGroupModal from "./page-action/change-ticket-group-modal";
 
 interface TicketActionsMenuProps {
 	ticket: BaseTicket;
@@ -61,6 +64,25 @@ export function useTicketActions({
 	const { openDialog, closeDialog } = useDialog();
 	const { openConfirm } = useConfirmDialog();
 	const queryClient = useQueryClient();
+
+	const openChangeGroup = () => {
+		openDialog({
+			component: ChangeTicketGroupModal,
+			config: {
+				size: "md",
+				showCloseButton: true,
+				title: "Change Group",
+				description: `Move ${ticket.name} to a different group.`,
+				className: "rounded-none",
+			},
+			props: {
+				eventId,
+				publicIds: [ticket.publicId],
+				currentGroupId: ticket.ticketGroup?.id ?? null,
+				onSuccess: () => {},
+			},
+		});
+	};
 
 	const openEditModal = () => {
 		openDialog({
@@ -309,6 +331,7 @@ export function useTicketActions({
 
 	return {
 		eventId,
+		openChangeGroup,
 		openEditModal,
 		openQRModal,
 		openUnscanModal,
@@ -327,10 +350,17 @@ export function TicketActionsMenu({
 	deletedAt,
 }: TicketActionsMenuProps) {
 	const { user } = useAuth();
+	const permissions = useEventSidebarContextSafe()?.permissions;
+	const canManageGroups =
+		!!permissions &&
+		(permissions.isOrgOwner ||
+			permissions.isOrganizer ||
+			permissions.isEventAdmin);
 	const isArchived = !!deletedAt;
 
 	const {
 		eventId,
+		openChangeGroup,
 		openEditModal,
 		openQRModal,
 		openUnscanModal,
@@ -437,6 +467,15 @@ export function TicketActionsMenu({
 					>
 						<DropdownMenuLabel>Actions</DropdownMenuLabel>
 						<DropdownMenuSeparator />
+						{!isArchived && event?.use_ticket_groups && canManageGroups && (
+							<DropdownMenuItem
+								className="rounded-none"
+								onClick={openChangeGroup}
+							>
+								<LayoutGrid className="mr-2 h-4 w-4" />
+								Change Group
+							</DropdownMenuItem>
+						)}
 						{showArchive && (
 							<DropdownMenuItem
 								className="rounded-none"
