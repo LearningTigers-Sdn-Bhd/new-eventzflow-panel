@@ -2,14 +2,17 @@ export interface TicketGroup {
 	id: number;
 	name: string;
 	position: number;
-	/** Ticket type ids this group fills first, in fill order. */
+	/** Ticket type ids this group fills first, mixed evenly. */
 	priority_ticket_type_ids: number[];
 	ticket_count: number;
+	/** ticket_type_id -> paid tickets of that type in the group. */
+	type_counts: Record<string, number>;
 }
 
 export interface TicketGroupsPayload {
 	groups: TicketGroup[];
 	unassigned_count: number;
+	unassigned_by_type: Record<string, number>;
 }
 
 export interface TicketGroupPreview {

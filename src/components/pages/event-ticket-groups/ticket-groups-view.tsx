@@ -1,7 +1,15 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, LayoutGrid, Plus, Shuffle, Trash2, Users } from "lucide-react";
+import {
+	Eye,
+	LayoutGrid,
+	List,
+	Plus,
+	Shuffle,
+	Trash2,
+	Users,
+} from "lucide-react";
 import { useParams } from "next/navigation";
 import { useId, useState } from "react";
 import { toast } from "sonner";
@@ -36,8 +44,13 @@ import {
 } from "@/lib/api/ticket-group";
 import { getEventTicketTypes } from "@/lib/api/ticket-type/endpoints";
 import { cn } from "@/lib/utils";
+import { GroupTicketColumn } from "./group-ticket-column";
 
 const BUTTON = "w-auto rounded-none px-6 py-6 md:py-4";
+const FILL_OPTIONS = [
+	{ value: "mixed", label: "Mixed evenly across the picked types" },
+	{ value: "ordered", label: "In order, first picked type first" },
+];
 const MODE_OPTIONS = [
 	{ value: "new", label: "Assign unassigned only" },
 	{ value: "all", label: "Re-sort everyone" },
@@ -49,11 +62,13 @@ function GroupTile({
 	eventId,
 	group,
 	typeOptions,
+	fillMode,
 	onSaved,
 }: {
 	eventId: string;
 	group: TicketGroup;
 	typeOptions: Array<{ value: string; label: string }>;
+	fillMode: "mixed" | "ordered";
 	onSaved: () => void;
 }) {
 	const nameId = useId();
@@ -129,8 +144,10 @@ function GroupTile({
 					className="w-full rounded-none py-6 md:py-2"
 				/>
 				<FieldDescription>
-					Filled into this group first, in the order picked. Others fill the
-					space left.
+					{fillMode === "ordered"
+						? "Filled into this group first, in the order picked."
+						: "Filled into this group first, mixed evenly across the picked types."}{" "}
+					Others fill the space left.
 				</FieldDescription>
 			</div>
 		</div>
@@ -142,9 +159,11 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 	const { openConfirm } = useConfirmDialog();
 	const countId = useId();
 	const modeId = useId();
+	const fillId = useId();
 	const [mode, setMode] = useState<TicketGroupMode>("new");
 	const [preview, setPreview] = useState<TicketGroupPreview | null>(null);
 	const [addCount, setAddCount] = useState("");
+	const [showTickets, setShowTickets] = useState(false);
 
 	const { data, isLoading } = useQuery({
 		queryKey: ["ticket-groups", eventId],
@@ -158,6 +177,16 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 	const { data: eventData } = useQuery({
 		queryKey: ["event", eventId],
 		queryFn: () => getEventById(eventId),
+	});
+	const fillMode = eventData?.ticket_group_fill_mode ?? "mixed";
+	const setFillMode = useMutation({
+		mutationFn: (value: "mixed" | "ordered") =>
+			updateEvent(eventId, { ticket_group_fill_mode: value }),
+		onSuccess: () => {
+			setPreview(null);
+			queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+		},
+		onError: (e) => toast.error(errorMessage(e)),
 	});
 	const autoAssign = useMutation({
 		mutationFn: (on: boolean) =>
@@ -205,6 +234,9 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 		value: String(t.id),
 		label: t.name.trim(),
 	}));
+	const typeNames = Object.fromEntries(
+		ticketTypes.map((t) => [String(t.id), t.name.trim()]),
+	);
 	const typeName = (id: string) =>
 		ticketTypes.find((t) => String(t.id) === id)?.name.trim() ?? `#${id}`;
 
@@ -301,6 +333,7 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 							{data.groups.map((g) => (
 								<GroupTile
+									fillMode={fillMode}
 									key={g.id}
 									eventId={eventId}
 									group={g}
@@ -335,6 +368,15 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 								setPreview(null);
 							}}
 							options={MODE_OPTIONS}
+						/>
+						<SelectLabel
+							label="Priority fill"
+							htmlFor={fillId}
+							description="How a group with several priority types takes them. Applies to Assign, Preview and auto-assign."
+							value={fillMode}
+							onChange={(v) => setFillMode.mutate(v as "mixed" | "ordered")}
+							options={FILL_OPTIONS}
+							disabled={setFillMode.isPending || !eventData}
 						/>
 					</div>
 					<SwitchCardInput
@@ -432,6 +474,55 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 							</TableBody>
 						</Table>
 					</div>
+				</FormGroupContainer>
+			)}
+
+			{hasGroups && (
+				<FormGroupContainer
+					title={{
+						icon: List,
+						label: "Tickets in each group",
+						description:
+							"See who is in each group and compare them without closing this window.",
+					}}
+					actions={
+						<Button
+							type="button"
+							variant="outline"
+							className={BUTTON}
+							onClick={() => setShowTickets((v) => !v)}
+						>
+							{showTickets ? "Hide tickets" : "Show tickets"}
+						</Button>
+					}
+				>
+					{showTickets ? (
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+							{data.groups.map((g) => (
+								<GroupTicketColumn
+									key={g.id}
+									eventId={eventId}
+									groupKey={String(g.id)}
+									title={g.name}
+									typeCounts={g.type_counts}
+									typeNames={typeNames}
+								/>
+							))}
+							{data.unassigned_count > 0 && (
+								<GroupTicketColumn
+									eventId={eventId}
+									groupKey="none"
+									title="Not in a group"
+									typeCounts={data.unassigned_by_type}
+									typeNames={typeNames}
+								/>
+							)}
+						</div>
+					) : (
+						<p className="text-muted-foreground text-sm">
+							Press Show tickets to list each group's tickets side by side.
+						</p>
+					)}
 				</FormGroupContainer>
 			)}
 		</div>

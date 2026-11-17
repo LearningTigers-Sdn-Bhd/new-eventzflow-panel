@@ -104,6 +104,7 @@ export type Event = {
 	use_people_counter: boolean;
 	use_ticket_groups: boolean;
 	auto_assign_ticket_groups: boolean;
+	ticket_group_fill_mode: "mixed" | "ordered";
 	use_feedback: boolean;
 	use_api_access: boolean;
 	vehicles_enabled: boolean;
