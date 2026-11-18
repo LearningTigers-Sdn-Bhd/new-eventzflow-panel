@@ -27,6 +27,7 @@ export const createEventSchema = z.object({
 	use_ticket_groups: z.boolean().optional().default(false),
 	auto_assign_ticket_groups: z.boolean().optional().default(false),
 	ticket_group_fill_mode: z.enum(["mixed", "ordered"]).optional(),
+	ticket_group_excluded_type_ids: z.array(z.number()).optional(),
 	use_feedback: z.boolean().optional().default(false),
 	use_api_access: z.boolean().optional().default(false),
 	start_date: z.string(), // ISO date string
@@ -83,6 +84,7 @@ export const updateEventSchema = z.object({
 	use_ticket_groups: z.boolean().optional(),
 	auto_assign_ticket_groups: z.boolean().optional(),
 	ticket_group_fill_mode: z.enum(["mixed", "ordered"]).optional(),
+	ticket_group_excluded_type_ids: z.array(z.number()).optional(),
 	use_feedback: z.boolean().optional(),
 	use_api_access: z.boolean().optional(),
 	vehicles_enabled: z.boolean().optional(),

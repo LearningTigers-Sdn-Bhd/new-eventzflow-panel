@@ -105,6 +105,7 @@ export type Event = {
 	use_ticket_groups: boolean;
 	auto_assign_ticket_groups: boolean;
 	ticket_group_fill_mode: "mixed" | "ordered";
+	ticket_group_excluded_type_ids: number[];
 	use_feedback: boolean;
 	use_api_access: boolean;
 	vehicles_enabled: boolean;

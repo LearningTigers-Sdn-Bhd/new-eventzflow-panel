@@ -13,6 +13,8 @@ export interface TicketGroupsPayload {
 	groups: TicketGroup[];
 	unassigned_count: number;
 	unassigned_by_type: Record<string, number>;
+	/** Paid tickets of excluded ticket types that sit outside every group. */
+	excluded_count: number;
 }
 
 export interface TicketGroupPreview {

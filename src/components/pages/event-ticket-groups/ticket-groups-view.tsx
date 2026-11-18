@@ -1,5 +1,15 @@
 "use client";
 
+import {
+	DndContext,
+	type DragEndEvent,
+	DragOverlay,
+	type DragStartEvent,
+	MouseSensor,
+	TouchSensor,
+	useSensor,
+	useSensors,
+} from "@dnd-kit/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Eye,
@@ -19,6 +29,11 @@ import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { SwitchCardInput } from "@/components/admin-ui/form/switch-card-input";
 import { LoadingState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { FieldDescription, FieldLabel } from "@/components/ui/field";
 import { MultiSelectLegacy } from "@/components/ui/multi-select";
 import {
@@ -35,6 +50,7 @@ import {
 	assignTicketGroups,
 	deleteTicketGroup,
 	getTicketGroups,
+	moveTicketsToGroup,
 	previewTicketGroups,
 	setupTicketGroups,
 	type TicketGroup,
@@ -44,7 +60,11 @@ import {
 } from "@/lib/api/ticket-group";
 import { getEventTicketTypes } from "@/lib/api/ticket-type/endpoints";
 import { cn } from "@/lib/utils";
-import { GroupTicketColumn } from "./group-ticket-column";
+import {
+	GroupTicketColumn,
+	type MoveTarget,
+	MoveToItems,
+} from "./group-ticket-column";
 
 const BUTTON = "w-auto rounded-none px-6 py-6 md:py-4";
 const FILL_OPTIONS = [
@@ -160,10 +180,24 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 	const countId = useId();
 	const modeId = useId();
 	const fillId = useId();
+	const excludedId = useId();
 	const [mode, setMode] = useState<TicketGroupMode>("new");
 	const [preview, setPreview] = useState<TicketGroupPreview | null>(null);
 	const [addCount, setAddCount] = useState("");
 	const [showTickets, setShowTickets] = useState(false);
+	const [selected, setSelected] = useState<Set<string>>(new Set());
+	const [dragging, setDragging] = useState<{
+		name: string;
+		typeName: string;
+		count: number;
+	} | null>(null);
+	// Mouse drags after a few pixels (clicks still work); touch needs a short press so scrolling stays free.
+	const sensors = useSensors(
+		useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+		useSensor(TouchSensor, {
+			activationConstraint: { delay: 250, tolerance: 8 },
+		}),
+	);
 
 	const { data, isLoading } = useQuery({
 		queryKey: ["ticket-groups", eventId],
@@ -179,12 +213,23 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 		queryFn: () => getEventById(eventId),
 	});
 	const fillMode = eventData?.ticket_group_fill_mode ?? "mixed";
+	const excludedIds = eventData?.ticket_group_excluded_type_ids ?? [];
 	const setFillMode = useMutation({
 		mutationFn: (value: "mixed" | "ordered") =>
 			updateEvent(eventId, { ticket_group_fill_mode: value }),
 		onSuccess: () => {
 			setPreview(null);
 			queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+		},
+		onError: (e) => toast.error(errorMessage(e)),
+	});
+	const setExcluded = useMutation({
+		mutationFn: (ids: number[]) =>
+			updateEvent(eventId, { ticket_group_excluded_type_ids: ids }),
+		onSuccess: () => {
+			setPreview(null);
+			queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+			queryClient.invalidateQueries({ queryKey: ["ticket-groups", eventId] });
 		},
 		onError: (e) => toast.error(errorMessage(e)),
 	});
@@ -206,6 +251,16 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 		mutationFn: (count: number) => setupTicketGroups(eventId, count),
 		onSuccess: () => {
 			setAddCount("");
+			refresh();
+		},
+		onError: (e) => toast.error(errorMessage(e)),
+	});
+	const move = useMutation({
+		mutationFn: ({ ids, key }: { ids: string[]; key: string }) =>
+			moveTicketsToGroup(eventId, ids, key === "none" ? null : Number(key)),
+		onSuccess: (r) => {
+			toast.success(`${r.moved} ticket(s) moved`);
+			setSelected(new Set());
 			refresh();
 		},
 		onError: (e) => toast.error(errorMessage(e)),
@@ -239,6 +294,33 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 	);
 	const typeName = (id: string) =>
 		ticketTypes.find((t) => String(t.id) === id)?.name.trim() ?? `#${id}`;
+
+	const targets: MoveTarget[] = [
+		...data.groups.map((g) => ({ key: String(g.id), name: g.name })),
+		{ key: "none", name: "Not in a group" },
+	];
+	const toggle = (id: string) =>
+		setSelected((prev) => {
+			const next = new Set(prev);
+			if (!next.delete(id)) next.add(id);
+			return next;
+		});
+	const moveTo = (ids: string[], key: string) => move.mutate({ ids, key });
+	const onDragStart = ({ active }: DragStartEvent) => {
+		const d = active.data.current as
+			| { name: string; typeName: string }
+			| undefined;
+		const count = selected.has(String(active.id)) ? selected.size : 1;
+		setDragging(d ? { ...d, count } : null);
+	};
+	const onDragEnd = ({ active, over }: DragEndEvent) => {
+		setDragging(null);
+		const from = (active.data.current as { groupKey: string } | undefined)
+			?.groupKey;
+		if (!over || String(over.id) === from) return;
+		const id = String(active.id);
+		moveTo(selected.has(id) ? [...selected] : [id], String(over.id));
+	};
 
 	const addGroups = (
 		<div className="flex items-end gap-2">
@@ -309,7 +391,7 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 						<div className="flex flex-wrap gap-x-8 gap-y-1 text-sm">
 							<span>
 								<strong className="tabular-nums">
-									{assignedCount + data.unassigned_count}
+									{assignedCount + data.unassigned_count + data.excluded_count}
 								</strong>{" "}
 								paid tickets
 							</span>
@@ -317,6 +399,14 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 								<strong className="tabular-nums">{assignedCount}</strong> in
 								groups
 							</span>
+							{data.excluded_count > 0 && (
+								<span className="text-muted-foreground">
+									<strong className="tabular-nums">
+										{data.excluded_count}
+									</strong>{" "}
+									excluded
+								</span>
+							)}
 							<span
 								className={
 									data.unassigned_count > 0
@@ -378,6 +468,21 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 							options={FILL_OPTIONS}
 							disabled={setFillMode.isPending || !eventData}
 						/>
+					</div>
+					<div className="flex flex-col gap-2">
+						<FieldLabel htmlFor={excludedId}>Excluded ticket types</FieldLabel>
+						<MultiSelectLegacy
+							options={typeOptions}
+							selected={excludedIds.map(String)}
+							onChange={(ids) => setExcluded.mutate(ids.map(Number))}
+							placeholder="None (everyone gets a group)"
+							className="w-full rounded-none py-6 md:py-2"
+						/>
+						<FieldDescription>
+							Tickets of these types are never put in a group: not by Assign,
+							Re-sort or auto-assign. Any already in a group are taken out. You
+							can still move one by hand.
+						</FieldDescription>
 					</div>
 					<SwitchCardInput
 						label="Auto-assign new tickets"
@@ -497,27 +602,92 @@ function TicketGroupsView({ eventId }: { eventId: string }) {
 					}
 				>
 					{showTickets ? (
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-							{data.groups.map((g) => (
-								<GroupTicketColumn
-									key={g.id}
-									eventId={eventId}
-									groupKey={String(g.id)}
-									title={g.name}
-									typeCounts={g.type_counts}
-									typeNames={typeNames}
-								/>
-							))}
-							{data.unassigned_count > 0 && (
-								<GroupTicketColumn
-									eventId={eventId}
-									groupKey="none"
-									title="Not in a group"
-									typeCounts={data.unassigned_by_type}
-									typeNames={typeNames}
-								/>
+						<DndContext
+							sensors={sensors}
+							onDragStart={onDragStart}
+							onDragEnd={onDragEnd}
+							onDragCancel={() => setDragging(null)}
+						>
+							<p className="mb-3 text-muted-foreground text-sm">
+								Drag a name onto another group, or tick several and use Move to.
+								Dragging a ticked name moves all the ticked ones.
+							</p>
+							{selected.size > 0 && (
+								<div className="mb-3 flex flex-wrap items-center gap-2 border bg-muted/40 p-2 text-sm">
+									<strong className="tabular-nums">{selected.size}</strong>{" "}
+									selected
+									<DropdownMenu>
+										<DropdownMenuTrigger asChild>
+											<Button
+												type="button"
+												size="sm"
+												className="rounded-none"
+												disabled={move.isPending}
+											>
+												Move to...
+											</Button>
+										</DropdownMenuTrigger>
+										<DropdownMenuContent align="start">
+											<MoveToItems
+												targets={targets}
+												onPick={(key) => moveTo([...selected], key)}
+											/>
+										</DropdownMenuContent>
+									</DropdownMenu>
+									<Button
+										type="button"
+										size="sm"
+										variant="ghost"
+										className="rounded-none"
+										onClick={() => setSelected(new Set())}
+									>
+										Clear
+									</Button>
+								</div>
 							)}
-						</div>
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+								{data.groups.map((g) => (
+									<GroupTicketColumn
+										key={g.id}
+										eventId={eventId}
+										groupKey={String(g.id)}
+										title={g.name}
+										typeCounts={g.type_counts}
+										typeNames={typeNames}
+										targets={targets}
+										selected={selected}
+										onToggle={toggle}
+										onMove={moveTo}
+									/>
+								))}
+								{data.unassigned_count > 0 && (
+									<GroupTicketColumn
+										eventId={eventId}
+										groupKey="none"
+										title="Not in a group"
+										typeCounts={data.unassigned_by_type}
+										typeNames={typeNames}
+										targets={targets}
+										selected={selected}
+										onToggle={toggle}
+										onMove={moveTo}
+									/>
+								)}
+							</div>
+							<DragOverlay>
+								{dragging && (
+									<div className="border bg-background px-3 py-2 shadow-md">
+										<p className="font-medium text-sm">
+											{dragging.name}
+											{dragging.count > 1 && ` + ${dragging.count - 1} more`}
+										</p>
+										<p className="text-muted-foreground text-xs">
+											{dragging.typeName}
+										</p>
+									</div>
+								)}
+							</DragOverlay>
+						</DndContext>
 					) : (
 						<p className="text-muted-foreground text-sm">
 							Press Show tickets to list each group's tickets side by side.
