@@ -173,7 +173,7 @@ export async function getPendingTicketsPaged(
 
 // Builds multipart/form-data for the `ticket[...]` params, needed only when
 // payment_proof is a real File (can't ride along in a JSON body).
-function buildTicketFormData(
+export function buildTicketFormData(
 	ticketData: Record<string, unknown>,
 	extra?: Record<string, unknown>,
 ): FormData {

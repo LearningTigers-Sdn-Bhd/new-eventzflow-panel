@@ -12,9 +12,11 @@ import { SelectLabel } from "@/components/admin-ui/form/select-label";
 import { EmptyState } from "@/components/data-state";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSet } from "@/components/ui/field";
+import { Label } from "@/components/ui/label";
 import { useDialog } from "@/hooks/use-dialog";
 import { getEventById } from "@/lib/api/event";
 import { updateTicket } from "@/lib/api/ticket";
+import PaymentReceiptUpload from "../../exhibitor-kits/payment-receipt-upload";
 import { PAYMENT_STATUS } from "../../pending-ticket/constants";
 import type { BaseTicket } from "../event-ticket-table-columns";
 import { TicketTypeFieldSection } from "../page-action/ticket-type-field-section";
@@ -127,6 +129,7 @@ export default function EditTicketForm({
 			// which only lists paid tickets — so "Paid" is always the true
 			// starting value here.
 			payment_status: PAYMENT_STATUS.PAID as number,
+			payment_proof: undefined as File | undefined,
 		},
 		onSubmit: async ({ value }) => {
 			if (!value.ticket_type_id) {
@@ -154,6 +157,7 @@ export default function EditTicketForm({
 						: undefined,
 				role: value.role || undefined,
 				payment_status: hidePaymentStatus ? undefined : value.payment_status,
+				payment_proof: value.payment_proof,
 				custom_fields_data:
 					customFields.length > 0 ? customFieldsData : undefined,
 			});
@@ -322,6 +326,22 @@ export default function EditTicketForm({
 									)}
 								</form.Field>
 							)}
+
+							<form.Field name="payment_proof">
+								{(field) => (
+									<div className="space-y-2">
+										<Label>Payment Screenshot</Label>
+										<PaymentReceiptUpload
+											value={field.state.value ?? ticket.paymentScreenshotUrl}
+											onChange={(file) => field.handleChange(file ?? undefined)}
+											disabled={updateTicketMutation.isPending}
+										/>
+										<p className="text-muted-foreground text-xs">
+											Upload or replace the payment screenshot (optional)
+										</p>
+									</div>
+								)}
+							</form.Field>
 						</div>
 						<form.Field
 							name="ticket_type_id"

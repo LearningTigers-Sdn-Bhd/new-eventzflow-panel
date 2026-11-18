@@ -1,3 +1,4 @@
+import { buildTicketFormData } from "@/lib/api/event/pending/endpoints";
 import type { BackendEvent } from "@/lib/api/event/response";
 import { formatTicketCustomFieldEntries } from "@/lib/utils/custom-fields-display";
 import { extractErrorMessage } from "@/utils/error-handler";
@@ -595,14 +596,21 @@ export async function updateTicket(data: {
 	payment_status?: number;
 	custom_fields_data?: Record<string, string>;
 	vehicle_registration_form_id?: number;
+	payment_proof?: File;
 }): Promise<UpdateTicketResponse> {
 	const validated = updateTicketSchema.parse(data);
 	const { eventId, ticketId, ...ticketData } = validated;
 
-	const response = await restClient.put<BackendTicket>(
-		`v1/events/${eventId}/tickets/${ticketId}`,
-		{ ticket: ticketData },
-	);
+	// A File can't ride in a JSON body — switch to multipart only when present.
+	const response = ticketData.payment_proof
+		? await restClient.putFormData<BackendTicket>(
+				`v1/events/${eventId}/tickets/${ticketId}`,
+				buildTicketFormData(ticketData),
+			)
+		: await restClient.put<BackendTicket>(
+				`v1/events/${eventId}/tickets/${ticketId}`,
+				{ ticket: ticketData },
+			);
 
 	// Transform backend response to frontend format
 	return transformBackendTicket(response, "Unknown Event", eventId);
